@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Sistema de Pagamento — Implementação Completa</title>
+<style>
+:root{
+  --blue:#185FA5;--blue-bg:#E6F1FB;--blue-b:#B5D4F4;
+  --purple:#534AB7;--purple-bg:#EEEDFE;--purple-b:#AFA9EC;
+  --teal:#0F6E56;--teal-bg:#E1F5EE;--teal-b:#9FE1CB;
+  --amber:#854F0B;--amber-bg:#FAEEDA;--amber-b:#FAC775;
+  --red:#A32D2D;--red-bg:#FCEBEB;--red-b:#F7C1C1;
+  --gray:#5F5E5A;--gray-bg:#F1EFE8;--gray-b:#D3D1C7;
+  --code-bg:#18181a;--code-fg:#d4d4d4;
+  --key:#9cdcfe;--str:#ce9178;--num:#b5cea8;--bool:#569cd6;--cmt:#6a9955;--fn:#dcdcaa;--kw:#c586c0;--cls:#4ec9b0;--pun:#d4d4d4;
+  --border:rgba(0,0,0,0.1);--surface:#f5f4f0;
+  --text:#1a1a18;--muted:#73726c;--bg:#fff;
+  --font:system-ui,-apple-system,sans-serif;
+  --mono:'SF Mono','Fira Code',Consolas,monospace;
+  --r:8px;
+}
+@media(prefers-color-scheme:dark){
+  :root{
+    --code-bg:#0d1117;--border:rgba(255,255,255,0.1);
+    --surface:#242422;--text:#e8e6de;--muted:#9c9a92;--bg:#1c1c1a;
+    --blue-bg:#042C53;--purple-bg:#26215C;--teal-bg:#04342C;--amber-bg:#412402;--red-bg:#501313;--gray-bg:#2C2C2A;
+  }
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--font);color:var(--text);background:var(--bg);line-height:1.65;padding:40px 24px 80px;}
+.wrap{max-width:900px;margin:0 auto;}
+h1{font-size:26px;font-weight:600;margin-bottom:6px;}
+.lead{color:var(--muted);font-size:14px;margin-bottom:48px;max-width:620px;}
+h2{font-size:19px;font-weight:600;margin:56px 0 18px;padding-bottom:10px;border-bottom:2px solid var(--border);}
+h3{font-size:14.5px;font-weight:600;margin:24px 0 8px;}
+p{font-size:14px;color:var(--muted);line-height:1.7;margin-bottom:12px;}
+p strong{color:var(--text);}
+ul{font-size:14px;color:var(--muted);padding-left:20px;margin-bottom:14px;}
+li{margin-bottom:5px;line-height:1.6;}
+li strong{color:var(--text);}
+
+pre{background:var(--code-bg);color:var(--code-fg);padding:18px 20px;border-radius:var(--r);font-family:var(--mono);font-size:11.5px;overflow-x:auto;line-height:1.7;margin:10px 0 22px;border:1px solid rgba(255,255,255,.04);}
+.ftag{display:inline-block;background:rgba(255,255,255,.06);color:var(--muted);font-family:var(--mono);font-size:10px;padding:3px 10px;border-radius:4px 4px 0 0;margin-bottom:-2px;border:1px solid rgba(255,255,255,.08);border-bottom:none;}
+code{font-family:var(--mono);font-size:11.5px;background:var(--surface);border:1px solid var(--border);padding:1px 6px;border-radius:4px;}
+.k{color:var(--key);}
+.s{color:var(--str);}
+.n{color:var(--num);}
+.b{color:var(--bool);}
+.c{color:var(--cmt);font-style:italic;}
+.fn{color:var(--fn);}
+.kw{color:var(--kw);}
+.cls{color:var(--cls);}
+.pun{color:var(--pun);}
+
+.info{border-left:3px solid var(--blue);background:var(--blue-bg);padding:12px 16px;border-radius:0 var(--r) var(--r) 0;margin:16px 0;}
+.warn{border-left:3px solid var(--amber);background:var(--amber-bg);padding:12px 16px;border-radius:0 var(--r) var(--r) 0;margin:16px 0;}
+.danger{border-left:3px solid var(--red);background:var(--red-bg);padding:12px 16px;border-radius:0 var(--r) var(--r) 0;margin:16px 0;}
+.info p,.warn p,.danger p{margin:0;font-size:13px;}
+
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px 18px;margin:12px 0;}
+.card-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:10px;}
+
+.table{width:100%;border-collapse:collapse;font-size:13px;margin:10px 0 22px;}
+.table th{text-align:left;padding:8px 12px;background:var(--surface);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);}
+.table td{padding:8px 12px;border-bottom:1px solid var(--border);vertical-align:top;line-height:1.5;}
+.table tr:last-child td{border-bottom:none;}
+
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:12px 0 22px;}
+@media(max-width:640px){.grid2{grid-template-columns:1fr;}}
+
+.badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;margin:1px;}
+.b-blue{background:var(--blue-bg);color:var(--blue);}
+.b-teal{background:var(--teal-bg);color:var(--teal);}
+.b-amber{background:var(--amber-bg);color:var(--amber);}
+.b-red{background:var(--red-bg);color:var(--red);}
+.b-gray{background:var(--gray-bg);color:var(--gray);}
+.b-purple{background:var(--purple-bg);color:var(--purple);}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>Sistema de Pagamento</h1>
+<p class="lead">Modelo escrow com integração Stripe (cartão) e Gerencianet/Efí (PIX). Comissão da plataforma capturada na autorização. Liberação automática após aprovação da entrega.</p>
+
+<!-- ════════════════════════════════════════════
+     DIAGRAMA PRINCIPAL
+     ════════════════════════════════════════════ -->
+<svg width="100%" viewBox="0 0 700 420" xmlns="http://www.w3.org/2000/svg" style="display:block;margin:24px 0;">
+<defs>
+  <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+    <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  </marker>
+  <marker id="rarr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+    <path d="M2 1L8 5L2 9" fill="none" stroke="#A32D2D" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  </marker>
+</defs>
+
+<!-- Lane labels -->
+<rect x="0" y="20" width="700" height="80" rx="0" fill="rgba(230,241,251,0.25)"/>
+<text x="14" y="56" fill="#185FA5" font-size="9" font-weight="700" font-family="system-ui" text-anchor="middle" transform="rotate(-90,14,62)">ORDEM</text>
+<rect x="0" y="155" width="700" height="80" rx="0" fill="rgba(225,245,238,0.25)"/>
+<text x="14" y="196" fill="#0F6E56" font-size="9" font-weight="700" font-family="system-ui" text-anchor="middle" transform="rotate(-90,14,196)">PAGTO</text>
+
+<!-- ORDER STATES -->
+<g>
+  <rect x="30" y="28" width="115" height="44" rx="6" fill="#E6F1FB" stroke="#B5D4F4" stroke-width="1"/>
+  <text x="87" y="47" text-anchor="middle" fill="#185FA5" font-size="11" font-weight="600" font-family="system-ui">SELECIONADA</text>
+  <text x="87" y="62" text-anchor="middle" fill="#185FA5" font-size="9" font-family="system-ui">freelancer escolhido</text>
+</g>
+<line x1="145" y1="50" x2="170" y2="50" stroke="#9c9a92" stroke-width="1" marker-end="url(#arr)"/>
+
+<g>
+  <rect x="170" y="28" width="115" height="44" rx="6" fill="#E6F1FB" stroke="#B5D4F4" stroke-width="1"/>
+  <text x="227" y="47" text-anchor="middle" fill="#185FA5" font-size="11" font-weight="600" font-family="system-ui">ACEITA</text>
+  <text x="227" y="62" text-anchor="middle" fill="#185FA5" font-size="9" font-family="system-ui">chat + escrow ativo</text>
+</g>
+<line x1="285" y1="50" x2="310" y2="50" stroke="#9c9a92" stroke-width="1" marker-end="url(#arr)"/>
+
+<g>
+  <rect x="310" y="28" width="115" height="44" rx="6" fill="#E6F1FB" stroke="#B5D4F4" stroke-width="1"/>
+  <text x="367" y="47" text-anchor="middle" fill="#185FA5" font-size="11" font-weight="600" font-family="system-ui">APROVADA</text>
+  <text x="367" y="62" text-anchor="middle" fill="#185FA5" font-size="9" font-family="system-ui">timer de liberação</text>
+</g>
+<line x1="425" y1="50" x2="450" y2="50" stroke="#9c9a92" stroke-width="1" marker-end="url(#arr)"/>
+
+<g>
+  <rect x="450" y="28" width="115" height="44" rx="6" fill="#0F6E56" stroke="#085041" stroke-width="1"/>
+  <text x="507" y="47" text-anchor="middle" fill="#fff" font-size="11" font-weight="600" font-family="system-ui">CONCLUÍDA</text>
+  <text x="507" y="62" text-anchor="middle" fill="rgba(255,255,255,0.7)" font-size="9" font-family="system-ui">avaliação disponível</text>
+</g>
+
+<!-- PAYMENT STATES -->
+<g>
+  <rect x="30" y="163" width="115" height="44" rx="6" fill="#FAEEDA" stroke="#FAC775" stroke-width="1"/>
+  <text x="87" y="182" text-anchor="middle" fill="#854F0B" font-size="11" font-weight="600" font-family="system-ui">AUTORIZADO</text>
+  <text x="87" y="197" text-anchor="middle" fill="#854F0B" font-size="9" font-family="system-ui">reserva na operadora</text>
+</g>
+<line x1="145" y1="185" x2="170" y2="185" stroke="#9c9a92" stroke-width="1" marker-end="url(#arr)"/>
+
+<g>
+  <rect x="170" y="163" width="115" height="44" rx="6" fill="#EEEDFE" stroke="#AFA9EC" stroke-width="1"/>
+  <text x="227" y="182" text-anchor="middle" fill="#534AB7" font-size="11" font-weight="600" font-family="system-ui">CAPTURADO</text>
+  <text x="227" y="197" text-anchor="middle" fill="#534AB7" font-size="9" font-family="system-ui">escrow ativo</text>
+</g>
+<line x1="285" y1="185" x2="310" y2="185" stroke="#9c9a92" stroke-width="1" marker-end="url(#arr)"/>
+
+<g>
+  <rect x="310" y="163" width="115" height="44" rx="6" fill="#EEEDFE" stroke="#AFA9EC" stroke-width="1"/>
+  <text x="367" y="182" text-anchor="middle" fill="#534AB7" font-size="11" font-weight="600" font-family="system-ui">CAPTURADO</text>
+  <text x="367" y="197" text-anchor="middle" fill="#534AB7" font-size="9" font-family="system-ui">aguardando liberação</text>
+</g>
+<line x1="425" y1="185" x2="450" y2="185" stroke="#9c9a92" stroke-width="1" marker-end="url(#arr)"/>
+
+<g>
+  <rect x="450" y="163" width="115" height="44" rx="6" fill="#0F6E56" stroke="#085041" stroke-width="1"/>
+  <text x="507" y="182" text-anchor="middle" fill="#fff" font-size="11" font-weight="600" font-family="system-ui">LIBERADO</text>
+  <text x="507" y="197" text-anchor="middle" fill="rgba(255,255,255,0.7)" font-size="9" font-family="system-ui">transferido ao freelancer</text>
+</g>
+
+<!-- Vertical connections (order ↕ payment) -->
+<!-- Phase 1: SELECTED + Empresa paga → AUTHORIZED -->
+<line x1="87" y1="72" x2="87" y2="163" stroke="#854F0B" stroke-width="1" stroke-dasharray="3 3"/>
+<rect x="22" y="107" width="130" height="18" rx="3" fill="#FAEEDA"/>
+<text x="87" y="119" text-anchor="middle" fill="#854F0B" font-size="9" font-weight="600" font-family="system-ui">① empresa paga (card/PIX)</text>
+
+<!-- Phase 2: ACCEPTED + freelancer aceita → CAPTURED -->
+<line x1="227" y1="72" x2="227" y2="163" stroke="#534AB7" stroke-width="1" stroke-dasharray="3 3"/>
+<rect x="162" y="107" width="130" height="18" rx="3" fill="#EEEDFE"/>
+<text x="227" y="119" text-anchor="middle" fill="#534AB7" font-size="9" font-weight="600" font-family="system-ui">② aceite captura o escrow</text>
+
+<!-- Phase 3: APPROVED → timer starts -->
+<line x1="367" y1="72" x2="367" y2="163" stroke="#534AB7" stroke-width="1" stroke-dasharray="3 3"/>
+<rect x="302" y="107" width="130" height="18" rx="3" fill="#EEEDFE"/>
+<text x="367" y="119" text-anchor="middle" fill="#534AB7" font-size="9" font-weight="600" font-family="system-ui">③ aprovação → timer 3 dias</text>
+
+<!-- Phase 4: COMPLETED → RELEASED -->
+<line x1="507" y1="72" x2="507" y2="163" stroke="#0F6E56" stroke-width="1" stroke-dasharray="3 3"/>
+<rect x="442" y="107" width="130" height="18" rx="3" fill="#E1F5EE"/>
+<text x="507" y="119" text-anchor="middle" fill="#0F6E56" font-size="9" font-weight="600" font-family="system-ui">④ job libera pagamento</text>
+
+<!-- PIX async indicator -->
+<rect x="30" y="242" width="115" height="36" rx="6" fill="#F1EFE8" stroke="#D3D1C7" stroke-width="1" stroke-dasharray="3 2"/>
+<text x="87" y="258" text-anchor="middle" fill="#5F5E5A" font-size="10" font-weight="600" font-family="system-ui">PIX PENDENTE</text>
+<text x="87" y="271" text-anchor="middle" fill="#5F5E5A" font-size="8" font-family="system-ui">webhook async → AUTORIZADO</text>
+<line x1="87" y1="242" x2="87" y2="207" stroke="#5F5E5A" stroke-width="0.8" stroke-dasharray="3 2" marker-end="url(#arr)"/>
+
+<!-- EXCEPTION STATES -->
+<rect x="185" y="242" width="105" height="36" rx="6" fill="#FCEBEB" stroke="#F7C1C1" stroke-width="1"/>
+<text x="237" y="258" text-anchor="middle" fill="#A32D2D" font-size="10" font-weight="600" font-family="system-ui">FALHADO</text>
+<text x="237" y="271" text-anchor="middle" fill="#A32D2D" font-size="8" font-family="system-ui">cartão recusado / PIX expirou</text>
+<!-- Arrow from AUTHORIZED down to FAILED -->
+<line x1="140" y1="185" x2="210" y2="242" stroke="#A32D2D" stroke-width="0.8" stroke-dasharray="3 2" marker-end="url(#rarr)"/>
+
+<rect x="305" y="242" width="105" height="36" rx="6" fill="#FCEBEB" stroke="#F7C1C1" stroke-width="1"/>
+<text x="357" y="258" text-anchor="middle" fill="#A32D2D" font-size="10" font-weight="600" font-family="system-ui">EM DISPUTA</text>
+<text x="357" y="271" text-anchor="middle" fill="#A32D2D" font-size="8" font-family="system-ui">escrow congelado</text>
+<!-- Arrow from CAPTURED middle to DISPUTED -->
+<line x1="310" y1="200" x2="350" y2="242" stroke="#A32D2D" stroke-width="0.8" stroke-dasharray="3 2" marker-end="url(#rarr)"/>
+
+<rect x="425" y="242" width="115" height="36" rx="6" fill="#FAEEDA" stroke="#FAC775" stroke-width="1"/>
+<text x="482" y="258" text-anchor="middle" fill="#854F0B" font-size="10" font-weight="600" font-family="system-ui">ESTORNADO</text>
+<text x="482" y="271" text-anchor="middle" fill="#854F0B" font-size="8" font-family="system-ui">total ou parcial</text>
+<!-- From DISPUTED to REFUNDED -->
+<line x1="410" y1="260" x2="425" y2="260" stroke="#854F0B" stroke-width="0.8" marker-end="url(#arr)"/>
+<!-- From CAPTURED to REFUNDED (cancel) -->
+<line x1="450" y1="207" x2="482" y2="242" stroke="#854F0B" stroke-width="0.8" stroke-dasharray="3 2" marker-end="url(#arr)"/>
+
+<!-- Dispute → Released (freelancer wins) -->
+<line x1="357" y1="278" x2="357" y2="310" stroke="#0F6E56" stroke-width="0.8" stroke-dasharray="2 2"/>
+<line x1="357" y1="310" x2="507" y2="310" stroke="#0F6E56" stroke-width="0.8" stroke-dasharray="2 2"/>
+<line x1="507" y1="310" x2="507" y2="207" stroke="#0F6E56" stroke-width="0.8" stroke-dasharray="2 2" marker-end="url(#arr)"/>
+<text x="432" y="320" text-anchor="middle" fill="#0F6E56" font-size="8" font-family="system-ui">admin: ganhou freelancer</text>
+
+<!-- SPLIT BOX -->
+<rect x="587" y="155" width="108" height="98" rx="6" fill="var(--surface,#f5f4f0)" stroke="var(--border,rgba(0,0,0,0.1))" stroke-width="1"/>
+<text x="641" y="172" text-anchor="middle" font-size="9" font-weight="700" font-family="system-ui" fill="#9c9a92">SPLIT R$ 3.500</text>
+<rect x="593" y="178" width="96" height="12" rx="2" fill="#0F6E56" opacity="0.9"/>
+<text x="641" y="188" text-anchor="middle" font-size="8" fill="#fff" font-family="system-ui">Freelancer R$3.150 (90%)</text>
+<rect x="593" y="193" width="10" height="12" rx="2" fill="#185FA5" opacity="0.9"/>
+<rect x="604" y="193" width="85" height="12" rx="2" fill="#185FA5" opacity="0.4"/>
+<text x="641" y="203" text-anchor="middle" font-size="8" fill="#185FA5" font-family="system-ui">Plataforma R$350 (10%)</text>
+<line x1="593" y1="210" x2="689" y2="210" stroke="rgba(0,0,0,0.08)" stroke-width="0.5"/>
+<text x="641" y="221" text-anchor="middle" font-size="8" fill="#9c9a92" font-family="system-ui">Taxa: 10% fixada</text>
+<text x="641" y="233" text-anchor="middle" font-size="8" fill="#9c9a92" font-family="system-ui">no momento da auth</text>
+<text x="641" y="245" text-anchor="middle" font-size="8" fill="#9c9a92" font-family="system-ui">Snapshot imutável</text>
+
+<!-- Legend -->
+<rect x="30" y="342" width="640" height="28" rx="4" fill="rgba(0,0,0,0.03)" stroke="var(--border,rgba(0,0,0,0.08))" stroke-width="0.5"/>
+<line x1="50" y1="356" x2="80" y2="356" stroke="#9c9a92" stroke-width="1" stroke-dasharray="3 2"/>
+<text x="88" y="360" fill="#9c9a92" font-size="9" font-family="system-ui">Fluxo de exceção</text>
+<line x1="180" y1="356" x2="210" y2="356" stroke="#9c9a92" stroke-width="1.5"/>
+<text x="218" y="360" fill="#9c9a92" font-size="9" font-family="system-ui">Fluxo principal</text>
+<line x1="295" y1="356" x2="325" y2="356" stroke="#854F0B" stroke-width="1" stroke-dasharray="3 2"/>
+<text x="333" y="360" fill="#9c9a92" font-size="9" font-family="system-ui">Estorno / cancelamento</text>
+<line x1="445" y1="356" x2="475" y2="356" stroke="#0F6E56" stroke-width="1" stroke-dasharray="2 2"/>
+<text x="483" y="360" fill="#9c9a92" font-size="9" font-family="system-ui">Disputa → freelancer vence</text>
+</svg>
+
+<!-- ════════ 1. GATEWAY ABSTRACTION ════════ -->
+<h2>1. Camada de Abstração de Gateways</h2>
+
+<p>O sistema nunca chama Stripe ou Gerencianet diretamente no código de negócio. Existe uma <strong>interface PaymentGateway</strong> com implementações específicas por provedor. Isso permite trocar gateways sem tocar na lógica de escrow, comissões ou disputas.</p>
+
+<div class="ftag">src/payment/gateways/payment-gateway.interface.ts</div>
+<pre><span class="kw">export interface</span> <span class="cls">PaymentGateway</span> <span class="pun">{</span>
+  <span class="c">// Pré-autoriza: reserva o valor sem debitar (cartão) ou gera cobrança (PIX)</span>
+  <span class="fn">authorize</span><span class="pun">(</span>input<span class="pun">:</span> <span class="cls">AuthorizeInput</span><span class="pun">):</span> <span class="cls">Promise</span><span class="pun">&lt;</span><span class="cls">AuthorizeResult</span><span class="pun">&gt;;</span>
+
+  <span class="c">// Captura: efetiva a cobrança (muda de reserva para débito)</span>
+  <span class="fn">capture</span><span class="pun">(</span>providerPaymentId<span class="pun">:</span> <span class="kw">string</span><span class="pun">):</span> <span class="cls">Promise</span><span class="pun">&lt;</span><span class="cls">CaptureResult</span><span class="pun">&gt;;</span>
+
+  <span class="c">// Transfere valor ao freelancer (via conta bancária ou chave PIX)</span>
+  <span class="fn">transfer</span><span class="pun">(</span>input<span class="pun">:</span> <span class="cls">TransferInput</span><span class="pun">):</span> <span class="cls">Promise</span><span class="pun">&lt;</span><span class="cls">TransferResult</span><span class="pun">&gt;;</span>
+
+  <span class="c">// Estorna total ou parcial</span>
+  <span class="fn">refund</span><span class="pun">(</span>input<span class="pun">:</span> <span class="cls">RefundInput</span><span class="pun">):</span> <span class="cls">Promise</span><span class="pun">&lt;</span><span class="cls">RefundResult</span><span class="pun">&gt;;</span>
+
+  <span class="c">// Valida assinatura do webhook recebido</span>
+  <span class="fn">validateWebhookSignature</span><span class="pun">(</span>payload<span class="pun">:</span> <span class="kw">string</span><span class="pun">,</span> signature<span class="pun">:</span> <span class="kw">string</span><span class="pun">):</span> <span class="b">boolean</span><span class="pun">;</span>
+
+  <span class="c">// Normaliza evento do provedor para formato interno</span>
+  <span class="fn">parseWebhookEvent</span><span class="pun">(</span>payload<span class="pun">:</span> <span class="kw">unknown</span><span class="pun">):</span> <span class="cls">WebhookEvent</span><span class="pun">;</span>
+<span class="pun">}</span>
+
+<span class="c">// Tipos internos normalizados (independente do provedor)</span>
+<span class="kw">export type</span> WebhookEvent <span class="pun">= {</span>
+  type<span class="pun">:</span>            <span class="s">'payment.authorized'</span> <span class="pun">|</span> <span class="s">'payment.failed'</span> <span class="pun">|</span> <span class="s">'payment.refunded'</span><span class="pun">;</span>
+  providerPaymentId<span class="pun">:</span> <span class="kw">string</span><span class="pun">;</span>
+  amount<span class="pun">:</span>           <span class="kw">string</span><span class="pun">;</span>  <span class="c">// string decimal, ex: "3500.00"</span>
+  currency<span class="pun">:</span>         <span class="kw">string</span><span class="pun">;</span>
+  metadata<span class="pun">:</span>         <span class="cls">Record</span><span class="pun">&lt;</span><span class="kw">string</span><span class="pun">,</span> <span class="kw">string</span><span class="pun">&gt;;</span>
+<span class="pun">};</span></pre>
+
+<!-- ════════ 2. STRIPE (CARTÃO) ════════ -->
+<h2>2. Integração Stripe — Cartão de Crédito/Débito</h2>
+
+<p>Stripe usa o modelo <strong>PaymentIntent com <code>capture_method: 'manual'</code></strong>. Isso separa a autorização (reserva de fundos) da captura (débito efetivo), que é exatamente o que o escrow exige. O cartão nunca é armazenado na plataforma — apenas o token gerado pelo Stripe.js no frontend.</p>
+
+<div class="ftag">src/payment/gateways/stripe.gateway.ts</div>
+<pre><span class="kw">import</span> Stripe <span class="kw">from</span> <span class="s">'stripe'</span><span class="pun">;</span>
+<span class="kw">import</span> <span class="pun">{</span> <span class="cls">PaymentGateway</span> <span class="pun">}</span> <span class="kw">from</span> <span class="s">'./payment-gateway.interface'</span><span class="pun">;</span>
+
+<span class="kw">export class</span> <span class="cls">StripeGateway</span> <span class="kw">implements</span> <span class="cls">PaymentGateway</span> <span class="pun">{</span>
+  <span class="kw">private</span> stripe <span class="pun">= new</span> <span class="cls">Stripe</span><span class="pun">(</span>process<span class="pun">.</span>env<span class="pun">.</span>STRIPE_SECRET_KEY<span class="pun">, {</span>
+    apiVersion<span class="pun">:</span> <span class="s">'2024-06-20'</span><span class="pun">,</span>
+    timeout<span class="pun">:</span>    <span class="n">10000</span><span class="pun">,</span>
+  <span class="pun">});</span>
+
+  <span class="kw">async</span> <span class="fn">authorize</span><span class="pun">({</span> amount<span class="pun">,</span> currency<span class="pun">,</span> providerToken<span class="pun">,</span> orderId<span class="pun">,</span> paymentId <span class="pun">}) {</span>
+    <span class="c">// PaymentIntent com capture_method manual = escrow nativo do Stripe</span>
+    <span class="kw">const</span> pi <span class="pun">=</span> <span class="kw">await</span> <span class="kw">this</span><span class="pun">.</span>stripe<span class="pun">.</span>paymentIntents<span class="pun">.</span><span class="fn">create</span><span class="pun">({</span>
+      amount<span class="pun">:</span>         <span class="cls">Math</span><span class="pun">.</span><span class="fn">round</span><span class="pun">(</span><span class="cls">Number</span><span class="pun">(</span>amount<span class="pun">) *</span> <span class="n">100</span><span class="pun">),</span>  <span class="c">// Stripe usa centavos</span>
+      currency<span class="pun">:</span>       currency<span class="pun">.</span><span class="fn">toLowerCase</span><span class="pun">(),</span>          <span class="c">// 'brl'</span>
+      payment_method<span class="pun">:</span> providerToken<span class="pun">,</span>
+      capture_method<span class="pun">:</span> <span class="s">'manual'</span><span class="pun">,</span>                        <span class="c">// NÃO debita imediatamente</span>
+      confirm<span class="pun">:</span>        <span class="b">true</span><span class="pun">,</span>
+      metadata<span class="pun">: {</span>
+        order_id<span class="pun">:</span>   orderId<span class="pun">,</span>
+        payment_id<span class="pun">:</span> paymentId<span class="pun">,</span>
+      <span class="pun">},</span>
+      <span class="c">// Autorização expira em 7 dias se não capturada — Stripe cancela automaticamente</span>
+    <span class="pun">});</span>
+
+    <span class="kw">return</span> <span class="pun">{</span>
+      providerPaymentId<span class="pun">:</span>  pi<span class="pun">.</span>id<span class="pun">,</span>
+      providerChargeId<span class="pun">:</span>   pi<span class="pun">.</span>latest_charge <span class="kw">as</span> <span class="kw">string</span><span class="pun">,</span>
+      status<span class="pun">:</span>             <span class="s">'AUTHORIZED'</span><span class="pun">,</span>
+      providerMetadata<span class="pun">:</span>   pi<span class="pun">,</span>
+    <span class="pun">};</span>
+  <span class="pun">}</span>
+
+  <span class="kw">async</span> <span class="fn">capture</span><span class="pun">(</span>providerPaymentId<span class="pun">:</span> <span class="kw">string</span><span class="pun">) {</span>
+    <span class="c">// Efetua o débito real na captura do escrow (freelancer aceitou)</span>
+    <span class="kw">const</span> pi <span class="pun">=</span> <span class="kw">await</span> <span class="kw">this</span><span class="pun">.</span>stripe<span class="pun">.</span>paymentIntents<span class="pun">.</span><span class="fn">capture</span><span class="pun">(</span>providerPaymentId<span class="pun">);</span>
+    <span class="kw">return</span> <span class="pun">{</span> status<span class="pun">:</span> <span class="s">'CAPTURED'</span><span class="pun">,</span> capturedAt<span class="pun">:</span> <span class="kw">new</span> <span class="cls">Date</span><span class="pun">().</span><span class="fn">toISOString</span><span class="pun">() };</span>
+  <span class="pun">}</span>
+
+  <span class="kw">async</span> <span class="fn">transfer</span><span class="pun">({</span> amount<span class="pun">,</span> currency<span class="pun">,</span> stripeAccountId<span class="pun">,</span> orderId <span class="pun">}) {</span>
+    <span class="c">// Stripe Connect: transfere para a conta conectada do freelancer</span>
+    <span class="kw">const</span> transfer <span class="pun">=</span> <span class="kw">await</span> <span class="kw">this</span><span class="pun">.</span>stripe<span class="pun">.</span>transfers<span class="pun">.</span><span class="fn">create</span><span class="pun">({</span>
+      amount<span class="pun">:</span>      <span class="cls">Math</span><span class="pun">.</span><span class="fn">round</span><span class="pun">(</span><span class="cls">Number</span><span class="pun">(</span>amount<span class="pun">) *</span> <span class="n">100</span><span class="pun">),</span>
+      currency<span class="pun">:</span>    currency<span class="pun">.</span><span class="fn">toLowerCase</span><span class="pun">(),</span>
+      destination<span class="pun">:</span> stripeAccountId<span class="pun">,</span>         <span class="c">// conta Stripe do freelancer</span>
+      metadata<span class="pun">: {</span> order_id<span class="pun">:</span> orderId <span class="pun">},</span>
+    <span class="pun">});</span>
+    <span class="kw">return</span> <span class="pun">{</span> providerTransferId<span class="pun">:</span> transfer<span class="pun">.</span>id<span class="pun">,</span> releasedAt<span class="pun">:</span> <span class="kw">new</span> <span class="cls">Date</span><span class="pun">().</span><span class="fn">toISOString</span><span class="pun">() };</span>
+  <span class="pun">}</span>
+
+  <span class="kw">async</span> <span class="fn">refund</span><span class="pun">({</span> providerPaymentId<span class="pun">,</span> amount <span class="pun">}) {</span>
+    <span class="kw">const</span> refund <span class="pun">=</span> <span class="kw">await</span> <span class="kw">this</span><span class="pun">.</span>stripe<span class="pun">.</span>refunds<span class="pun">.</span><span class="fn">create</span><span class="pun">({</span>
+      payment_intent<span class="pun">:</span> providerPaymentId<span class="pun">,</span>
+      amount<span class="pun">:</span>         amount <span class="pun">?</span> <span class="cls">Math</span><span class="pun">.</span><span class="fn">round</span><span class="pun">(</span><span class="cls">Number</span><span class="pun">(</span>amount<span class="pun">) *</span> <span class="n">100</span><span class="pun">) :</span> <span class="b">undefined</span><span class="pun">,</span> <span class="c">// undefined = total</span>
+    <span class="pun">});</span>
+    <span class="kw">return</span> <span class="pun">{</span> providerRefundId<span class="pun">:</span> refund<span class="pun">.</span>id<span class="pun">,</span> refundedAt<span class="pun">:</span> <span class="kw">new</span> <span class="cls">Date</span><span class="pun">().</span><span class="fn">toISOString</span><span class="pun">() };</span>
+  <span class="pun">}</span>
+
+  <span class="fn">validateWebhookSignature</span><span class="pun">(</span>payload<span class="pun">:</span> <span class="kw">string</span><span class="pun">,</span> signature<span class="pun">:</span> <span class="kw">string</span><span class="pun">) {</span>
+    <span class="kw">try</span> <span class="pun">{</span>
+      <span class="kw">this</span><span class="pun">.</span>stripe<span class="pun">.</span>webhooks<span class="pun">.</span><span class="fn">constructEvent</span><span class="pun">(</span>
+        payload<span class="pun">,</span> signature<span class="pun">,</span> process<span class="pun">.</span>env<span class="pun">.</span>STRIPE_WEBHOOK_SECRET
+      <span class="pun">);</span>
+      <span class="kw">return</span> <span class="b">true</span><span class="pun">;</span>
+    <span class="pun">}</span> <span class="kw">catch</span> <span class="pun">{</span>
+      <span class="kw">return</span> <span class="b">false</span><span class="pun">;</span>
+    <span class="pun">}</span>
+  <span class="pun">}</span>
+<span class="pun">}</span></pre>
+
+<!-- ════════ 3. PIX / GERENCIANET ════════ -->
+<h2>3. Integração PIX — Gerencianet / Efí</h2>
+
+<p>O PIX tem fluxo assíncrono: a plataforma gera a cobrança e retorna o QR code. O pagamento chega via <strong>webhook</strong> quando o usuário paga. A pré-autorização só é confirmada quando o webhook <code>pix.recebido</code> chega com o status correto.</p>
+
+<div class="warn"><p>⚠️ <strong>Expiração PIX:</strong> cobranças PIX expiram em 30 minutos por padrão. Se o freelancer aceitar antes do pagamento PIX ser confirmado, o aceite deve ser bloqueado até a confirmação chegar via webhook.</p></div>
+
+<div class="ftag">src/payment/gateways/gerencianet.gateway.ts</div>
+<pre><span class="kw">import</span> <span class="pun">{</span> EfiPay <span class="pun">}</span> <span class="kw">from</span> <span class="s">'sdk-node-apis-efi'</span><span class="pun">;</span>
+
+<span class="kw">export class</span> <span class="cls">GerencianetGateway</span> <span class="kw">implements</span> <span class="cls">PaymentGateway</span> <span class="pun">{</span>
+  <span class="kw">private</span> efi <span class="pun">=</span> <span class="kw">new</span> <span class="cls">EfiPay</span><span class="pun">({</span>
+    client_id<span class="pun">:</span>     process<span class="pun">.</span>env<span class="pun">.</span>EFI_CLIENT_ID<span class="pun">,</span>
+    client_secret<span class="pun">:</span> process<span class="pun">.</span>env<span class="pun">.</span>EFI_CLIENT_SECRET<span class="pun">,</span>
+    sandbox<span class="pun">:</span>       process<span class="pun">.</span>env<span class="pun">.</span>NODE_ENV <span class="pun">!==</span> <span class="s">'production'</span><span class="pun">,</span>
+    certificate<span class="pun">:</span>   <span class="s">'./certs/efi-prod.p12'</span><span class="pun">,</span>         <span class="c">// mTLS obrigatório pelo BACEN</span>
+  <span class="pun">});</span>
+
+  <span class="kw">async</span> <span class="fn">authorize</span><span class="pun">({</span> amount<span class="pun">,</span> orderId<span class="pun">,</span> paymentId<span class="pun">,</span> payerName <span class="pun">}) {</span>
+    <span class="c">// Gera cobrança PIX imediata (cob) com expiração de 30 min</span>
+    <span class="kw">const</span> cob <span class="pun">=</span> <span class="kw">await</span> <span class="kw">this</span><span class="pun">.</span>efi<span class="pun">.</span><span class="fn">pixCreateImmediateCharge</span><span class="pun">({}, {</span>
+      calendario<span class="pun">: {</span> expiracao<span class="pun">:</span> <span class="n">1800</span> <span class="pun">},</span>              <span class="c">// 30 min em segundos</span>
+      valor<span class="pun">: {</span> original<span class="pun">:</span> amount <span class="pun">},</span>                  <span class="c">// string com 2 casas decimais</span>
+      chave<span class="pun">:</span>     process<span class="pun">.</span>env<span class="pun">.</span>EFI_PIX_KEY<span class="pun">,</span>          <span class="c">// chave PIX da plataforma</span>
+      infoAdicionais<span class="pun">: [</span>
+        <span class="pun">{</span> nome<span class="pun">:</span> <span class="s">'Ordem'</span><span class="pun">,</span> valor<span class="pun">:</span> orderId   <span class="pun">},</span>
+        <span class="pun">{</span> nome<span class="pun">:</span> <span class="s">'Ref'</span><span class="pun">,</span>   valor<span class="pun">:</span> paymentId <span class="pun">},</span>
+      <span class="pun">],</span>
+    <span class="pun">});</span>
+
+    <span class="c">// Gera QR Code para exibir ao usuário</span>
+    <span class="kw">const</span> qr <span class="pun">=</span> <span class="kw">await</span> <span class="kw">this</span><span class="pun">.</span>efi<span class="pun">.</span><span class="fn">pixGenerateQRCode</span><span class="pun">({ id:</span> cob<span class="pun">.</span>loc<span class="pun">.</span>id <span class="pun">});</span>
+
+    <span class="kw">return</span> <span class="pun">{</span>
+      providerPaymentId<span class="pun">:</span> cob<span class="pun">.</span>txid<span class="pun">,</span>
+      status<span class="pun">:</span>            <span class="s">'PENDING'</span><span class="pun">,</span>              <span class="c">// PIX fica PENDING até webhook</span>
+      pixQrCode<span class="pun">:</span>         qr<span class="pun">.</span>qrcode<span class="pun">,</span>             <span class="c">// string EMV para copiar e colar</span>
+      pixQrCodeUrl<span class="pun">:</span>      qr<span class="pun">.</span>imagemQrcode<span class="pun">,</span>       <span class="c">// URL da imagem do QR Code</span>
+      pixExpirationAt<span class="pun">:</span>   <span class="kw">new</span> <span class="cls">Date</span><span class="pun">(</span><span class="cls">Date</span><span class="pun">.</span><span class="fn">now</span><span class="pun">() +</span> <span class="n">30</span> <span class="pun">*</span> <span class="n">60000</span><span class="pun">).</span><span class="fn">toISOString</span><span class="pun">(),</span>
+    <span class="pun">};</span>
+  <span class="pun">}</span>
+
+  <span class="fn">validateWebhookSignature</span><span class="pun">(</span>payload<span class="pun">:</span> <span class="kw">string</span><span class="pun">,</span> signature<span class="pun">:</span> <span class="kw">string</span><span class="pun">) {</span>
+    <span class="c">// Gerencianet envia mTLS — a validação é feita pelo certificado do servidor</span>
+    <span class="c">// O BACEN exige que o endpoint PIX use mTLS com certificado da EFí</span>
+    <span class="kw">const</span> hmac <span class="pun">=</span> <span class="fn">createHmac</span><span class="pun">(</span><span class="s">'sha256'</span><span class="pun">,</span> process<span class="pun">.</span>env<span class="pun">.</span>EFI_WEBHOOK_SECRET<span class="pun">)</span>
+      <span class="pun">.</span><span class="fn">update</span><span class="pun">(</span>payload<span class="pun">).</span><span class="fn">digest</span><span class="pun">(</span><span class="s">'hex'</span><span class="pun">);</span>
+    <span class="kw">return</span> <span class="fn">timingSafeEqual</span><span class="pun">(</span><span class="cls">Buffer</span><span class="pun">.</span><span class="fn">from</span><span class="pun">(</span>hmac<span class="pun">),</span> <span class="cls">Buffer</span><span class="pun">.</span><span class="fn">from</span><span class="pun">(</span>signature<span class="pun">));</span>
+  <span class="pun">}</span>
+<span class="pun">}</span></pre>
+
+<!-- ════════ 4. PAGAMENTO MANUAL ════════ -->
+<h2>4. Pagamento Externo (Manual)</h2>
+
+<p>Empresas enterprise pagam por boleto, transferência ou invoice. Não há gateway. Um admin registra o recebimento manualmente após confirmação bancária. O fluxo exige aprovação de dois admins para valores acima de R$ 50.000 (four-eyes principle).</p>
+
+<div class="ftag">src/payment/gateways/manual.gateway.ts</div>
+<pre><span class="kw">export class</span> <span class="cls">ManualGateway</span> <span class="kw">implements</span> <span class="cls">PaymentGateway</span> <span class="pun">{</span>
+  <span class="kw">async</span> <span class="fn">authorize</span><span class="pun">({</span> amount<span class="pun">,</span> orderId<span class="pun">,</span> paymentId<span class="pun">,</span> referenceCode<span class="pun">,</span> approvedByAdminId <span class="pun">}) {</span>
+    <span class="c">// Four-eyes: valores > 50k exigem segundo admin</span>
+    <span class="kw">if</span> <span class="pun">(</span><span class="cls">Number</span><span class="pun">(</span>amount<span class="pun">) ></span> <span class="n">50000</span> <span class="pun">&&</span> <span class="pun">!</span>approvedByAdminId<span class="pun">)</span>
+      <span class="kw">throw</span> <span class="kw">new</span> <span class="cls">BusinessError</span><span class="pun">(</span><span class="s">'SECOND_APPROVAL_REQUIRED'</span><span class="pun">);</span>
+
+    <span class="c">// Gera ID interno — não existe provider externo</span>
+    <span class="kw">const</span> internalId <span class="pun">=</span> <span class="s">`MANUAL-<span class="pun">${</span>orderId<span class="pun">}</span>-<span class="pun">${</span><span class="cls">Date</span><span class="pun">.</span><span class="fn">now</span><span class="pun">()}</span>`</span><span class="pun">;</span>
+
+    <span class="c">// Registra no audit_log com referência bancária e adminId</span>
+    <span class="kw">await</span> <span class="fn">auditLog</span><span class="pun">({</span>
+      entityType<span class="pun">:</span> <span class="s">'payment'</span><span class="pun">,</span> entityId<span class="pun">:</span> paymentId<span class="pun">,</span>
+      action<span class="pun">:</span>    <span class="s">'manual.payment_registered'</span><span class="pun">,</span>
+      actorId<span class="pun">:</span>  approvedByAdminId<span class="pun">,</span>
+      afterData<span class="pun">: {</span> amount<span class="pun">,</span> referenceCode<span class="pun">,</span> internalId <span class="pun">},</span>
+    <span class="pun">});</span>
+
+    <span class="kw">return</span> <span class="pun">{</span>
+      providerPaymentId<span class="pun">:</span> internalId<span class="pun">,</span>
+      status<span class="pun">:</span>            <span class="s">'AUTHORIZED'</span><span class="pun">,</span>   <span class="c">// imediatamente autorizado (admin confirmou)</span>
+    <span class="pun">};</span>
+  <span class="pun">}</span>
+
+  <span class="kw">async</span> <span class="fn">transfer</span><span class="pun">({</span> amount<span class="pun">,</span> pixKey<span class="pun">,</span> orderId<span class="pun">,</span> approvedByAdminId <span class="pun">}) {</span>
+    <span class="c">// Para pagamentos manuais, a transferência é também manual</span>
+    <span class="c">// O sistema registra a intenção; o admin processa no banco e confirma</span>
+    <span class="kw">await</span> queue<span class="pun">.</span><span class="fn">publish</span><span class="pun">(</span><span class="s">'manual-transfers'</span><span class="pun">, {</span>
+      orderId<span class="pun">,</span> amount<span class="pun">,</span> pixKey<span class="pun">,</span>
+      requestedBy<span class="pun">:</span> approvedByAdminId<span class="pun">,</span>
+    <span class="pun">});</span>
+    <span class="kw">return</span> <span class="pun">{</span> providerTransferId<span class="pun">:</span> <span class="s">`PENDING-MANUAL-<span class="pun">${</span>orderId<span class="pun">}</span>`</span> <span class="pun">};</span>
+  <span class="pun">}</span>
+<span class="pun">}</span></pre>
+
+<!-- ════════ 5. PAYMENT SERVICE ════════ -->
+<h2>5. PaymentService — Orquestração Central</h2>
+
+<p>O <code>PaymentService</code> é chamado pelo <code>OrderService</code> nos momentos corretos da FSM. Toda operação financeira acontece dentro de uma transação de banco para garantir consistência entre as tabelas <code>payments</code>, <code>payment_transactions</code> e <code>platform_ledger</code>.</p>
+
+<div class="ftag">src/payment/payment.service.ts</div>
+<pre><span class="kw">export class</span> <span class="cls">PaymentService</span> <span class="pun">{</span>
+
+  <span class="c">// ── 1. AUTORIZAR (empresa paga, freelancer ainda não aceitou) ──────────</span>
+  <span class="kw">static async</span> <span class="fn">authorize</span><span class="pun">(</span>input<span class="pun">:</span> <span class="cls">AuthorizeInput</span><span class="pun">) {</span>
+    <span class="kw">const</span> order   <span class="pun">=</span> <span class="kw">await</span> <span class="cls">OrderRepo</span><span class="pun">.</span><span class="fn">findById</span><span class="pun">(</span>input<span class="pun">.</span>orderId<span class="pun">);</span>
+    <span class="kw">const</span> feeRate <span class="pun">=</span> <span class="kw">await</span> <span class="cls">PlatformSettings</span><span class="pun">.</span><span class="fn">get</span><span class="pun">(</span><span class="s">'platform_fee_rate'</span><span class="pun">);</span> <span class="c">// snapshot</span>
+    <span class="kw">const</span> feeAmt  <span class="pun">=</span> <span class="cls">Decimal</span><span class="pun">.</span><span class="fn">mul</span><span class="pun">(</span>input<span class="pun">.</span>amount<span class="pun">,</span> feeRate<span class="pun">).</span><span class="fn">toFixed</span><span class="pun">(</span><span class="n">2</span><span class="pun">);</span>
+    <span class="kw">const</span> freeLrAmt <span class="pun">=</span> <span class="cls">Decimal</span><span class="pun">.</span><span class="fn">sub</span><span class="pun">(</span>input<span class="pun">.</span>amount<span class="pun">,</span> feeAmt<span class="pun">).</span><span class="fn">toFixed</span><span class="pun">(</span><span class="n">2</span><span class="pun">);</span>
+
+    <span class="kw">return</span> db<span class="pun">.</span><span class="fn">transaction</span><span class="pun">(</span><span class="kw">async</span> <span class="pun">(</span>trx<span class="pun">) => {</span>
+      <span class="c">// 1. Cria o registro de pagamento (PENDING) com taxa fixada agora</span>
+      <span class="kw">const</span> payment <span class="pun">=</span> <span class="kw">await</span> trx<span class="pun">.</span><span class="fn">query</span><span class="pun">(</span><span class="s">`
+        INSERT INTO payments (order_id, company_id, freelancer_id,
+          gross_amount, platform_fee_rate, platform_fee_amount,
+          freelancer_amount, currency, status, idempotency_key)
+        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,'PENDING',$9)
+        ON CONFLICT (idempotency_key) DO NOTHING
+        RETURNING *
+      `</span><span class="pun">, [</span>
+        input<span class="pun">.</span>orderId<span class="pun">,</span>    order<span class="pun">.</span>company_id<span class="pun">,</span>  order<span class="pun">.</span>selected_freelancer_id<span class="pun">,</span>
+        input<span class="pun">.</span>amount<span class="pun">,</span>     feeRate<span class="pun">,</span>          feeAmt<span class="pun">,</span>
+        freeLrAmt<span class="pun">,</span>        input<span class="pun">.</span>currency<span class="pun">,</span>   input<span class="pun">.</span>idempotencyKey<span class="pun">,</span>
+      <span class="pun">]);</span>
+
+      <span class="kw">if</span> <span class="pun">(!</span>payment<span class="pun">.</span>rows<span class="pun">.</span>length<span class="pun">)</span>
+        <span class="kw">throw</span> <span class="kw">new</span> <span class="cls">ConflictError</span><span class="pun">(</span><span class="s">'PAYMENT_ALREADY_EXISTS'</span><span class="pun">);</span>
+
+      <span class="c">// 2. Chama o gateway correto</span>
+      <span class="kw">const</span> gateway <span class="pun">=</span> <span class="fn">resolveGateway</span><span class="pun">(</span>input<span class="pun">.</span>method<span class="pun">);</span>
+      <span class="kw">const</span> result  <span class="pun">=</span> <span class="kw">await</span> gateway<span class="pun">.</span><span class="fn">authorize</span><span class="pun">({</span>
+        amount<span class="pun">:</span>        input<span class="pun">.</span>amount<span class="pun">,</span>
+        currency<span class="pun">:</span>      input<span class="pun">.</span>currency<span class="pun">,</span>
+        providerToken<span class="pun">:</span> input<span class="pun">.</span>providerToken<span class="pun">,</span>
+        orderId<span class="pun">:</span>       input<span class="pun">.</span>orderId<span class="pun">,</span>
+        paymentId<span class="pun">:</span>     payment<span class="pun">.</span>rows<span class="pun">[</span><span class="n">0</span><span class="pun">].</span>id<span class="pun">,</span>
+      <span class="pun">});</span>
+
+      <span class="c">// 3. Atualiza payment com dados do provedor</span>
+      <span class="kw">await</span> trx<span class="pun">.</span><span class="fn">query</span><span class="pun">(</span><span class="s">`
+        UPDATE payments SET
+          status = $1, method = $2, provider = $3,
+          provider_payment_id = $4, pix_qr_code = $5,
+          pix_expiration_at = $6, authorized_at = NOW()
+        WHERE id = $7
+      `</span><span class="pun">, [</span>
+        result<span class="pun">.</span>status<span class="pun">,</span>           input<span class="pun">.</span>method<span class="pun">,</span>      <span class="fn">resolveProviderName</span><span class="pun">(</span>input<span class="pun">.</span>method<span class="pun">),</span>
+        result<span class="pun">.</span>providerPaymentId<span class="pun">,</span> result<span class="pun">.</span>pixQrCode<span class="pun">,</span> result<span class="pun">.</span>pixExpirationAt<span class="pun">,</span>
+        payment<span class="pun">.</span>rows<span class="pun">[</span><span class="n">0</span><span class="pun">].</span>id<span class="pun">,</span>
+      <span class="pun">]);</span>
+
+      <span class="c">// 4. Registra transação no log imutável</span>
+      <span class="kw">await</span> <span class="cls">TxLog</span><span class="pun">.</span><span class="fn">insert</span><span class="pun">(</span>trx<span class="pun">, {</span>
+        paymentId<span class="pun">:</span> payment<span class="pun">.</span>rows<span class="pun">[</span><span class="n">0</span><span class="pun">].</span>id<span class="pun">,</span>
+        type<span class="pun">:</span>      <span class="s">'AUTHORIZATION'</span><span class="pun">,</span>
+        status<span class="pun">:</span>    <span class="s">'SUCCESS'</span><span class="pun">,</span>
+        amount<span class="pun">:</span>    input<span class="pun">.</span>amount<span class="pun">,</span>
+      <span class="pun">});</span>
+
+      <span class="kw">return</span> <span class="pun">{</span> payment<span class="pun">:</span> payment<span class="pun">.</span>rows<span class="pun">[</span><span class="n">0</span><span class="pun">],</span> <span class="pun">...</span>result <span class="pun">};</span>
+    <span class="pun">});</span>
+  <span class="pun">}</span>
+
+  <span class="c">// ── 2. CAPTURAR (freelancer aceitou → escrow efetivado) ────────────────</span>
+  <span class="kw">static async</span> <span class="fn">capture</span><span class="pun">(</span>paymentId<span class="pun">:</span> <span class="kw">string</span><span class="pun">) {</span>
+    <span class="kw">const</span> payment <span class="pun">=</span> <span class="kw">await</span> <span class="cls">PaymentRepo</span><span class="pun">.</span><span class="fn">findById</span><span class="pun">(</span>paymentId<span class="pun">);</span>
+
+    <span class="kw">if</span> <span class="pun">(</span>payment<span class="pun">.</span>status <span class="pun">!==</span> <span class="s">'AUTHORIZED'</span><span class="pun">)</span>
+      <span class="kw">throw</span> <span class="kw">new</span> <span class="cls">InvalidStateError</span><span class="pun">(</span><span class="s">'PAYMENT_NOT_AUTHORIZED'</span><span class="pun">);</span>
+
+    <span class="c">// PIX já é capturado automaticamente quando o usuário paga</span>
+    <span class="kw">if</span> <span class="pun">(</span>payment<span class="pun">.</span>method <span class="pun">===</span> <span class="s">'PIX'</span><span class="pun">)</span> <span class="pun">{</span>
+      <span class="kw">await</span> db<span class="pun">.</span><span class="fn">query</span><span class="pun">(</span><span class="s">`
+        UPDATE payments SET status='CAPTURED', captured_at=NOW() WHERE id=$1
+      `</span><span class="pun">, [</span>paymentId<span class="pun">]);</span>
+      <span class="kw">return</span><span class="pun">;</span>
+    <span class="pun">}</span>
+
+    <span class="c">// Cartão: captura via Stripe (débito efetivado)</span>
+    <span class="kw">const</span> gateway <span class="pun">=</span> <span class="fn">resolveGateway</span><span class="pun">(</span>payment<span class="pun">.</span>method<span class="pun">);</span>
+    <span class="kw">await</span> gateway<span class="pun">.</span><span class="fn">capture</span><span class="pun">(</span>payment<span class="pun">.</span>provider_payment_id<span class="pun">);</span>
+
+    <span class="kw">await</span> db<span class="pun">.</span><span class="fn">transaction</span><span class="pun">(</span><span class="kw">async</span> <span class="pun">(</span>trx<span class="pun">) => {</span>
+      <span class="kw">await</span> trx<span class="pun">.</span><span class="fn">query</span><span class="pun">(</span><span class="s">`
+        UPDATE payments SET status='CAPTURED', captured_at=NOW() WHERE id=$1
+      `</span><span class="pun">, [</span>paymentId<span class="pun">]);</span>
+      <span class="kw">await</span> <span class="cls">TxLog</span><span class="pun">.</span><span class="fn">insert</span><span class="pun">(</span>trx<span class="pun">, {</span>
+        paymentId<span class="pun">,</span> type<span class="pun">:</span> <span class="s">'CAPTURE'</span><span class="pun">,</span> status<span class="pun">:</span> <span class="s">'SUCCESS'</span><span class="pun">,</span>
+        amount<span class="pun">:</span> payment<span class="pun">.</span>gross_amount<span class="pun">,</span>
+      <span class="pun">});</span>
+    <span class="pun">});</span>
+  <span class="pun">}</span>
+
+  <span class="c">// ── 3. LIBERAR (job dispara após timer de escrow) ──────────────────────</span>
+  <span class="kw">static async</span> <span class="fn">release</span><span class="pun">(</span>paymentId<span class="pun">:</span> <span class="kw">string</span><span class="pun">) {</span>
+    <span class="kw">const</span> payment    <span class="pun">=</span> <span class="kw">await</span> <span class="cls">PaymentRepo</span><span class="pun">.</span><span class="fn">findById</span><span class="pun">(</span>paymentId<span class="pun">);</span>
+    <span class="kw">const</span> freelancer <span class="pun">=</span> <span class="kw">await</span> <span class="cls">FreelancerRepo</span><span class="pun">.</span><span class="fn">findById</span><span class="pun">(</span>payment<span class="pun">.</span>freelancer_id<span class="pun">);</span>
+
+    <span class="kw">if</span> <span class="pun">(</span>payment<span class="pun">.</span>status <span class="pun">!==</span> <span class="s">'CAPTURED'</span><span class="pun">)</span>
+      <span class="kw">throw</span> <span class="kw">new</span> <span class="cls">InvalidStateError</span><span class="pun">(</span><span class="s">'CANNOT_RELEASE'</span><span class="pun">);</span>
+
+    <span class="kw">const</span> gateway <span class="pun">=</span> <span class="fn">resolveGateway</span><span class="pun">(</span>payment<span class="pun">.</span>method<span class="pun">);</span>
+    <span class="kw">const</span> result  <span class="pun">=</span> <span class="kw">await</span> gateway<span class="pun">.</span><span class="fn">transfer</span><span class="pun">({</span>
+      amount<span class="pun">:</span>          payment<span class="pun">.</span>freelancer_amount<span class="pun">,</span>
+      currency<span class="pun">:</span>        payment<span class="pun">.</span>currency<span class="pun">,</span>
+      pixKey<span class="pun">:</span>          freelancer<span class="pun">.</span>pix_key<span class="pun">,</span>        <span class="c">// descriptografada na app</span>
+      stripeAccountId<span class="pun">:</span> freelancer<span class="pun">.</span>stripe_account_id<span class="pun">,</span>
+      orderId<span class="pun">:</span>         payment<span class="pun">.</span>order_id<span class="pun">,</span>
+    <span class="pun">});</span>
+
+    <span class="kw">await</span> db<span class="pun">.</span><span class="fn">transaction</span><span class="pun">(</span><span class="kw">async</span> <span class="pun">(</span>trx<span class="pun">) => {</span>
+      <span class="kw">await</span> trx<span class="pun">.</span><span class="fn">query</span><span class="pun">(</span><span class="s">`
+        UPDATE payments SET status='RELEASED', released_at=NOW() WHERE id=$1
+      `</span><span class="pun">, [</span>paymentId<span class="pun">]);</span>
+
+      <span class="kw">await</span> trx<span class="pun">.</span><span class="fn">query</span><span class="pun">(</span><span class="s">`
+        UPDATE orders SET status='COMPLETED', completed_at=NOW() WHERE id=$1
+      `</span><span class="pun">, [</span>payment<span class="pun">.</span>order_id<span class="pun">]);</span>
+
+      <span class="c">// Registra receita da plataforma no ledger</span>
+      <span class="kw">await</span> trx<span class="pun">.</span><span class="fn">query</span><span class="pun">(</span><span class="s">`
+        INSERT INTO platform_ledger (payment_id, entry_type, amount, currency, balance_after)
+        VALUES ($1, 'FEE_EARNED', $2, $3,
+          (SELECT COALESCE(SUM(amount),0) FROM platform_ledger WHERE entry_type='FEE_EARNED') + $2)
+      `</span><span class="pun">, [</span>paymentId<span class="pun">,</span> payment<span class="pun">.</span>platform_fee_amount<span class="pun">,</span> payment<span class="pun">.</span>currency<span class="pun">]);</span>
+
+      <span class="kw">await</span> <span class="cls">TxLog</span><span class="pun">.</span><span class="fn">insert</span><span class="pun">(</span>trx<span class="pun">, {</span>
+        paymentId<span class="pun">,</span> type<span class="pun">:</span> <span class="s">'RELEASE'</span><span class="pun">,</span> status<span class="pun">:</span> <span class="s">'SUCCESS'</span><span class="pun">,</span>
+        amount<span class="pun">:</span> payment<span class="pun">.</span>freelancer_amount<span class="pun">,</span>
+        providerTransactionId<span class="pun">:</span> result<span class="pun">.</span>providerTransferId<span class="pun">,</span>
+      <span class="pun">});</span>
+
+      <span class="kw">await</span> <span class="fn">eventBus</span><span class="pun">.</span><span class="fn">emit</span><span class="pun">(</span><span class="s">'order.completed'</span><span class="pun">, {</span> orderId<span class="pun">:</span> payment<span class="pun">.</span>order_id <span class="pun">});</span>
+    <span class="pun">});</span>
+  <span class="pun">}</span>
+<span class="pun">}</span></pre>
+
+<!-- ════════ 6. WEBHOOK ════════ -->
+<h2>6. Tratamento de Webhooks</h2>
+
+<p>O webhook é a peça mais crítica de confiabilidade. Deve ser <strong>idempotente</strong> (mesmo evento processado duas vezes não causa efeito duplo), <strong>processado de forma assíncrona</strong> (responde 200 imediatamente, processa na fila), e cada entrega tem <strong>retry automático</strong> com exponential backoff.</p>
+
+<div class="ftag">src/payment/webhook.controller.ts</div>
+<pre><span class="pun">@</span><span class="fn">Post</span><span class="pun">(</span><span class="s">'/webhooks/payment/:provider'</span><span class="pun">)</span>
+<span class="kw">async</span> <span class="fn">handlePaymentWebhook</span><span class="pun">(</span>req<span class="pun">:</span> <span class="cls">Request</span><span class="pun">,</span> res<span class="pun">:</span> <span class="cls">Response</span><span class="pun">) {</span>
+  <span class="kw">const</span> rawBody  <span class="pun">=</span> req<span class="pun">.</span>rawBody<span class="pun">;</span>  <span class="c">// IMPORTANTE: body raw, não parseado (assinatura HMAC)</span>
+  <span class="kw">const</span> provider <span class="pun">=</span> req<span class="pun">.</span>params<span class="pun">.</span>provider<span class="pun">;</span>
+  <span class="kw">const</span> signature<span class="pun">=</span> req<span class="pun">.</span>headers<span class="pun">[</span><span class="s">'stripe-signature'</span><span class="pun">]</span>
+                  <span class="pun">??</span> req<span class="pun">.</span>headers<span class="pun">[</span><span class="s">'x-efi-signature'</span><span class="pun">];</span>
+
+  <span class="c">// 1. Valida assinatura HMAC — rejeita silenciosamente se inválido</span>
+  <span class="kw">const</span> gateway <span class="pun">=</span> <span class="fn">resolveGateway</span><span class="pun">(</span>provider<span class="pun">);</span>
+  <span class="kw">if</span> <span class="pun">(!</span>gateway<span class="pun">.</span><span class="fn">validateWebhookSignature</span><span class="pun">(</span>rawBody<span class="pun">,</span> <span class="kw">signature as</span> <span class="kw">string</span><span class="pun">))</span>
+    <span class="kw">return</span> res<span class="pun">.</span><span class="fn">status</span><span class="pun">(</span><span class="n">401</span><span class="pun">).</span><span class="fn">end</span><span class="pun">();</span>
+
+  <span class="c">// 2. Persiste o webhook raw antes de qualquer processamento</span>
+  <span class="kw">const</span> webhookId <span class="pun">=</span> <span class="kw">await</span> db<span class="pun">.</span><span class="fn">query</span><span class="pun">(</span><span class="s">`
+    INSERT INTO payment_webhooks (provider, event_type, payload, is_verified)
+    VALUES ($1, $2, $3, true)
+    RETURNING id
+  `</span><span class="pun">, [</span>provider<span class="pun">,</span> req<span class="pun">.</span>body<span class="pun">.</span>type<span class="pun">,</span> req<span class="pun">.</span>body<span class="pun">]);</span>
+
+  <span class="c">// 3. Responde 200 imediatamente (Stripe retenta se não responder em 30s)</span>
+  res<span class="pun">.</span><span class="fn">json</span><span class="pun">({</span> received<span class="pun">:</span> <span class="b">true</span> <span class="pun">});</span>
+
+  <span class="c">// 4. Processa de forma assíncrona na fila com retry automático</span>
+  <span class="kw">await</span> queue<span class="pun">.</span><span class="fn">publish</span><span class="pun">(</span><span class="s">'payment-webhooks'</span><span class="pun">, {</span>
+    webhookId<span class="pun">:</span> webhookId<span class="pun">.</span>rows<span class="pun">[</span><span class="n">0</span><span class="pun">].</span>id<span class="pun">,</span>
+    provider<span class="pun">,</span>
+    eventType<span class="pun">:</span> req<span class="pun">.</span>body<span class="pun">.</span>type<span class="pun">,</span>
+    payload<span class="pun">:</span>   req<span class="pun">.</span>body<span class="pun">,</span>
+  <span class="pun">});</span>
+<span class="pun">}</span>
+
+<span class="c">// Worker que processa a fila de webhooks</span>
+queue<span class="pun">.</span><span class="fn">subscribe</span><span class="pun">(</span><span class="s">'payment-webhooks'</span><span class="pun">, {</span>
+  attempts<span class="pun">:</span> <span class="n">5</span><span class="pun">,</span>
+  backoff<span class="pun">:</span>   <span class="pun">{</span> type<span class="pun">:</span> <span class="s">'exponential'</span><span class="pun">,</span> delay<span class="pun">:</span> <span class="n">2000</span> <span class="pun">},</span>  <span class="c">// 2s, 4s, 8s, 16s, 32s</span>
+<span class="pun">},</span> <span class="kw">async</span> <span class="pun">({</span> webhookId<span class="pun">,</span> provider<span class="pun">,</span> payload <span class="pun">}) => {</span>
+  <span class="c">// Idempotência: verifica se já foi processado</span>
+  <span class="kw">const</span> wh <span class="pun">=</span> <span class="kw">await</span> db<span class="pun">.</span><span class="fn">query</span><span class="pun">(</span>
+    <span class="s">'SELECT processing_status FROM payment_webhooks WHERE id=$1'</span><span class="pun">, [</span>webhookId<span class="pun">]</span>
+  <span class="pun">);</span>
+  <span class="kw">if</span> <span class="pun">(</span>wh<span class="pun">.</span>rows<span class="pun">[</span><span class="n">0</span><span class="pun">].</span>processing_status <span class="pun">===</span> <span class="s">'PROCESSED'</span><span class="pun">)</span> <span class="kw">return</span><span class="pun">;</span>
+
+  <span class="kw">const</span> gateway <span class="pun">=</span> <span class="fn">resolveGateway</span><span class="pun">(</span>provider<span class="pun">);</span>
+  <span class="kw">const</span> event   <span class="pun">=</span> gateway<span class="pun">.</span><span class="fn">parseWebhookEvent</span><span class="pun">(</span>payload<span class="pun">);</span>
+
+  <span class="kw">switch</span> <span class="pun">(</span>event<span class="pun">.</span>type<span class="pun">) {</span>
+    <span class="kw">case</span> <span class="s">'payment.authorized'</span><span class="pun">:</span>   <span class="c">// PIX confirmado pelo banco</span>
+      <span class="kw">await</span> <span class="cls">PaymentService</span><span class="pun">.</span><span class="fn">markAuthorized</span><span class="pun">(</span>event<span class="pun">.</span>providerPaymentId<span class="pun">);</span>
+      <span class="kw">break</span><span class="pun">;</span>
+    <span class="kw">case</span> <span class="s">'payment.failed'</span><span class="pun">:</span>       <span class="c">// PIX expirou, cartão recusado</span>
+      <span class="kw">await</span> <span class="cls">PaymentService</span><span class="pun">.</span><span class="fn">markFailed</span><span class="pun">(</span>event<span class="pun">.</span>providerPaymentId<span class="pun">,</span> event<span class="pun">.</span>reason<span class="pun">);</span>
+      <span class="kw">break</span><span class="pun">;</span>
+    <span class="kw">case</span> <span class="s">'payment.refunded'</span><span class="pun">:</span>     <span class="c">// Estorno confirmado pelo provedor</span>
+      <span class="kw">await</span> <span class="cls">PaymentService</span><span class="pun">.</span><span class="fn">markRefunded</span><span class="pun">(</span>event<span class="pun">.</span>providerPaymentId<span class="pun">);</span>
+      <span class="kw">break</span><span class="pun">;</span>
+  <span class="pun">}</span>
+
+  <span class="kw">await</span> db<span class="pun">.</span><span class="fn">query</span><span class="pun">(</span><span class="s">`
+    UPDATE payment_webhooks
+    SET processing_status='PROCESSED', processed_at=NOW(), payment_id=$1
+    WHERE id=$2
+  `</span><span class="pun">, [</span>event<span class="pun">.</span>paymentId<span class="pun">,</span> webhookId<span class="pun">]);</span>
+<span class="pun">});</span></pre>
+
+<!-- ════════ 7. JOB DE LIBERAÇÃO ════════ -->
+<h2>7. Job de Liberação Automática do Escrow</h2>
+
+<p>Um job cron verifica a cada 5 minutos pagamentos em estado CAPTURED com <code>approved_at + escrow_release_days &lt;= NOW()</code>. A liberação nunca é feita por ação direta do usuário — apenas pelo job do sistema ou pelo admin em casos excepcionais.</p>
+
+<div class="ftag">src/payment/jobs/escrow-release.job.ts</div>
+<pre><span class="c">// Executa a cada 5 minutos via cron: */5 * * * *</span>
+<span class="kw">export async function</span> <span class="fn">escrowReleaseJob</span><span class="pun">() {</span>
+  <span class="kw">const</span> releaseDays <span class="pun">=</span> <span class="kw">await</span> <span class="cls">PlatformSettings</span><span class="pun">.</span><span class="fn">get</span><span class="pun">(</span><span class="s">'escrow_release_days'</span><span class="pun">);</span>
+
+  <span class="c">// Busca pagamentos prontos para liberação (APPROVED + timer vencido)</span>
+  <span class="kw">const</span> candidates <span class="pun">=</span> <span class="kw">await</span> db<span class="pun">.</span><span class="fn">query</span><span class="pun">(</span><span class="s">`
+    SELECT p.id AS payment_id, o.id AS order_id
+    FROM payments p
+    JOIN orders o ON o.id = p.order_id
+    WHERE p.status = 'CAPTURED'
+      AND o.status = 'APPROVED'
+      AND o.approved_at + ($1 || ' days')::INTERVAL <= NOW()
+      AND NOT EXISTS (
+        SELECT 1 FROM disputes d
+        WHERE d.order_id = o.id AND d.status NOT IN ('CLOSED')
+      )
+    FOR UPDATE SKIP LOCKED   -- evita processamento duplo em múltiplas instâncias
+    LIMIT 50                  -- processa em lotes para não sobrecarregar o gateway
+  `</span><span class="pun">, [</span>releaseDays<span class="pun">]);</span>
+
+  <span class="kw">for</span> <span class="pun">(</span><span class="kw">const</span> row <span class="kw">of</span> candidates<span class="pun">.</span>rows<span class="pun">) {</span>
+    <span class="kw">try</span> <span class="pun">{</span>
+      <span class="kw">await</span> <span class="cls">PaymentService</span><span class="pun">.</span><span class="fn">release</span><span class="pun">(</span>row<span class="pun">.</span>payment_id<span class="pun">);</span>
+      logger<span class="pun">.</span><span class="fn">info</span><span class="pun">({</span> paymentId<span class="pun">:</span> row<span class="pun">.</span>payment_id <span class="pun">},</span> <span class="s">'Escrow liberado'</span><span class="pun">);</span>
+    <span class="pun">}</span> <span class="kw">catch</span> <span class="pun">(</span>err<span class="pun">) {</span>
+      <span class="c">// Falha isolada: não interrompe o lote. Será tentado novamente na próxima execução.</span>
+      logger<span class="pun">.</span><span class="fn">error</span><span class="pun">({</span> paymentId<span class="pun">:</span> row<span class="pun">.</span>payment_id<span class="pun">,</span> err <span class="pun">},</span> <span class="s">'Falha ao liberar escrow'</span><span class="pun">);</span>
+      <span class="kw">await</span> <span class="fn">alertOps</span><span class="pun">(</span><span class="s">`Escrow stuck: <span class="pun">${</span>row<span class="pun">.</span>payment_id<span class="pun">}</span>`</span><span class="pun">);</span>
+    <span class="pun">}</span>
+  <span class="pun">}</span>
+<span class="pun">}</span></pre>
+
+<!-- ════════ 8. ESTORNOS ════════ -->
+<h2>8. Estornos e Cancelamentos</h2>
+
+<div class="card">
+<div class="card-title">Matriz de responsabilidade financeira</div>
+<table class="table" style="margin:0;">
+<thead><tr><th>Status da Ordem</th><th>Quem cancela</th><th>Empresa recebe</th><th>Freelancer recebe</th><th>Plataforma</th></tr></thead>
+<tbody>
+<tr><td>DRAFT / PUBLISHED</td><td>Empresa</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>IN_APPLICATION</td><td>Empresa</td><td>100% (se pago)</td><td>R$ 0</td><td>R$ 0</td></tr>
+<tr><td>SELECTED</td><td>Empresa</td><td>100%</td><td>R$ 0</td><td>R$ 0</td></tr>
+<tr><td>ACCEPTED / IN_PROGRESS</td><td>Empresa</td><td>gross - 10% gross</td><td>10% do gross (compensação)</td><td>R$ 0</td></tr>
+<tr><td>ACCEPTED / IN_PROGRESS</td><td>Freelancer</td><td>100%</td><td>R$ 0</td><td>R$ 0</td></tr>
+<tr><td>Disputa — admin empresa</td><td>Admin</td><td>configurável pelo admin</td><td>restante - taxa</td><td>taxa sobre valor liberado</td></tr>
+<tr><td>Disputa — admin freelancer</td><td>Admin</td><td>configurável</td><td>restante - taxa</td><td>taxa sobre valor liberado</td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="ftag">src/payment/payment.service.ts — refund()</div>
+<pre><span class="kw">static async</span> <span class="fn">refund</span><span class="pun">({</span> paymentId<span class="pun">,</span> companyAmount<span class="pun">,</span> freelancerAmount<span class="pun">,</span> reason<span class="pun">,</span> adminId <span class="pun">}) {</span>
+  <span class="kw">const</span> payment <span class="pun">=</span> <span class="kw">await</span> <span class="cls">PaymentRepo</span><span class="pun">.</span><span class="fn">findById</span><span class="pun">(</span>paymentId<span class="pun">);</span>
+
+  <span class="c">// Valida que os valores somam o gross (previne "criar dinheiro")</span>
+  <span class="kw">const</span> total <span class="pun">=</span> <span class="cls">Decimal</span><span class="pun">.</span><span class="fn">add</span><span class="pun">(</span>companyAmount<span class="pun">,</span> freelancerAmount<span class="pun">);</span>
+  <span class="kw">if</span> <span class="pun">(</span><span class="cls">Decimal</span><span class="pun">.</span><span class="fn">gt</span><span class="pun">(</span>total<span class="pun">,</span> payment<span class="pun">.</span>gross_amount<span class="pun">))</span>
+    <span class="kw">throw</span> <span class="kw">new</span> <span class="cls">BusinessError</span><span class="pun">(</span><span class="s">'REFUND_EXCEEDS_PAYMENT'</span><span class="pun">);</span>
+
+  <span class="kw">const</span> gateway <span class="pun">=</span> <span class="fn">resolveGateway</span><span class="pun">(</span>payment<span class="pun">.</span>method<span class="pun">);</span>
+
+  <span class="kw">await</span> db<span class="pun">.</span><span class="fn">transaction</span><span class="pun">(</span><span class="kw">async</span> <span class="pun">(</span>trx<span class="pun">) => {</span>
+    <span class="c">// Estorna para a empresa</span>
+    <span class="kw">if</span> <span class="pun">(</span><span class="cls">Decimal</span><span class="pun">.</span><span class="fn">gt</span><span class="pun">(</span>companyAmount<span class="pun">,</span> <span class="s">'0'</span><span class="pun">)) {</span>
+      <span class="kw">await</span> gateway<span class="pun">.</span><span class="fn">refund</span><span class="pun">({</span> providerPaymentId<span class="pun">:</span> payment<span class="pun">.</span>provider_payment_id<span class="pun">,</span> amount<span class="pun">:</span> companyAmount <span class="pun">});</span>
+      <span class="kw">await</span> <span class="cls">TxLog</span><span class="pun">.</span><span class="fn">insert</span><span class="pun">(</span>trx<span class="pun">, {</span> paymentId<span class="pun">,</span> type<span class="pun">:</span> <span class="s">'REFUND'</span><span class="pun">,</span> status<span class="pun">:</span> <span class="s">'SUCCESS'</span><span class="pun">,</span> amount<span class="pun">:</span> companyAmount <span class="pun">});</span>
+    <span class="pun">}</span>
+
+    <span class="c">// Paga o freelancer (compensação parcial ou total)</span>
+    <span class="kw">if</span> <span class="pun">(</span><span class="cls">Decimal</span><span class="pun">.</span><span class="fn">gt</span><span class="pun">(</span>freelancerAmount<span class="pun">,</span> <span class="s">'0'</span><span class="pun">)) {</span>
+      <span class="kw">const</span> freelancer <span class="pun">=</span> <span class="kw">await</span> <span class="cls">FreelancerRepo</span><span class="pun">.</span><span class="fn">findById</span><span class="pun">(</span>payment<span class="pun">.</span>freelancer_id<span class="pun">);</span>
+      <span class="kw">await</span> gateway<span class="pun">.</span><span class="fn">transfer</span><span class="pun">({</span>
+        amount<span class="pun">:</span>  freelancerAmount<span class="pun">,</span>
+        pixKey<span class="pun">:</span>  freelancer<span class="pun">.</span>pix_key<span class="pun">,</span>
+        orderId<span class="pun">:</span> payment<span class="pun">.</span>order_id<span class="pun">,</span>
+      <span class="pun">});</span>
+      <span class="kw">await</span> <span class="cls">TxLog</span><span class="pun">.</span><span class="fn">insert</span><span class="pun">(</span>trx<span class="pun">, {</span> paymentId<span class="pun">,</span> type<span class="pun">:</span> <span class="s">'RELEASE'</span><span class="pun">,</span> status<span class="pun">:</span> <span class="s">'SUCCESS'</span><span class="pun">,</span> amount<span class="pun">:</span> freelancerAmount <span class="pun">});</span>
+    <span class="pun">}</span>
+
+    <span class="c">// Registra no ledger a perda de receita (se plataforma absorveu)</span>
+    <span class="kw">const</span> platformLoss <span class="pun">=</span> <span class="cls">Decimal</span><span class="pun">.</span><span class="fn">sub</span><span class="pun">(</span>payment<span class="pun">.</span>gross_amount<span class="pun">,</span> total<span class="pun">);</span>
+    <span class="kw">if</span> <span class="pun">(</span><span class="cls">Decimal</span><span class="pun">.</span><span class="fn">gt</span><span class="pun">(</span>platformLoss<span class="pun">,</span> <span class="s">'0'</span><span class="pun">)) {</span>
+      <span class="kw">await</span> trx<span class="pun">.</span><span class="fn">query</span><span class="pun">(</span><span class="s">`
+        INSERT INTO platform_ledger (payment_id, entry_type, amount, currency, balance_after, description)
+        VALUES ($1,'REFUND_ISSUED',-$2,$3,
+          (SELECT COALESCE(SUM(amount),0) FROM platform_ledger)-$2, $4)
+      `</span><span class="pun">, [</span>paymentId<span class="pun">,</span> platformLoss<span class="pun">,</span> payment<span class="pun">.</span>currency<span class="pun">,</span> reason<span class="pun">]);</span>
+    <span class="pun">}</span>
+
+    <span class="kw">await</span> trx<span class="pun">.</span><span class="fn">query</span><span class="pun">(</span><span class="s">`
+      UPDATE payments SET status='REFUNDED', refunded_at=NOW() WHERE id=$1
+    `</span><span class="pun">, [</span>paymentId<span class="pun">]);</span>
+  <span class="pun">});</span>
+<span class="pun">}</span></pre>
+
+<!-- ════════ 9. DISPUTAS ════════ -->
+<h2>9. Relação com Disputas</h2>
+
+<p>Quando uma disputa é aberta, o escrow é <strong>congelado</strong> — o job de liberação automática ignora pagamentos com disputas ativas. O admin tem controle total sobre a resolução, incluindo splits personalizados.</p>
+
+<div class="ftag">src/dispute/dispute.service.ts — resolve()</div>
+<pre><span class="kw">static async</span> <span class="fn">resolve</span><span class="pun">({</span> disputeId<span class="pun">,</span> resolution<span class="pun">,</span> companyRefund<span class="pun">,</span> freelancerRelease<span class="pun">,</span> adminId <span class="pun">}) {</span>
+  <span class="kw">const</span> dispute <span class="pun">=</span> <span class="kw">await</span> <span class="cls">DisputeRepo</span><span class="pun">.</span><span class="fn">findById</span><span class="pun">(</span>disputeId<span class="pun">);</span>
+
+  <span class="c">// Valida integridade: total deve ser <= gross_amount</span>
+  <span class="kw">const</span> payment    <span class="pun">=</span> <span class="kw">await</span> <span class="cls">PaymentRepo</span><span class="pun">.</span><span class="fn">findByOrderId</span><span class="pun">(</span>dispute<span class="pun">.</span>order_id<span class="pun">);</span>
+  <span class="kw">const</span> totalSplit  <span class="pun">=</span> <span class="cls">Decimal</span><span class="pun">.</span><span class="fn">add</span><span class="pun">(</span>companyRefund<span class="pun">,</span> freelancerRelease<span class="pun">);</span>
+  <span class="kw">if</span> <span class="pun">(</span><span class="cls">Decimal</span><span class="pun">.</span><span class="fn">gt</span><span class="pun">(</span>totalSplit<span class="pun">,</span> payment<span class="pun">.</span>gross_amount<span class="pun">))</span>
+    <span class="kw">throw</span> <span class="kw">new</span> <span class="cls">BusinessError</span><span class="pun">(</span><span class="s">'SPLIT_EXCEEDS_GROSS'</span><span class="pun">);</span>
+
+  <span class="c">// A taxa da plataforma é recalculada: absorve parte da perda em disputas</span>
+  <span class="kw">const</span> platformReceives <span class="pun">=</span> <span class="cls">Decimal</span><span class="pun">.</span><span class="fn">sub</span><span class="pun">(</span>payment<span class="pun">.</span>gross_amount<span class="pun">,</span> totalSplit<span class="pun">);</span>
+
+  <span class="kw">switch</span> <span class="pun">(</span>resolution<span class="pun">) {</span>
+    <span class="kw">case</span> <span class="s">'PAYMENT_RELEASED'</span><span class="pun">:</span>    <span class="c">// Freelancer ganhou — libera tudo</span>
+      <span class="kw">await</span> <span class="cls">PaymentService</span><span class="pun">.</span><span class="fn">release</span><span class="pun">(</span>payment<span class="pun">.</span>id<span class="pun">);</span>
+      <span class="kw">break</span><span class="pun">;</span>
+
+    <span class="kw">case</span> <span class="s">'REFUND_FULL'</span><span class="pun">:</span>         <span class="c">// Empresa ganhou — estorna tudo</span>
+      <span class="kw">await</span> <span class="cls">PaymentService</span><span class="pun">.</span><span class="fn">refund</span><span class="pun">({</span>
+        paymentId<span class="pun">:</span>        payment<span class="pun">.</span>id<span class="pun">,</span>
+        companyAmount<span class="pun">:</span>    payment<span class="pun">.</span>gross_amount<span class="pun">,</span>
+        freelancerAmount<span class="pun">:</span> <span class="s">'0'</span><span class="pun">,</span>
+        reason<span class="pun">:</span>           <span class="s">'DISPUTE_RESOLVED_COMPANY'</span><span class="pun">,</span>
+        adminId<span class="pun">,</span>
+      <span class="pun">});</span>
+      <span class="kw">break</span><span class="pun">;</span>
+
+    <span class="kw">case</span> <span class="s">'REFUND_PARTIAL'</span><span class="pun">:</span>      <span class="c">// Split personalizado</span>
+    <span class="kw">case</span> <span class="s">'SPLIT'</span><span class="pun">:</span>
+      <span class="kw">await</span> <span class="cls">PaymentService</span><span class="pun">.</span><span class="fn">refund</span><span class="pun">({</span>
+        paymentId<span class="pun">:</span>        payment<span class="pun">.</span>id<span class="pun">,</span>
+        companyAmount<span class="pun">:</span>    companyRefund<span class="pun">,</span>
+        freelancerAmount<span class="pun">:</span> freelancerRelease<span class="pun">,</span>
+        reason<span class="pun">:</span>           <span class="s">`DISPUTE_RESOLVED_SPLIT:<span class="pun">${</span>adminId<span class="pun">}</span>`</span><span class="pun">,</span>
+        adminId<span class="pun">,</span>
+      <span class="pun">});</span>
+      <span class="kw">break</span><span class="pun">;</span>
+  <span class="pun">}</span>
+
+  <span class="kw">await</span> db<span class="pun">.</span><span class="fn">query</span><span class="pun">(</span><span class="s">`
+    UPDATE disputes SET status='CLOSED', resolved_by=$1, resolved_at=NOW(),
+      resolution=$2, resolution_amount=$3, resolution_notes=$4
+    WHERE id=$5
+  `</span><span class="pun">, [</span>adminId<span class="pun">,</span> resolution<span class="pun">,</span> companyRefund<span class="pun">,</span> <span class="s">'...'</span><span class="pun">,</span> disputeId<span class="pun">]);</span>
+<span class="pun">}</span></pre>
+
+<!-- ════════ 10. RECONCILIAÇÃO ════════ -->
+<h2>10. Reconciliação e Tratamento de Falhas</h2>
+
+<p>Um job diário compara o estado do sistema com o extrato do gateway. Detecta: pagamentos autorizados no gateway mas não no sistema, transferências que falharam silenciosamente, e discrepâncias de valor.</p>
+
+<div class="ftag">src/payment/jobs/reconciliation.job.ts</div>
+<pre><span class="c">// Executa diariamente: 0 3 * * * (3h da manhã — baixo tráfego)</span>
+<span class="kw">export async function</span> <span class="fn">reconciliationJob</span><span class="pun">() {</span>
+  <span class="kw">const</span> yesterday <span class="pun">=</span> <span class="fn">startOfDay</span><span class="pun">(</span><span class="fn">subDays</span><span class="pun">(</span><span class="kw">new</span> <span class="cls">Date</span><span class="pun">(),</span> <span class="n">1</span><span class="pun">));</span>
+
+  <span class="c">// 1. Busca todos os pagamentos do dia no sistema</span>
+  <span class="kw">const</span> systemPayments <span class="pun">=</span> <span class="kw">await</span> db<span class="pun">.</span><span class="fn">query</span><span class="pun">(</span><span class="s">`
+    SELECT provider_payment_id, status, gross_amount, provider
+    FROM payments
+    WHERE created_at >= $1 AND provider IS NOT NULL
+  `</span><span class="pun">, [</span>yesterday<span class="pun">]);</span>
+
+  <span class="c">// 2. Busca extrato do gateway no mesmo período</span>
+  <span class="kw">const</span> stripeCharges     <span class="pun">=</span> <span class="kw">await</span> stripe<span class="pun">.</span>charges<span class="pun">.</span><span class="fn">list</span><span class="pun">({</span> created<span class="pun">: {</span> gte<span class="pun">:</span> <span class="fn">unixTime</span><span class="pun">(</span>yesterday<span class="pun">) }});</span>
+  <span class="kw">const</span> gerencianetPixs   <span class="pun">=</span> <span class="kw">await</span> efi<span class="pun">.</span><span class="fn">pixListCharges</span><span class="pun">({</span> inicio<span class="pun">:</span> yesterday<span class="pun">.</span><span class="fn">toISOString</span><span class="pun">() });</span>
+
+  <span class="c">// 3. Detecta discrepâncias</span>
+  <span class="kw">const</span> issues<span class="pun">: string[] = [];</span>
+
+  <span class="kw">for</span> <span class="pun">(</span><span class="kw">const</span> pay <span class="kw">of</span> systemPayments<span class="pun">.</span>rows<span class="pun">) {</span>
+    <span class="kw">const</span> gatewayRecord <span class="pun">=</span> <span class="fn">findInGateway</span><span class="pun">(</span>pay<span class="pun">.</span>provider_payment_id<span class="pun">,</span> stripeCharges<span class="pun">);</span>
+
+    <span class="kw">if</span> <span class="pun">(!</span>gatewayRecord<span class="pun">)</span>
+      issues<span class="pun">.</span><span class="fn">push</span><span class="pun">(</span><span class="s">`MISSING_IN_GATEWAY: <span class="pun">${</span>pay<span class="pun">.</span>provider_payment_id<span class="pun">}</span>`</span><span class="pun">);</span>
+    <span class="kw">else if</span> <span class="pun">(</span><span class="fn">amountMismatch</span><span class="pun">(</span>pay<span class="pun">.</span>gross_amount<span class="pun">,</span> gatewayRecord<span class="pun">.</span>amount<span class="pun">))</span>
+      issues<span class="pun">.</span><span class="fn">push</span><span class="pun">(</span><span class="s">`AMOUNT_MISMATCH: <span class="pun">${</span>pay<span class="pun">.</span>provider_payment_id<span class="pun">}</span> — system:<span class="pun">${</span>pay<span class="pun">.</span>gross_amount<span class="pun">}</span> gateway:<span class="pun">${</span>gatewayRecord<span class="pun">.</span>amount<span class="pun">}</span>`</span><span class="pun">);</span>
+    <span class="kw">else if</span> <span class="pun">(</span><span class="fn">statusMismatch</span><span class="pun">(</span>pay<span class="pun">.</span>status<span class="pun">,</span> gatewayRecord<span class="pun">.</span>status<span class="pun">))</span>
+      issues<span class="pun">.</span><span class="fn">push</span><span class="pun">(</span><span class="s">`STATUS_MISMATCH: <span class="pun">${</span>pay<span class="pun">.</span>provider_payment_id<span class="pun">}</span>`</span><span class="pun">);</span>
+  <span class="pun">}</span>
+
+  <span class="kw">if</span> <span class="pun">(</span>issues<span class="pun">.</span>length<span class="pun">) {</span>
+    <span class="c">// Alerta o time financeiro e grava log para auditoria</span>
+    <span class="kw">await</span> <span class="fn">alertFinancialTeam</span><span class="pun">(</span>issues<span class="pun">);</span>
+    <span class="kw">await</span> <span class="fn">saveReconciliationReport</span><span class="pun">(</span>yesterday<span class="pun">,</span> issues<span class="pun">);</span>
+  <span class="pun">}</span>
+<span class="pun">}</span></pre>
+
+<!-- ════════ 11. SEGURANÇA ════════ -->
+<h2>11. Segurança Financeira</h2>
+
+<div class="danger"><p>🔴 <strong>Nunca armazenar dados de cartão.</strong> A plataforma nunca vê o número do cartão — apenas o token gerado pelo Stripe.js no browser. Certificação PCI DSS é responsabilidade do Stripe. O sistema da plataforma é PCI SAQ A (mais leve).</p></div>
+
+<ul>
+  <li><strong>Idempotency Keys obrigatórias</strong> em toda operação de pagamento. UUID gerado no cliente antes do request. Sem ela, a rota retorna 422. Persiste no banco com UNIQUE constraint.</li>
+  <li><strong>HMAC timing-safe</strong> na validação de webhooks — usa <code>crypto.timingSafeEqual</code> para prevenir timing attacks que revelam a chave secreta comparando tempo de resposta.</li>
+  <li><strong>Decimal arithmetic</strong> em todos os cálculos financeiros — nunca <code>float</code>. Use <code>decimal.js</code> ou <code>Decimal</code> nativo do PostgreSQL. <code>0.1 + 0.2 === 0.30000000000000004</code> em float causa centavos fantasmas.</li>
+  <li><strong>Audit trail imutável</strong> em <code>payment_transactions</code> e <code>platform_ledger</code>. Nenhum UPDATE ou DELETE permitido para o role da aplicação. Todo estorno cria novo registro, não modifica o original.</li>
+  <li><strong>Four-eyes para valores altos</strong> — pagamentos manuais acima de R$ 50.000 exigem aprovação de dois admins diferentes registrada no audit_log.</li>
+  <li><strong>Rate limiting por empresa</strong> — máx 5 tentativas de pagamento por hora por empresa. Previne ataques de força bruta em cartões.</li>
+  <li><strong>Webhook raw body</strong> — o Express deve ser configurado com <code>express.raw()</code> para a rota de webhook antes do <code>express.json()</code>. A assinatura HMAC é calculada sobre o body raw; parsear para JSON antes invalida a assinatura.</li>
+  <li><strong>Credenciais via Secrets Manager</strong> — chaves de API do Stripe e Gerencianet nunca em variáveis de ambiente hardcoded. AWS Secrets Manager com rotação automática a cada 90 dias.</li>
+  <li><strong>mTLS obrigatório para PIX</strong> — o BACEN exige que endpoints de webhook PIX usem mTLS com certificado emitido pela EFí. O Nginx termina o TLS e verifica o certificado do cliente (Gerencianet) antes de rotear para a aplicação.</li>
+</ul>
+
+<div class="card">
+<div class="card-title">Configuração Express para webhook (CRÍTICO)</div>
+<pre style="margin:0;padding:12px 14px;font-size:11px;">
+<span class="c">// ERRADO — json() antes do raw() invalida a assinatura HMAC</span>
+app.<span class="fn">use</span>(express.<span class="fn">json</span>());
+app.<span class="fn">post</span>(<span class="s">'/webhooks/payment/stripe'</span>, stripeWebhookHandler);
+
+<span class="c">// CORRETO — raw() apenas para as rotas de webhook</span>
+app.<span class="fn">post</span>(<span class="s">'/webhooks/payment/stripe'</span>,
+  express.<span class="fn">raw</span>({ type: <span class="s">'application/json'</span> }),  <span class="c">// raw antes do handler</span>
+  stripeWebhookHandler
+);
+app.<span class="fn">use</span>(express.<span class="fn">json</span>());  <span class="c">// json() para todas as outras rotas</span>
+</pre>
+</div>
+
+</div>
+</body>
+</html>

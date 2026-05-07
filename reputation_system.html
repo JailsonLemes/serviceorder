@@ -1,0 +1,889 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Sistema de Avaliação e Reputação</title>
+<style>
+:root {
+  --blue:#185FA5;--blue-bg:#E6F1FB;--blue-b:#B5D4F4;
+  --purple:#534AB7;--purple-bg:#EEEDFE;--purple-b:#AFA9EC;
+  --teal:#0F6E56;--teal-bg:#E1F5EE;--teal-b:#9FE1CB;
+  --amber:#854F0B;--amber-bg:#FAEEDA;--amber-b:#FAC775;
+  --red:#A32D2D;--red-bg:#FCEBEB;--red-b:#F7C1C1;
+  --gray:#5F5E5A;--gray-bg:#F1EFE8;--gray-b:#D3D1C7;
+  --code-bg:#18181a;--code-fg:#d4d4d4;
+  --key:#9cdcfe;--str:#ce9178;--num:#b5cea8;--bool:#569cd6;--cmt:#6a9955;--fn:#dcdcaa;--kw:#c586c0;--cls:#4ec9b0;--pun:#d4d4d4;
+  --border:rgba(0,0,0,0.1);--surface:#f5f4f0;
+  --text:#1a1a18;--muted:#73726c;--bg:#fff;
+  --font:system-ui,-apple-system,sans-serif;
+  --mono:'SF Mono','Fira Code',Consolas,monospace;
+  --r:8px;
+}
+@media(prefers-color-scheme:dark){
+  :root{
+    --code-bg:#0d1117;--border:rgba(255,255,255,0.1);
+    --surface:#242422;--text:#e8e6de;--muted:#9c9a92;--bg:#1c1c1a;
+    --blue-bg:#042C53;--purple-bg:#26215C;--teal-bg:#04342C;
+    --amber-bg:#412402;--red-bg:#501313;--gray-bg:#2C2C2A;
+  }
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--font);color:var(--text);background:var(--bg);padding:40px 24px 80px;line-height:1.65;}
+.wrap{max-width:900px;margin:0 auto;}
+h1{font-size:26px;font-weight:600;margin-bottom:6px;}
+.lead{color:var(--muted);font-size:14px;margin-bottom:48px;max-width:640px;}
+h2{font-size:19px;font-weight:600;margin:56px 0 18px;padding-bottom:10px;border-bottom:2px solid var(--border);}
+h3{font-size:14.5px;font-weight:600;margin:24px 0 8px;}
+p{font-size:14px;color:var(--muted);margin-bottom:12px;line-height:1.7;}
+p strong{color:var(--text);}
+ul,ol{font-size:14px;color:var(--muted);padding-left:20px;margin-bottom:14px;}
+li{margin-bottom:5px;line-height:1.6;}
+li strong{color:var(--text);}
+
+pre{background:var(--code-bg);color:var(--code-fg);padding:18px 20px;border-radius:var(--r);font-family:var(--mono);font-size:11.5px;overflow-x:auto;line-height:1.7;margin:10px 0 22px;border:1px solid rgba(255,255,255,.04);}
+.ftag{display:inline-block;background:rgba(255,255,255,.06);color:var(--muted);font-family:var(--mono);font-size:10px;padding:3px 10px;border-radius:4px 4px 0 0;margin-bottom:-2px;border:1px solid rgba(255,255,255,.08);border-bottom:none;}
+code{font-family:var(--mono);font-size:11.5px;background:var(--surface);border:1px solid var(--border);padding:1px 6px;border-radius:4px;}
+.k{color:var(--key);}.s{color:var(--str);}.n{color:var(--num);}.b{color:var(--bool);}
+.c{color:var(--cmt);font-style:italic;}.fn{color:var(--fn);}.kw{color:var(--kw);}.cls{color:var(--cls);}.pun{color:var(--pun);}
+
+.formula{background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--blue);padding:16px 20px;border-radius:0 var(--r) var(--r) 0;margin:16px 0 24px;font-family:var(--mono);font-size:13px;line-height:1.9;}
+.formula .comment{color:var(--muted);font-style:italic;font-family:var(--font);font-size:12px;}
+
+.info{border-left:3px solid var(--blue);background:var(--blue-bg);padding:12px 16px;border-radius:0 var(--r) var(--r) 0;margin:16px 0;}
+.warn{border-left:3px solid var(--amber);background:var(--amber-bg);padding:12px 16px;border-radius:0 var(--r) var(--r) 0;margin:16px 0;}
+.danger{border-left:3px solid var(--red);background:var(--red-bg);padding:12px 16px;border-radius:0 var(--r) var(--r) 0;margin:16px 0;}
+.info p,.warn p,.danger p{margin:0;font-size:13px;}
+
+.table{width:100%;border-collapse:collapse;font-size:13px;margin:10px 0 22px;}
+.table th{text-align:left;padding:8px 12px;background:var(--surface);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);}
+.table td{padding:8px 12px;border-bottom:1px solid var(--border);vertical-align:top;}
+.table tr:last-child td{border-bottom:none;}
+
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px 18px;margin:12px 0;}
+.card-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:10px;}
+
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:12px 0 22px;}
+@media(max-width:640px){.grid2{grid-template-columns:1fr;}}
+
+.badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;margin:1px;}
+.b-blue{background:var(--blue-bg);color:var(--blue);}
+.b-teal{background:var(--teal-bg);color:var(--teal);}
+.b-amber{background:var(--amber-bg);color:var(--amber);}
+.b-red{background:var(--red-bg);color:var(--red);}
+.b-gray{background:var(--gray-bg);color:var(--gray);}
+.b-purple{background:var(--purple-bg);color:var(--purple);}
+</style>
+</head>
+<body><div class="wrap">
+
+<h1>Sistema de Avaliação e Reputação</h1>
+<p class="lead">Avaliação dupla por critérios ponderados com decaimento temporal exponencial, suavização Bayesiana e detecção de fraude. Ranking multifatorial para busca e listagem.</p>
+
+<!-- ══════════════════════════════
+     1. ESTRUTURA DAS AVALIAÇÕES
+════════════════════════════════ -->
+<h2>1. Estrutura das Avaliações</h2>
+
+<p>Toda ordem concluída gera <strong>duas avaliações independentes</strong>: empresa avalia o freelancer (<code>COMPANY_TO_FREELANCER</code>) e freelancer avalia a empresa (<code>FREELANCER_TO_COMPANY</code>). Nenhum dos dois vê a nota do outro até que ambos tenham avaliado ou a janela de 72 horas feche — esse modelo de <strong>blind review</strong> elimina a estratégia de dar nota alta esperando reciprocidade.</p>
+
+<!-- CRITERIA CHART SVG -->
+<svg width="100%" viewBox="0 0 680 220" xmlns="http://www.w3.org/2000/svg" style="display:block;margin:20px 0;">
+<defs>
+  <linearGradient id="gblue" x1="0" y1="0" x2="1" y2="0">
+    <stop offset="0%" stop-color="#185FA5"/><stop offset="100%" stop-color="#B5D4F4"/>
+  </linearGradient>
+  <linearGradient id="gpurple" x1="0" y1="0" x2="1" y2="0">
+    <stop offset="0%" stop-color="#534AB7"/><stop offset="100%" stop-color="#AFA9EC"/>
+  </linearGradient>
+  <linearGradient id="gteal" x1="0" y1="0" x2="1" y2="0">
+    <stop offset="0%" stop-color="#0F6E56"/><stop offset="100%" stop-color="#9FE1CB"/>
+  </linearGradient>
+  <linearGradient id="gamber" x1="0" y1="0" x2="1" y2="0">
+    <stop offset="0%" stop-color="#854F0B"/><stop offset="100%" stop-color="#FAC775"/>
+  </linearGradient>
+</defs>
+
+<text x="340" y="18" text-anchor="middle" font-size="12" font-weight="600" fill="var(--muted,#73726c)" font-family="system-ui">Critérios e pesos — Avaliação do Freelancer</text>
+
+<!-- Bars -->
+<!-- Qualidade 30% -->
+<text x="140" y="56" text-anchor="end" font-size="12" font-weight="500" fill="var(--text,#1a1a18)" font-family="system-ui">Qualidade</text>
+<rect x="148" y="42" width="156" height="24" rx="4" fill="url(#gblue)"/>
+<text x="312" y="58" text-anchor="start" font-size="11" font-weight="700" fill="var(--blue,#185FA5)" font-family="system-ui" dx="6">30%</text>
+<text x="150" y="57" font-size="10" fill="#fff" font-weight="600" font-family="system-ui">entrega do escopo e qualidade técnica</text>
+
+<!-- Comunicação 25% -->
+<text x="140" y="102" text-anchor="end" font-size="12" font-weight="500" fill="var(--text,#1a1a18)" font-family="system-ui">Comunicação</text>
+<rect x="148" y="88" width="130" height="24" rx="4" fill="url(#gpurple)"/>
+<text x="286" y="104" text-anchor="start" font-size="11" font-weight="700" fill="var(--purple,#534AB7)" font-family="system-ui" dx="6">25%</text>
+<text x="150" y="103" font-size="10" fill="#fff" font-weight="600" font-family="system-ui">clareza, disponibilidade e respostas</text>
+
+<!-- Prazo 25% -->
+<text x="140" y="148" text-anchor="end" font-size="12" font-weight="500" fill="var(--text,#1a1a18)" font-family="system-ui">Prazo</text>
+<rect x="148" y="134" width="130" height="24" rx="4" fill="url(#gteal)"/>
+<text x="286" y="150" text-anchor="start" font-size="11" font-weight="700" fill="var(--teal,#0F6E56)" font-family="system-ui" dx="6">25%</text>
+<text x="150" y="149" font-size="10" fill="#fff" font-weight="600" font-family="system-ui">entrega dentro do prazo combinado</text>
+
+<!-- Profissionalismo 20% -->
+<text x="140" y="194" text-anchor="end" font-size="12" font-weight="500" fill="var(--text,#1a1a18)" font-family="system-ui">Profissionalismo</text>
+<rect x="148" y="180" width="104" height="24" rx="4" fill="url(#gamber)"/>
+<text x="260" y="196" text-anchor="start" font-size="11" font-weight="700" fill="var(--amber,#854F0B)" font-family="system-ui" dx="6">20%</text>
+<text x="150" y="195" font-size="10" fill="#fff" font-weight="600" font-family="system-ui">postura, ética e respeito</text>
+
+<!-- Scale -->
+<line x1="148" y1="212" x2="668" y2="212" stroke="var(--border,rgba(0,0,0,0.1))" stroke-width="1"/>
+<text x="148" y="218" font-size="9" fill="var(--muted,#73726c)" font-family="system-ui">0%</text>
+<text x="278" y="218" text-anchor="middle" font-size="9" fill="var(--muted,#73726c)" font-family="system-ui">25%</text>
+<text x="408" y="218" text-anchor="middle" font-size="9" fill="var(--muted,#73726c)" font-family="system-ui">50%</text>
+<line x1="278" y1="40" x2="278" y2="212" stroke="rgba(0,0,0,0.06)" stroke-width="0.5" stroke-dasharray="3 2"/>
+<line x1="408" y1="40" x2="408" y2="212" stroke="rgba(0,0,0,0.06)" stroke-width="0.5" stroke-dasharray="3 2"/>
+</svg>
+
+<p>A nota <code>overall_score</code> é preenchida pelo avaliador de forma livre (1.0 a 5.0). Os critérios são <em>independentes</em> do overall — o sistema não calcula o overall a partir dos critérios; ele usa os critérios separadamente para análise e comparação entre freelancers. Isso preserva a percepção subjetiva do avaliador sobre a experiência geral enquanto oferece dados estruturados para o ranking.</p>
+
+<h3>Janela de avaliação e blind review</h3>
+<ul>
+  <li>A janela abre no momento em que a ordem entra em <code>COMPLETED</code></li>
+  <li>Dura <strong>72 horas</strong> (configurável em <code>platform_settings.rating_window_hours</code>)</li>
+  <li>Avaliações só são exibidas no perfil após ambas submetidas <em>ou</em> a janela fechar</li>
+  <li>Sem possibilidade de edição após envio — decisão deliberada para evitar ajuste retroativo</li>
+  <li>Empresa que não avalia dentro da janela <strong>não pode mais avaliar</strong> — sem exceções via API (somente admin com justificativa via back-office)</li>
+</ul>
+
+<!-- ══════════════════════════════
+     2. CÁLCULO DA NOTA GERAL
+════════════════════════════════ -->
+<h2>2. Cálculo da Nota de Reputação</h2>
+
+<h3>2.1 Score ponderado por critério</h3>
+<p>Para cada avaliação individual, o <strong>score composto</strong> é calculado combinando overall (peso maior) com os critérios detalhados:</p>
+
+<div class="formula">
+S_composto = 0.60 × overall_score + 0.40 × S_criterios
+<br><br>
+S_criterios = 0.30 × qualidade + 0.25 × comunicação + 0.25 × prazo + 0.20 × profissionalismo
+<br><br>
+<span class="comment">Exemplo: overall=5.0, qualidade=4.0, comunicação=5.0, prazo=5.0, profissionalismo=4.0</span>
+S_criterios = 0.30×4.0 + 0.25×5.0 + 0.25×5.0 + 0.20×4.0 = 4.625
+S_composto  = 0.60×5.0 + 0.40×4.625 = 4.850
+</div>
+
+<p>Quando critérios não são preenchidos (avaliação só com overall), o peso do overall é 100%.</p>
+
+<h3>2.2 Decaimento temporal — avaliações recentes valem mais</h3>
+<p>O peso de cada avaliação decresce exponencialmente com o tempo. Uma avaliação de <strong>6 meses atrás vale metade</strong> de uma avaliação de hoje. Isso permite que um freelancer que melhorou muito seja reconhecido sem precisar esperar que avaliações antigas "saiam" — elas simplesmente perdem relevância progressivamente.</p>
+
+<!-- DECAY CURVE SVG -->
+<svg width="100%" viewBox="0 0 680 200" xmlns="http://www.w3.org/2000/svg" style="display:block;margin:16px 0;">
+<!-- Axes -->
+<line x1="60" y1="20" x2="60" y2="165" stroke="var(--border,rgba(0,0,0,0.15))" stroke-width="1"/>
+<line x1="60" y1="165" x2="640" y2="165" stroke="var(--border,rgba(0,0,0,0.15))" stroke-width="1"/>
+
+<!-- Y labels -->
+<text x="55" y="24" text-anchor="end" font-size="9" fill="var(--muted,#73726c)" font-family="system-ui">1.00</text>
+<text x="55" y="83" text-anchor="end" font-size="9" fill="var(--muted,#73726c)" font-family="system-ui">0.50</text>
+<text x="55" y="142" text-anchor="end" font-size="9" fill="var(--muted,#73726c)" font-family="system-ui">0.25</text>
+<text x="55" y="165" text-anchor="end" font-size="9" fill="var(--muted,#73726c)" font-family="system-ui">0.00</text>
+
+<!-- Grid -->
+<line x1="60" y1="83" x2="640" y2="83" stroke="rgba(0,0,0,0.05)" stroke-width="0.8" stroke-dasharray="3 3"/>
+<line x1="60" y1="142" x2="640" y2="142" stroke="rgba(0,0,0,0.05)" stroke-width="0.8" stroke-dasharray="3 3"/>
+
+<!-- X labels -->
+<text x="60" y="178" text-anchor="middle" font-size="9" fill="var(--muted,#73726c)" font-family="system-ui">Hoje</text>
+<text x="200" y="178" text-anchor="middle" font-size="9" fill="var(--muted,#73726c)" font-family="system-ui">90 dias</text>
+<text x="340" y="178" text-anchor="middle" font-size="9" fill="var(--muted,#73726c)" font-family="system-ui">180 dias</text>
+<text x="480" y="178" text-anchor="middle" font-size="9" fill="var(--muted,#73726c)" font-family="system-ui">270 dias</text>
+<text x="620" y="178" text-anchor="middle" font-size="9" fill="var(--muted,#73726c)" font-family="system-ui">365 dias</text>
+
+<!-- Decay curve: W(t) = e^(-0.00385 * t), W(0)=1.0, W(180)=0.50, W(365)=0.25 -->
+<!-- y-range: 20 (top, w=1.0) to 165 (bottom, w=0.0). scale = 145 -->
+<!-- x-range: 60 (day 0) to 640 (day 365). scale = 580/365 = 1.589 -->
+<!-- W(t) = e^(-0.00385t) → y = 165 - 145*e^(-0.00385t) -->
+<!-- Points (approx): 
+  t=0:   y=165-145=20
+  t=30:  y=165-145*e^(-0.1155)=165-145*0.891=165-129=36
+  t=60:  y=165-145*0.794=165-115=50
+  t=90:  y=165-145*0.708=165-103=62
+  t=120: y=165-145*0.631=165-91=74
+  t=150: y=165-145*0.562=165-81=84
+  t=180: y=165-145*0.500=165-72=93
+  t=210: y=165-145*0.446=165-65=100
+  t=240: y=165-145*0.397=165-58=107
+  t=270: y=165-145*0.354=165-51=114
+  t=300: y=165-145*0.315=165-46=119
+  t=330: y=165-145*0.281=165-41=124
+  t=365: y=165-145*0.249=165-36=129
+-->
+<polyline 
+  points="60,20 107,36 154,50 200,62 247,74 293,84 340,93 387,100 434,107 480,114 527,119 573,124 620,129"
+  fill="none" stroke="#185FA5" stroke-width="2.5" stroke-linejoin="round"/>
+
+<!-- Fill under curve -->
+<polygon 
+  points="60,20 107,36 154,50 200,62 247,74 293,84 340,93 387,100 434,107 480,114 527,119 573,124 620,129 620,165 60,165"
+  fill="#185FA5" opacity="0.07"/>
+
+<!-- Key markers -->
+<line x1="340" y1="93" x2="340" y2="165" stroke="#0F6E56" stroke-width="1" stroke-dasharray="3 2"/>
+<circle cx="340" cy="93" r="4" fill="#0F6E56"/>
+<text x="345" y="88" font-size="9" fill="#0F6E56" font-weight="600" font-family="system-ui">W=0.50 (meia-vida)</text>
+
+<line x1="200" y1="62" x2="200" y2="165" stroke="#534AB7" stroke-width="1" stroke-dasharray="3 2"/>
+<circle cx="200" cy="62" r="4" fill="#534AB7"/>
+<text x="205" y="57" font-size="9" fill="#534AB7" font-weight="600" font-family="system-ui">W=0.71</text>
+
+<circle cx="620" cy="129" r="4" fill="#854F0B"/>
+<text x="575" y="124" font-size="9" fill="#854F0B" font-weight="600" font-family="system-ui">W=0.25</text>
+
+<text x="350" y="192" text-anchor="middle" font-size="10" fill="var(--muted,#73726c)" font-family="system-ui">W(t) = e^(−0.00385 × dias) — meia-vida de 180 dias</text>
+</svg>
+
+<div class="formula">
+λ = ln(2) / 180 ≈ 0.00385   <span class="comment">→ λ escolhido para meia-vida de 180 dias</span>
+<br>
+W(t) = e^(−λ × t)            <span class="comment">→ peso da avaliação com t dias de antiguidade</span>
+<br><br>
+<span class="comment">Exemplos de peso:</span>
+W(0)   = 1.000  (hoje)
+W(30)  = 0.891  (1 mês)
+W(90)  = 0.708  (3 meses)
+W(180) = 0.500  (6 meses — meia-vida)
+W(365) = 0.249  (1 ano)
+</div>
+
+<h3>2.3 Suavização Bayesiana — solução para o cold-start</h3>
+<p>Sem suavização, um freelancer com <strong>1 avaliação 5 estrelas</strong> apareceria antes de alguém com <strong>100 avaliações 4.8 estrelas</strong>. A suavização Bayesiana resolve isso adicionando um <strong>prior</strong> — um conjunto fictício de avaliações na média da plataforma — que é diluído progressivamente conforme avaliações reais chegam.</p>
+
+<div class="formula">
+<span class="comment">Prior: C = 10 avaliações fictícias na média μ da plataforma (ex: μ = 4.2)</span>
+<br><br>
+S_reputação = (C × μ + Σ W(tᵢ) × Sᵢ) / (C + Σ W(tᵢ))
+<br><br>
+<span class="comment">Onde:</span>
+C    = 10                  <span class="comment">→ "peso do prior" (10 avaliações fictícias)</span>
+μ    = 4.20                <span class="comment">→ média da plataforma (recalculada semanalmente)</span>
+W(tᵢ) = decaimento temporal da avaliação i
+Sᵢ   = score composto da avaliação i
+<br><br>
+<span class="comment">Simulação — freelancer novo com 1 avaliação 5.0:</span>
+S = (10 × 4.2 + 1.0 × 5.0) / (10 + 1.0) = 47.0 / 11.0 = 4.27
+<br><br>
+<span class="comment">Simulação — freelancer com 50 avaliações 4.8 (peso total ≈ 35 após decaimento):</span>
+S = (10 × 4.2 + 35 × 4.8) / (10 + 35) = 210.0 / 45.0 = 4.67
+</div>
+
+<p>O freelancer experiente (4.67) supera o iniciante com sorte (4.27). E o iniciante ainda tem pontuação acima de 4.0 — visibilidade razoável sem ser injusto com os demais.</p>
+
+<h3>2.4 Implementação PostgreSQL — cálculo completo</h3>
+
+<div class="ftag">src/reputation/queries/compute-reputation.sql</div>
+<pre><span class="c">-- Calcula score de reputação com decaimento + suavização Bayesiana</span>
+<span class="c">-- Parâmetros: $1=user_id, $2=C(prior weight), $3=μ(platform_avg), $4=λ(decay)</span>
+<span class="kw">WITH</span> weighted_ratings <span class="kw">AS</span> <span class="pun">(</span>
+  <span class="kw">SELECT</span>
+    r<span class="pun">.</span>id<span class="pun">,</span>
+    r<span class="pun">.</span>created_at<span class="pun">,</span>
+    <span class="c">-- Score composto da avaliação individual</span>
+    <span class="kw">CASE</span>
+      <span class="kw">WHEN</span> r<span class="pun">.</span>quality_score <span class="kw">IS NOT NULL</span> <span class="kw">THEN</span>
+        <span class="n">0.60</span> <span class="pun">*</span> r<span class="pun">.</span>overall_score
+        <span class="pun">+</span> <span class="n">0.40</span> <span class="pun">* (</span>
+          <span class="n">0.30</span> <span class="pun">*</span> r<span class="pun">.</span>quality_score
+          <span class="pun">+</span> <span class="n">0.25</span> <span class="pun">*</span> <span class="kw">COALESCE</span><span class="pun">(</span>r<span class="pun">.</span>communication_score<span class="pun">,</span> r<span class="pun">.</span>overall_score<span class="pun">)</span>
+          <span class="pun">+</span> <span class="n">0.25</span> <span class="pun">*</span> <span class="kw">COALESCE</span><span class="pun">(</span>r<span class="pun">.</span>timeliness_score<span class="pun">,</span> r<span class="pun">.</span>overall_score<span class="pun">)</span>
+          <span class="pun">+</span> <span class="n">0.20</span> <span class="pun">*</span> <span class="kw">COALESCE</span><span class="pun">(</span>r<span class="pun">.</span>professionalism_score<span class="pun">,</span> r<span class="pun">.</span>overall_score<span class="pun">)</span>
+        <span class="pun">)</span>
+      <span class="kw">ELSE</span>
+        r<span class="pun">.</span>overall_score    <span class="c">-- somente overall preenchido</span>
+    <span class="kw">END</span> <span class="k">AS</span> composite_score<span class="pun">,</span>
+    <span class="c">-- Peso temporal: e^(-λ × dias_de_diferença)</span>
+    <span class="fn">EXP</span><span class="pun">(</span><span class="pun">-</span>$4 <span class="pun">*</span> <span class="fn">EXTRACT</span><span class="pun">(</span><span class="kw">EPOCH</span> <span class="kw">FROM</span> <span class="pun">(</span><span class="fn">NOW</span><span class="pun">() -</span> r<span class="pun">.</span>created_at<span class="pun">))</span> <span class="pun">/</span> <span class="n">86400</span><span class="pun">)</span> <span class="k">AS</span> time_weight
+  <span class="kw">FROM</span> ratings r
+  <span class="kw">WHERE</span>
+    r<span class="pun">.</span>ratee_id <span class="pun">=</span> $1
+    <span class="kw">AND</span> r<span class="pun">.</span>is_removed <span class="pun">=</span> <span class="b">FALSE</span>
+    <span class="kw">AND</span> r<span class="pun">.</span>window_closes_at <span class="pun">&lt;=</span> <span class="fn">NOW</span><span class="pun">()</span>    <span class="c">-- apenas avaliações da janela fechada (blind review)</span>
+<span class="pun">),</span>
+aggregated <span class="kw">AS</span> <span class="pun">(</span>
+  <span class="kw">SELECT</span>
+    <span class="fn">SUM</span><span class="pun">(</span>composite_score <span class="pun">*</span> time_weight<span class="pun">)</span>  <span class="k">AS</span> weighted_sum<span class="pun">,</span>
+    <span class="fn">SUM</span><span class="pun">(</span>time_weight<span class="pun">)</span>                   <span class="k">AS</span> total_weight<span class="pun">,</span>
+    <span class="fn">COUNT</span><span class="pun">(*)</span>                          <span class="k">AS</span> n_ratings<span class="pun">,</span>
+    <span class="fn">AVG</span><span class="pun">(</span>quality_score<span class="pun">)</span>               <span class="k">AS</span> quality_avg<span class="pun">,</span>
+    <span class="fn">AVG</span><span class="pun">(</span>communication_score<span class="pun">)</span>         <span class="k">AS</span> communication_avg<span class="pun">,</span>
+    <span class="fn">AVG</span><span class="pun">(</span>timeliness_score<span class="pun">)</span>            <span class="k">AS</span> timeliness_avg<span class="pun">,</span>
+    <span class="fn">AVG</span><span class="pun">(</span>professionalism_score<span class="pun">)</span>       <span class="k">AS</span> professionalism_avg
+  <span class="kw">FROM</span> weighted_ratings
+<span class="pun">)</span>
+<span class="kw">SELECT</span>
+  <span class="c">-- Score de reputação final com suavização Bayesiana</span>
+  <span class="kw">LEAST</span><span class="pun">(</span><span class="n">5.0</span><span class="pun">,</span> <span class="kw">GREATEST</span><span class="pun">(</span><span class="n">1.0</span><span class="pun">,</span>
+    <span class="pun">(</span>$2 <span class="pun">*</span> $3 <span class="pun">+</span> <span class="kw">COALESCE</span><span class="pun">(</span>weighted_sum<span class="pun">,</span> <span class="n">0</span><span class="pun">))</span>
+    <span class="pun">/</span> <span class="kw">NULLIF</span><span class="pun">((</span>$2 <span class="pun">+</span> <span class="kw">COALESCE</span><span class="pun">(</span>total_weight<span class="pun">,</span> <span class="n">0</span><span class="pun">)),</span> <span class="n">0</span><span class="pun">)</span>
+  <span class="pun">))</span> <span class="k">AS</span> reputation_score<span class="pun">,</span>
+  <span class="kw">COALESCE</span><span class="pun">(</span>n_ratings<span class="pun">,</span> <span class="n">0</span><span class="pun">)</span>        <span class="k">AS</span> total_ratings<span class="pun">,</span>
+  quality_avg<span class="pun">,</span> communication_avg<span class="pun">,</span>
+  timeliness_avg<span class="pun">,</span> professionalism_avg
+<span class="kw">FROM</span> aggregated<span class="pun">;</span></pre>
+
+<!-- ══════════════════════════════
+     3. PENALIDADES
+════════════════════════════════ -->
+<h2>3. Impacto de Cancelamentos e Disputas</h2>
+
+<p>Penalidades não modificam as avaliações existentes — elas são somadas como um <strong>desconto negativo</strong> aplicado sobre o score final. Também decaem com o tempo usando a mesma curva exponencial, permitindo que o freelancer "se recupere" ao longo dos meses.</p>
+
+<table class="table">
+<thead><tr><th>Evento</th><th>Quem</th><th>Penalidade</th><th>Decaimento</th><th>Justificativa</th></tr></thead>
+<tbody>
+<tr><td>Cancela após ACCEPTED</td><td>Freelancer</td><td>−0.30</td><td>Sim (meia-vida 180d)</td><td>Quebra de compromisso com pagamento já capturado</td></tr>
+<tr><td>Cancela após IN_PROGRESS</td><td>Freelancer</td><td>−0.50</td><td>Sim</td><td>Abandono durante execução — impacto severo na empresa</td></tr>
+<tr><td>Rejeita seleção (1x/mês)</td><td>Freelancer</td><td>Sem penalidade</td><td>—</td><td>Rejeitar é legítimo; limite de isenção por mês</td></tr>
+<tr><td>Rejeita seleção (excede 1x/mês)</td><td>Freelancer</td><td>−0.05/rejeição</td><td>Sim</td><td>Padrão de candidatura sem intenção real</td></tr>
+<tr><td>Disputa — admin decide contra</td><td>Freelancer</td><td>−0.40</td><td>Sim</td><td>Falha grave de qualidade ou comportamento</td></tr>
+<tr><td>Disputa — admin decide a favor</td><td>Freelancer</td><td>Sem penalidade</td><td>—</td><td>Não prejudicar quem foi injustiçado</td></tr>
+<tr><td>Disputa — sem resolução clara (split)</td><td>Freelancer</td><td>−0.10</td><td>Sim</td><td>Situação ambígua gera penalidade leve</td></tr>
+<tr><td>Cancela (DRAFT/PUBLISHED)</td><td>Empresa</td><td>Sem penalidade</td><td>—</td><td>Estágio ainda sem compromisso com freelancer</td></tr>
+<tr><td>Cancela após ACCEPTED</td><td>Empresa</td><td>−0.20</td><td>Sim</td><td>Quebra de contrato — prejudica freelancer</td></tr>
+</tbody>
+</table>
+
+<div class="formula">
+<span class="comment">Penalidade total com decaimento temporal:</span>
+P_total = Σ pᵢ × e^(−λ × dias_desde_evento_i)
+<br><br>
+<span class="comment">Score final após penalidades:</span>
+S_final = CLAMP(S_reputação − P_total, min=1.0, max=5.0)
+<br><br>
+<span class="comment">Exemplo — freelancer com S_rep=4.5 e um cancelamento há 60 dias:</span>
+P = 0.50 × e^(−0.00385 × 60) = 0.50 × 0.794 = 0.397
+S_final = CLAMP(4.5 − 0.397, 1.0, 5.0) = 4.103
+</div>
+
+<div class="ftag">src/reputation/reputation-calculator.service.ts</div>
+<pre><span class="kw">export class</span> <span class="cls">ReputationCalculator</span> <span class="pun">{</span>
+  <span class="kw">static readonly</span> LAMBDA       <span class="pun">=</span> <span class="cls">Math</span><span class="pun">.</span><span class="fn">log</span><span class="pun">(</span><span class="n">2</span><span class="pun">) /</span> <span class="n">180</span><span class="pun">;</span>  <span class="c">// meia-vida 180 dias</span>
+  <span class="kw">static readonly</span> PRIOR_WEIGHT <span class="pun">=</span> <span class="n">10</span><span class="pun">;</span>                   <span class="c">// C</span>
+  <span class="kw">static readonly</span> PRIOR_MEAN   <span class="pun">=</span> <span class="n">4.20</span><span class="pun">;</span>                 <span class="c">// μ, atualizado semanalmente</span>
+
+  <span class="kw">static readonly</span> PENALTIES <span class="pun">= {</span>
+    FREELANCER_CANCEL_ACCEPTED<span class="pun">:</span>    <span class="n">0.30</span><span class="pun">,</span>
+    FREELANCER_CANCEL_IN_PROGRESS<span class="pun">:</span>  <span class="n">0.50</span><span class="pun">,</span>
+    FREELANCER_EXCESS_REJECTION<span class="pun">:</span>    <span class="n">0.05</span><span class="pun">,</span>
+    DISPUTE_AGAINST_FREELANCER<span class="pun">:</span>     <span class="n">0.40</span><span class="pun">,</span>
+    DISPUTE_SPLIT<span class="pun">:</span>                  <span class="n">0.10</span><span class="pun">,</span>
+    EMPRESA_CANCEL_ACCEPTED<span class="pun">:</span>        <span class="n">0.20</span><span class="pun">,</span>
+  <span class="pun">} <span class="kw">as const</span>;</span>
+
+  <span class="kw">static</span> <span class="fn">decay</span><span class="pun">(</span>daysAgo<span class="pun">:</span> <span class="kw">number</span><span class="pun">):</span> <span class="kw">number</span> <span class="pun">{</span>
+    <span class="kw">return</span> <span class="cls">Math</span><span class="pun">.</span><span class="fn">exp</span><span class="pun">(-</span><span class="kw">this</span><span class="pun">.</span>LAMBDA <span class="pun">*</span> daysAgo<span class="pun">);</span>
+  <span class="pun">}</span>
+
+  <span class="kw">static</span> <span class="fn">computeScore</span><span class="pun">(</span>ratings<span class="pun">:</span> <span class="cls">RatingRow</span><span class="pun">[], penalties:</span> <span class="cls">PenaltyRow</span><span class="pun">[], priorMean:</span> <span class="kw">number</span><span class="pun">) {</span>
+    <span class="c">// 1. Score Bayesiano ponderado por tempo</span>
+    <span class="kw">let</span> weightedSum <span class="pun">=</span> <span class="n">0</span><span class="pun">;</span>
+    <span class="kw">let</span> totalWeight <span class="pun">=</span> <span class="n">0</span><span class="pun">;</span>
+
+    <span class="kw">for</span> <span class="pun">(</span><span class="kw">const</span> r <span class="kw">of</span> ratings<span class="pun">) {</span>
+      <span class="kw">const</span> daysAgo <span class="pun">=</span> <span class="fn">daysBetween</span><span class="pun">(</span>r<span class="pun">.</span>created_at<span class="pun">,</span> <span class="kw">new</span> <span class="cls">Date</span><span class="pun">());</span>
+      <span class="kw">const</span> w       <span class="pun">=</span> <span class="kw">this</span><span class="pun">.</span><span class="fn">decay</span><span class="pun">(</span>daysAgo<span class="pun">);</span>
+      <span class="kw">const</span> score   <span class="pun">=</span> <span class="kw">this</span><span class="pun">.</span><span class="fn">compositeScore</span><span class="pun">(</span>r<span class="pun">);</span>
+      weightedSum <span class="pun">+=</span> w <span class="pun">*</span> score<span class="pun">;</span>
+      totalWeight <span class="pun">+=</span> w<span class="pun">;</span>
+    <span class="pun">}</span>
+
+    <span class="c">// Suavização Bayesiana: mistura prior + dados reais</span>
+    <span class="kw">const</span> numerator   <span class="pun">=</span> <span class="kw">this</span><span class="pun">.</span>PRIOR_WEIGHT <span class="pun">*</span> priorMean <span class="pun">+</span> weightedSum<span class="pun">;</span>
+    <span class="kw">const</span> denominator <span class="pun">=</span> <span class="kw">this</span><span class="pun">.</span>PRIOR_WEIGHT <span class="pun">+</span> totalWeight<span class="pun">;</span>
+    <span class="kw">const</span> baseScore   <span class="pun">=</span> numerator <span class="pun">/</span> denominator<span class="pun">;</span>
+
+    <span class="c">// 2. Penalidades com decaimento</span>
+    <span class="kw">const</span> totalPenalty <span class="pun">=</span> penalties<span class="pun">.</span><span class="fn">reduce</span><span class="pun">((</span>acc<span class="pun">,</span> p<span class="pun">) => {</span>
+      <span class="kw">const</span> daysAgo <span class="pun">=</span> <span class="fn">daysBetween</span><span class="pun">(</span>p<span class="pun">.</span>event_at<span class="pun">,</span> <span class="kw">new</span> <span class="cls">Date</span><span class="pun">());</span>
+      <span class="kw">return</span> acc <span class="pun">+</span> p<span class="pun">.</span>penalty_amount <span class="pun">*</span> <span class="kw">this</span><span class="pun">.</span><span class="fn">decay</span><span class="pun">(</span>daysAgo<span class="pun">);</span>
+    <span class="pun">},</span> <span class="n">0</span><span class="pun">);</span>
+
+    <span class="c">// 3. Score final clamped em [1.0, 5.0]</span>
+    <span class="kw">return</span> <span class="cls">Math</span><span class="pun">.</span><span class="fn">min</span><span class="pun">(</span><span class="n">5.0</span><span class="pun">,</span> <span class="cls">Math</span><span class="pun">.</span><span class="fn">max</span><span class="pun">(</span><span class="n">1.0</span><span class="pun">,</span> baseScore <span class="pun">-</span> totalPenalty<span class="pun">));</span>
+  <span class="pun">}</span>
+
+  <span class="kw">private static</span> <span class="fn">compositeScore</span><span class="pun">(</span>r<span class="pun">:</span> <span class="cls">RatingRow</span><span class="pun">):</span> <span class="kw">number</span> <span class="pun">{</span>
+    <span class="kw">if</span> <span class="pun">(!</span>r<span class="pun">.</span>quality_score<span class="pun">)</span> <span class="kw">return</span> r<span class="pun">.</span>overall_score<span class="pun">;</span>
+    <span class="kw">const</span> criteria <span class="pun">=</span>
+      <span class="n">0.30</span> <span class="pun">*</span> r<span class="pun">.</span>quality_score <span class="pun">+</span>
+      <span class="n">0.25</span> <span class="pun">* (</span>r<span class="pun">.</span>communication_score  <span class="pun">??</span> r<span class="pun">.</span>overall_score<span class="pun">) +</span>
+      <span class="n">0.25</span> <span class="pun">* (</span>r<span class="pun">.</span>timeliness_score      <span class="pun">??</span> r<span class="pun">.</span>overall_score<span class="pun">) +</span>
+      <span class="n">0.20</span> <span class="pun">* (</span>r<span class="pun">.</span>professionalism_score  <span class="pun">??</span> r<span class="pun">.</span>overall_score<span class="pun">);</span>
+    <span class="kw">return</span> <span class="n">0.60</span> <span class="pun">*</span> r<span class="pun">.</span>overall_score <span class="pun">+</span> <span class="n">0.40</span> <span class="pun">*</span> criteria<span class="pun">;</span>
+  <span class="pun">}</span>
+<span class="pun">}</span></pre>
+
+<!-- ══════════════════════════════
+     4. PREVENÇÃO DE FRAUDE
+════════════════════════════════ -->
+<h2>4. Prevenção de Fraude</h2>
+
+<p>O sistema de fraude usa um <strong>modelo de pontuação de risco</strong>: cada sinal suspeito adiciona pontos ao score de risco da avaliação. Acima de um threshold, a avaliação é automaticamente <strong>flagged</strong> para revisão humana — não removida, apenas suspensa até a decisão do admin.</p>
+
+<table class="table">
+<thead><tr><th>Sinal</th><th>Risco</th><th>Detecção</th></tr></thead>
+<tbody>
+<tr><td>Avaliação enviada em menos de 2 minutos após a ordem concluir</td><td>+20</td><td>Timestamp comparison</td></tr>
+<tr><td>Avaliador criou conta há menos de 7 dias</td><td>+30</td><td>users.created_at</td></tr>
+<tr><td>Mesmo IP que o avaliado nas últimas 24h</td><td>+50</td><td>Redis: last_ip por user</td></tr>
+<tr><td>Padrão de avaliação: sempre 5.0 ou sempre 1.0 (variância zero)</td><td>+25</td><td>STDDEV em histórico</td></tr>
+<tr><td>Conta avaliou mais de 3 usuários nas últimas 24h</td><td>+20</td><td>Count por avaliador</td></tr>
+<tr><td>Fingerprint de device idêntico ao avaliado</td><td>+60</td><td>device_tokens</td></tr>
+<tr><td>Texto do comentário idêntico a outro comentário do mesmo avaliador</td><td>+35</td><td>Hash comparison</td></tr>
+<tr><td>Burst de avaliações positivas em &lt; 1 hora (spike detection)</td><td>+40</td><td>Redis time-window</td></tr>
+</tbody>
+</table>
+
+<div class="ftag">src/rating/fraud-detector.service.ts</div>
+<pre><span class="kw">interface</span> <span class="cls">FraudSignal</span> <span class="pun">{</span> code<span class="pun">:</span> <span class="kw">string</span><span class="pun">;</span> risk<span class="pun">:</span> <span class="kw">number</span><span class="pun">;</span> detail<span class="pun">?:</span> <span class="kw">string</span> <span class="pun">}</span>
+
+<span class="kw">export class</span> <span class="cls">FraudDetector</span> <span class="pun">{</span>
+  <span class="kw">static readonly</span> FLAG_THRESHOLD   <span class="pun">=</span> <span class="n">50</span><span class="pun">;</span>  <span class="c">// acima → flag para revisão</span>
+  <span class="kw">static readonly</span> REMOVE_THRESHOLD <span class="pun">=</span> <span class="n">90</span><span class="pun">;</span>  <span class="c">// acima → remoção automática</span>
+
+  <span class="kw">static async</span> <span class="fn">analyze</span><span class="pun">(</span>submission<span class="pun">:</span> <span class="cls">RatingSubmission</span><span class="pun">):</span> <span class="cls">Promise</span><span class="pun">&lt;</span><span class="cls">FraudAnalysis</span><span class="pun">&gt; {</span>
+    <span class="kw">const</span> signals<span class="pun">:</span> <span class="cls">FraudSignal</span><span class="pun">[] = [];</span>
+
+    <span class="c">// Sinal 1: submissão muito rápida</span>
+    <span class="kw">const</span> minsSinceCompletion <span class="pun">=</span> <span class="fn">minutesBetween</span><span class="pun">(</span>submission<span class="pun">.</span>orderCompletedAt<span class="pun">,</span> <span class="kw">new</span> <span class="cls">Date</span><span class="pun">());</span>
+    <span class="kw">if</span> <span class="pun">(</span>minsSinceCompletion <span class="pun">&lt;</span> <span class="n">2</span><span class="pun">)</span>
+      signals<span class="pun">.</span><span class="fn">push</span><span class="pun">({</span> code<span class="pun">:</span> <span class="s">'INSTANT_RATING'</span><span class="pun">,</span> risk<span class="pun">:</span> <span class="n">20</span> <span class="pun">});</span>
+
+    <span class="c">// Sinal 2: conta muito nova</span>
+    <span class="kw">const</span> rater <span class="pun">=</span> <span class="kw">await</span> <span class="cls">UserRepo</span><span class="pun">.</span><span class="fn">findById</span><span class="pun">(</span>submission<span class="pun">.</span>raterId<span class="pun">);</span>
+    <span class="kw">const</span> accountAgedays <span class="pun">=</span> <span class="fn">daysBetween</span><span class="pun">(</span>rater<span class="pun">.</span>created_at<span class="pun">,</span> <span class="kw">new</span> <span class="cls">Date</span><span class="pun">());</span>
+    <span class="kw">if</span> <span class="pun">(</span>accountAgedays <span class="pun">&lt;</span> <span class="n">7</span><span class="pun">)</span>
+      signals<span class="pun">.</span><span class="fn">push</span><span class="pun">({</span> code<span class="pun">:</span> <span class="s">'NEW_ACCOUNT'</span><span class="pun">,</span> risk<span class="pun">:</span> <span class="n">30</span><span class="pun">,</span> detail<span class="pun">:</span> <span class="s">`<span class="pun">${</span>accountAgedays<span class="pun">}</span>d old`</span> <span class="pun">});</span>
+
+    <span class="c">// Sinal 3: mesmo IP nas últimas 24h</span>
+    <span class="kw">const</span> raterIP <span class="pun">=</span> <span class="kw">await</span> redis<span class="pun">.</span><span class="fn">get</span><span class="pun">(</span><span class="s">`last_ip:<span class="pun">${</span>submission<span class="pun">.</span>raterId<span class="pun">}</span>`</span><span class="pun">);</span>
+    <span class="kw">const</span> rateeIP <span class="pun">=</span> <span class="kw">await</span> redis<span class="pun">.</span><span class="fn">get</span><span class="pun">(</span><span class="s">`last_ip:<span class="pun">${</span>submission<span class="pun">.</span>rateeId<span class="pun">}</span>`</span><span class="pun">);</span>
+    <span class="kw">if</span> <span class="pun">(</span>raterIP <span class="pun">&&</span> raterIP <span class="pun">===</span> rateeIP<span class="pun">)</span>
+      signals<span class="pun">.</span><span class="fn">push</span><span class="pun">({</span> code<span class="pun">:</span> <span class="s">'SAME_IP'</span><span class="pun">,</span> risk<span class="pun">:</span> <span class="n">50</span><span class="pun">,</span> detail<span class="pun">:</span> raterIP <span class="pun">});</span>
+
+    <span class="c">// Sinal 4: variância zero (sempre dá nota máxima/mínima)</span>
+    <span class="kw">const</span> raterHistory <span class="pun">=</span> <span class="kw">await</span> db<span class="pun">.</span><span class="fn">query</span><span class="pun">(</span><span class="s">`
+      SELECT STDDEV(overall_score) AS stddev, COUNT(*) AS n
+      FROM ratings WHERE rater_id = $1 AND created_at > NOW() - INTERVAL '90 days'
+    `</span><span class="pun">, [</span>submission<span class="pun">.</span>raterId<span class="pun">]);</span>
+    <span class="kw">const</span> <span class="pun">{</span> stddev<span class="pun">,</span> n <span class="pun">}</span> <span class="pun">=</span> raterHistory<span class="pun">.</span>rows<span class="pun">[</span><span class="n">0</span><span class="pun">];</span>
+    <span class="kw">if</span> <span class="pun">(</span>n <span class="pun">>=</span> <span class="n">3</span> <span class="pun">&&</span> stddev <span class="pun">&lt;</span> <span class="n">0.01</span><span class="pun">)</span>
+      signals<span class="pun">.</span><span class="fn">push</span><span class="pun">({</span> code<span class="pun">:</span> <span class="s">'ZERO_VARIANCE'</span><span class="pun">,</span> risk<span class="pun">:</span> <span class="n">25</span> <span class="pun">});</span>
+
+    <span class="c">// Sinal 5: device fingerprint compartilhado</span>
+    <span class="kw">if</span> <span class="pun">(</span>submission<span class="pun">.</span>deviceFingerprint<span class="pun">) {</span>
+      <span class="kw">const</span> sameDevice <span class="pun">=</span> <span class="kw">await</span> db<span class="pun">.</span><span class="fn">query</span><span class="pun">(</span><span class="s">`
+        SELECT 1 FROM device_tokens
+        WHERE token = $1 AND user_id = $2
+      `</span><span class="pun">, [</span>submission<span class="pun">.</span>deviceFingerprint<span class="pun">,</span> submission<span class="pun">.</span>rateeId<span class="pun">]);</span>
+      <span class="kw">if</span> <span class="pun">(</span>sameDevice<span class="pun">.</span>rows<span class="pun">.</span>length<span class="pun">)</span>
+        signals<span class="pun">.</span><span class="fn">push</span><span class="pun">({</span> code<span class="pun">:</span> <span class="s">'SAME_DEVICE'</span><span class="pun">,</span> risk<span class="pun">:</span> <span class="n">60</span> <span class="pun">});</span>
+    <span class="pun">}</span>
+
+    <span class="c">// Sinal 6: spike de avaliações positivas em 1h (lavagem de reputação)</span>
+    <span class="kw">if</span> <span class="pun">(</span>submission<span class="pun">.</span>overall_score <span class="pun">>=</span> <span class="n">4.5</span><span class="pun">) {</span>
+      <span class="kw">const</span> recentKey   <span class="pun">=</span> <span class="s">`rating_spike:<span class="pun">${</span>submission<span class="pun">.</span>rateeId<span class="pun">}</span>`</span><span class="pun">;</span>
+      <span class="kw">const</span> recentCount <span class="pun">=</span> <span class="kw">await</span> redis<span class="pun">.</span><span class="fn">incr</span><span class="pun">(</span>recentKey<span class="pun">);</span>
+      <span class="kw">await</span> redis<span class="pun">.</span><span class="fn">expire</span><span class="pun">(</span>recentKey<span class="pun">,</span> <span class="n">3600</span><span class="pun">);</span>           <span class="c">// window de 1h</span>
+      <span class="kw">if</span> <span class="pun">(</span>recentCount <span class="pun">>=</span> <span class="n">5</span><span class="pun">)</span>                          <span class="c">// 5+ avaliações positivas em 1h</span>
+        signals<span class="pun">.</span><span class="fn">push</span><span class="pun">({</span> code<span class="pun">:</span> <span class="s">'POSITIVE_SPIKE'</span><span class="pun">,</span> risk<span class="pun">:</span> <span class="n">40</span><span class="pun">,</span> detail<span class="pun">:</span> <span class="s">`<span class="pun">${</span>recentCount<span class="pun">}</span> in 1h`</span> <span class="pun">});</span>
+    <span class="pun">}</span>
+
+    <span class="kw">const</span> totalRisk <span class="pun">=</span> signals<span class="pun">.</span><span class="fn">reduce</span><span class="pun">((</span>sum<span class="pun">,</span> s<span class="pun">) =></span> sum <span class="pun">+</span> s<span class="pun">.</span>risk<span class="pun">,</span> <span class="n">0</span><span class="pun">);</span>
+
+    <span class="kw">return</span> <span class="pun">{</span>
+      totalRisk<span class="pun">,</span>
+      signals<span class="pun">,</span>
+      action<span class="pun">:</span> totalRisk <span class="pun">>=</span> <span class="kw">this</span><span class="pun">.</span>REMOVE_THRESHOLD <span class="pun">?</span> <span class="s">'REMOVE'</span>
+             <span class="pun">:</span> totalRisk <span class="pun">>=</span> <span class="kw">this</span><span class="pun">.</span>FLAG_THRESHOLD   <span class="pun">?</span> <span class="s">'FLAG'</span>
+             <span class="pun">:</span>                                         <span class="s">'ACCEPT'</span><span class="pun">,</span>
+    <span class="pun">};</span>
+  <span class="pun">}</span>
+<span class="pun">}</span></pre>
+
+<!-- ══════════════════════════════
+     5. SERVIÇO DE SUBMISSÃO
+════════════════════════════════ -->
+<h2>5. Submissão de Avaliação — Fluxo Completo</h2>
+
+<div class="ftag">src/rating/rating.service.ts</div>
+<pre><span class="kw">export class</span> <span class="cls">RatingService</span> <span class="pun">{</span>
+  <span class="kw">static async</span> <span class="fn">submit</span><span class="pun">(</span>input<span class="pun">:</span> <span class="cls">SubmitRatingInput</span><span class="pun">) {</span>
+    <span class="kw">const</span> order <span class="pun">=</span> <span class="kw">await</span> <span class="cls">OrderRepo</span><span class="pun">.</span><span class="fn">findById</span><span class="pun">(</span>input<span class="pun">.</span>orderId<span class="pun">);</span>
+
+    <span class="c">// Guard 1: ordem deve estar em COMPLETED</span>
+    <span class="kw">if</span> <span class="pun">(</span>order<span class="pun">.</span>status <span class="pun">!==</span> <span class="s">'COMPLETED'</span><span class="pun">)</span>
+      <span class="kw">throw</span> <span class="kw">new</span> <span class="cls">BusinessError</span><span class="pun">(</span><span class="s">'ORDER_NOT_COMPLETED'</span><span class="pun">);</span>
+
+    <span class="c">// Guard 2: janela de 72h ainda aberta</span>
+    <span class="kw">const</span> windowCloses <span class="pun">=</span> <span class="fn">addHours</span><span class="pun">(</span>order<span class="pun">.</span>completed_at<span class="pun">,</span> <span class="n">72</span><span class="pun">);</span>
+    <span class="kw">if</span> <span class="pun">(</span><span class="kw">new</span> <span class="cls">Date</span><span class="pun">() ></span> windowCloses<span class="pun">)</span>
+      <span class="kw">throw</span> <span class="kw">new</span> <span class="cls">BusinessError</span><span class="pun">(</span><span class="s">'RATING_WINDOW_CLOSED'</span><span class="pun">);</span>
+
+    <span class="c">// Guard 3: usuário ainda não avaliou este par (order_id + rating_type)</span>
+    <span class="kw">const</span> ratingType <span class="pun">=</span> input<span class="pun">.</span>actorRole <span class="pun">===</span> <span class="s">'EMPRESA'</span>
+      <span class="pun">?</span> <span class="s">'COMPANY_TO_FREELANCER'</span>
+      <span class="pun">:</span> <span class="s">'FREELANCER_TO_COMPANY'</span><span class="pun">;</span>
+    <span class="kw">const</span> existing <span class="pun">=</span> <span class="kw">await</span> db<span class="pun">.</span><span class="fn">query</span><span class="pun">(</span>
+      <span class="s">'SELECT id FROM ratings WHERE order_id=$1 AND rating_type=$2'</span><span class="pun">,</span>
+      <span class="pun">[</span>input<span class="pun">.</span>orderId<span class="pun">,</span> ratingType<span class="pun">]</span>
+    <span class="pun">);</span>
+    <span class="kw">if</span> <span class="pun">(</span>existing<span class="pun">.</span>rows<span class="pun">.</span>length<span class="pun">)</span>
+      <span class="kw">throw</span> <span class="kw">new</span> <span class="cls">ConflictError</span><span class="pun">(</span><span class="s">'ALREADY_RATED'</span><span class="pun">);</span>
+
+    <span class="c">// Detecção de fraude antes de persistir</span>
+    <span class="kw">const</span> fraud <span class="pun">=</span> <span class="kw">await</span> <span class="cls">FraudDetector</span><span class="pun">.</span><span class="fn">analyze</span><span class="pun">({</span>
+      raterId<span class="pun">:</span>           input<span class="pun">.</span>actorId<span class="pun">,</span>
+      rateeId<span class="pun">:</span>           input<span class="pun">.</span>rateeId<span class="pun">,</span>
+      overall_score<span class="pun">:</span>     input<span class="pun">.</span>overall_score<span class="pun">,</span>
+      orderCompletedAt<span class="pun">:</span>  order<span class="pun">.</span>completed_at<span class="pun">,</span>
+      deviceFingerprint<span class="pun">:</span> input<span class="pun">.</span>deviceFingerprint<span class="pun">,</span>
+    <span class="pun">});</span>
+
+    <span class="kw">if</span> <span class="pun">(</span>fraud<span class="pun">.</span>action <span class="pun">===</span> <span class="s">'REMOVE'</span><span class="pun">)</span>
+      <span class="kw">throw</span> <span class="kw">new</span> <span class="cls">BusinessError</span><span class="pun">(</span><span class="s">'RATING_BLOCKED_FRAUD'</span><span class="pun">);</span>
+
+    <span class="kw">const</span> isRemoved <span class="pun">=</span> fraud<span class="pun">.</span>action <span class="pun">===</span> <span class="s">'FLAG'</span><span class="pun">;</span>     <span class="c">// salva mas não computa</span>
+
+    <span class="kw">return</span> db<span class="pun">.</span><span class="fn">transaction</span><span class="pun">(</span><span class="kw">async</span> <span class="pun">(</span>trx<span class="pun">) => {</span>
+      <span class="c">// Persiste avaliação</span>
+      <span class="kw">const</span> rating <span class="pun">=</span> <span class="kw">await</span> trx<span class="pun">.</span><span class="fn">query</span><span class="pun">(</span><span class="s">`
+        INSERT INTO ratings (order_id, rating_type, rater_id, ratee_id,
+          overall_score, quality_score, communication_score, timeliness_score,
+          professionalism_score, comment, window_opens_at, window_closes_at,
+          is_removed, flagged_at, flagged_reason)
+        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)
+        RETURNING *
+      `</span><span class="pun">, [</span>
+        input<span class="pun">.</span>orderId<span class="pun">,</span>          ratingType<span class="pun">,</span>              input<span class="pun">.</span>actorId<span class="pun">,</span>
+        input<span class="pun">.</span>rateeId<span class="pun">,</span>          input<span class="pun">.</span>overall_score<span class="pun">,</span>     input<span class="pun">.</span>quality_score<span class="pun">,</span>
+        input<span class="pun">.</span>communication_score<span class="pun">,</span> input<span class="pun">.</span>timeliness_score<span class="pun">,</span> input<span class="pun">.</span>professionalism_score<span class="pun">,</span>
+        input<span class="pun">.</span>comment<span class="pun">,</span>
+        order<span class="pun">.</span>completed_at<span class="pun">,</span>    windowCloses<span class="pun">,</span>
+        isRemoved<span class="pun">,</span>              isRemoved <span class="pun">?</span> <span class="kw">new</span> <span class="cls">Date</span><span class="pun">() :</span> <span class="b">null</span><span class="pun">,</span>
+        isRemoved <span class="pun">?</span> fraud<span class="pun">.</span>signals<span class="pun">.</span><span class="fn">map</span><span class="pun">(</span>s <span class="pun">=></span> s<span class="pun">.</span>code<span class="pun">).</span><span class="fn">join</span><span class="pun">(</span><span class="s">','</span><span class="pun">) :</span> <span class="b">null</span><span class="pun">,</span>
+      <span class="pun">]);</span>
+
+      <span class="c">// Dispara recálculo assíncrono de reputação (não bloqueia a resposta)</span>
+      <span class="kw">if</span> <span class="pun">(!</span>isRemoved<span class="pun">)</span>
+        <span class="kw">await</span> queue<span class="pun">.</span><span class="fn">publish</span><span class="pun">(</span><span class="s">'reputation.recalculate'</span><span class="pun">, {</span> userId<span class="pun">:</span> input<span class="pun">.</span>rateeId <span class="pun">});</span>
+
+      <span class="kw">return</span> <span class="pun">{</span> rating<span class="pun">:</span> rating<span class="pun">.</span>rows<span class="pun">[</span><span class="n">0</span><span class="pun">],</span> flagged<span class="pun">:</span> isRemoved <span class="pun">};</span>
+    <span class="pun">});</span>
+  <span class="pun">}</span>
+<span class="pun">}</span></pre>
+
+<!-- ══════════════════════════════
+     6. RANKING
+════════════════════════════════ -->
+<h2>6. Algoritmo de Ranking de Freelancers</h2>
+
+<p>O ranking não é apenas por nota de reputação — isso privilegiaria freelancers antigos sobre novos talentos. O score de ranking é <strong>multifatorial</strong> e contextual: o peso do skill match aumenta quando a busca tem skills específicas, e o availability_multiplier zera o score de freelancers indisponíveis.</p>
+
+<!-- RANKING FACTORS SVG -->
+<svg width="100%" viewBox="0 0 680 90" xmlns="http://www.w3.org/2000/svg" style="display:block;margin:16px 0;">
+<text x="340" y="14" text-anchor="middle" font-size="11" font-weight="600" fill="var(--muted,#73726c)" font-family="system-ui">Composição do Score de Ranking (base normalizada 0–100)</text>
+
+<!-- Stacked bar -->
+<!-- Total = 40+20+15+10+15 = 100% -->
+<!-- Bar width = 580, starting at x=50 -->
+<!-- Reputation 40% → 232px -->
+<rect x="50" y="28" width="232" height="32" rx="0" fill="#185FA5"/>
+<text x="166" y="48" text-anchor="middle" font-size="11" font-weight="700" fill="#fff" font-family="system-ui">Reputação — 40%</text>
+
+<!-- Completion 20% → 116px -->
+<rect x="282" y="28" width="116" height="32" rx="0" fill="#0F6E56"/>
+<text x="340" y="48" text-anchor="middle" font-size="10" font-weight="700" fill="#fff" font-family="system-ui">Conclusão — 20%</text>
+
+<!-- Response time 15% → 87px -->
+<rect x="398" y="28" width="87" height="32" rx="0" fill="#534AB7"/>
+<text x="441" y="48" text-anchor="middle" font-size="10" font-weight="700" fill="#fff" font-family="system-ui">Resposta 15%</text>
+
+<!-- Experience 10% → 58px -->
+<rect x="485" y="28" width="58" height="32" rx="0" fill="#854F0B"/>
+<text x="514" y="48" text-anchor="middle" font-size="9" font-weight="700" fill="#fff" font-family="system-ui">Exp 10%</text>
+
+<!-- Skill match 15% → 87px -->
+<rect x="543" y="28" width="87" height="32" rx="4" fill="#5F5E5A"/>
+<text x="586" y="48" text-anchor="middle" font-size="10" font-weight="700" fill="#fff" font-family="system-ui">Skill 15%</text>
+
+<!-- Availability multiplier note -->
+<text x="340" y="78" text-anchor="middle" font-size="10" fill="var(--muted,#73726c)" font-family="system-ui">× Availability multiplier: AVAILABLE=1.0 · BUSY=0.3 · UNAVAILABLE=0.0</text>
+</svg>
+
+<div class="formula">
+<span class="comment">Score de base (0–100 normalizado):</span>
+B = 40 × rep_norm + 20 × completion_norm + 15 × response_norm + 10 × exp_norm + 15 × skill_norm
+<br><br>
+<span class="comment">Score final com multiplicador de disponibilidade:</span>
+R = B × availability_mult
+<br><br>
+<span class="comment">Normalização (transforma cada dimensão para 0–1):</span>
+rep_norm      = (reputation_score − 1.0) / 4.0        <span class="comment">→ [1.0,5.0] → [0,1]</span>
+completion_norm = completion_rate / 100                 <span class="comment">→ [0%,100%] → [0,1]</span>
+response_norm = 1 − MIN(avg_response_h / 48, 1)        <span class="comment">→ 0h=1.0, 48h=0.0</span>
+exp_norm      = MIN(completed_orders / 100, 1)          <span class="comment">→ 0=0.0, 100+=1.0</span>
+skill_norm    = matching_required_skills / total_required_skills
+</div>
+
+<div class="ftag">src/reputation/ranking.service.ts</div>
+<pre><span class="kw">export class</span> <span class="cls">RankingService</span> <span class="pun">{</span>
+  <span class="kw">static readonly</span> WEIGHTS <span class="pun">= {</span>
+    reputation<span class="pun">:</span>   <span class="n">40</span><span class="pun">,</span>
+    completion<span class="pun">:</span>   <span class="n">20</span><span class="pun">,</span>
+    responseTime<span class="pun">:</span> <span class="n">15</span><span class="pun">,</span>
+    experience<span class="pun">:</span>   <span class="n">10</span><span class="pun">,</span>
+    skillMatch<span class="pun">:</span>   <span class="n">15</span><span class="pun">,</span>
+  <span class="pun">};</span>
+
+  <span class="kw">static readonly</span> AVAILABILITY_MULT <span class="pun">= {</span>
+    AVAILABLE<span class="pun">:</span>   <span class="n">1.0</span><span class="pun">,</span>
+    BUSY<span class="pun">:</span>        <span class="n">0.3</span><span class="pun">,</span>     <span class="c">// ainda aparece, mas ranqueado muito abaixo</span>
+    UNAVAILABLE<span class="pun">:</span> <span class="n">0.0</span><span class="pun">,</span>     <span class="c">// sumido dos resultados</span>
+  <span class="pun">} <span class="kw">as const</span>;</span>
+
+  <span class="kw">static</span> <span class="fn">computeScore</span><span class="pun">(</span>freelancer<span class="pun">:</span> <span class="cls">FreelancerProfile</span><span class="pun">,</span> requiredSkillIds<span class="pun">:</span> <span class="kw">string</span><span class="pun">[]): number {</span>
+    <span class="kw">const</span> W <span class="pun">=</span> <span class="kw">this</span><span class="pun">.</span>WEIGHTS<span class="pun">;</span>
+
+    <span class="c">// Normalização de cada dimensão → [0, 1]</span>
+    <span class="kw">const</span> repNorm      <span class="pun">= (</span>freelancer<span class="pun">.</span>reputation_score <span class="pun">-</span> <span class="n">1.0</span><span class="pun">) /</span> <span class="n">4.0</span><span class="pun">;</span>
+    <span class="kw">const</span> completionN  <span class="pun">=</span> freelancer<span class="pun">.</span>completion_rate <span class="pun">/</span> <span class="n">100</span><span class="pun">;</span>
+    <span class="kw">const</span> responseN    <span class="pun">=</span> <span class="n">1</span> <span class="pun">-</span> <span class="cls">Math</span><span class="pun">.</span><span class="fn">min</span><span class="pun">((</span>freelancer<span class="pun">.</span>avg_response_hours <span class="pun">??</span> <span class="n">24</span><span class="pun">) /</span> <span class="n">48</span><span class="pun">,</span> <span class="n">1</span><span class="pun">);</span>
+    <span class="kw">const</span> experienceN  <span class="pun">=</span> <span class="cls">Math</span><span class="pun">.</span><span class="fn">min</span><span class="pun">(</span>freelancer<span class="pun">.</span>completed_orders <span class="pun">/</span> <span class="n">100</span><span class="pun">,</span> <span class="n">1</span><span class="pun">);</span>
+
+    <span class="c">// Skill match: % de skills requeridas que o freelancer possui</span>
+    <span class="kw">const</span> matchedSkills <span class="pun">=</span> requiredSkillIds<span class="pun">.</span>length <span class="pun">===</span> <span class="n">0</span>
+      <span class="pun">?</span> <span class="n">1.0</span>   <span class="c">// sem filtro de skill → match perfeito</span>
+      <span class="pun">:</span> freelancer<span class="pun">.</span>skill_ids<span class="pun">.</span><span class="fn">filter</span><span class="pun">(</span>id <span class="pun">=></span> requiredSkillIds<span class="pun">.</span><span class="fn">includes</span><span class="pun">(</span>id<span class="pun">)).</span>length
+          <span class="pun">/</span> requiredSkillIds<span class="pun">.</span>length<span class="pun">;</span>
+
+    <span class="kw">const</span> baseScore <span class="pun">=</span>
+      W<span class="pun">.</span>reputation   <span class="pun">*</span> repNorm     <span class="pun">+</span>
+      W<span class="pun">.</span>completion   <span class="pun">*</span> completionN <span class="pun">+</span>
+      W<span class="pun">.</span>responseTime <span class="pun">*</span> responseN  <span class="pun">+</span>
+      W<span class="pun">.</span>experience   <span class="pun">*</span> experienceN<span class="pun">+</span>
+      W<span class="pun">.</span>skillMatch   <span class="pun">*</span> matchedSkills<span class="pun">;</span>
+
+    <span class="kw">const</span> availMult <span class="pun">=</span> <span class="kw">this</span><span class="pun">.</span>AVAILABILITY_MULT<span class="pun">[</span>freelancer<span class="pun">.</span>availability_status<span class="pun">] ??</span> <span class="n">0</span><span class="pun">;</span>
+
+    <span class="kw">return</span> <span class="cls">Math</span><span class="pun">.</span><span class="fn">round</span><span class="pun">(</span>baseScore <span class="pun">*</span> availMult <span class="pun">*</span> <span class="n">100</span><span class="pun">) /</span> <span class="n">100</span><span class="pun">;</span>   <span class="c">// 0–100, 2 casas</span>
+  <span class="pun">}</span>
+<span class="pun">}</span></pre>
+
+<h3>Query de Ranking para Listagem</h3>
+
+<div class="ftag">src/reputation/queries/rank-freelancers.sql</div>
+<pre><span class="c">-- Ranking de freelancers para uma busca específica</span>
+<span class="c">-- Parâmetros: $1=required_skill_ids[], $2=budget_max</span>
+<span class="kw">SELECT</span>
+  f<span class="pun">.</span>id<span class="pun">,</span>
+  u<span class="pun">.</span>full_name<span class="pun">,</span>
+  f<span class="pun">.</span>reputation_score<span class="pun">,</span>
+  f<span class="pun">.</span>completion_rate<span class="pun">,</span>
+  f<span class="pun">.</span>completed_orders<span class="pun">,</span>
+  f<span class="pun">.</span>avg_response_hours<span class="pun">,</span>
+  f<span class="pun">.</span>availability_status<span class="pun">,</span>
+  <span class="c">-- Skill match ratio</span>
+  <span class="kw">COALESCE</span><span class="pun">(</span>
+    <span class="pun">(</span><span class="kw">SELECT</span> <span class="fn">COUNT</span><span class="pun">(*)</span> <span class="kw">FROM</span> freelancer_skills fs
+     <span class="kw">WHERE</span> fs<span class="pun">.</span>freelancer_id <span class="pun">=</span> f<span class="pun">.</span>id <span class="kw">AND</span> fs<span class="pun">.</span>skill_id <span class="pun">=</span> <span class="fn">ANY</span><span class="pun">(</span>$1<span class="pun">))</span>
+    <span class="pun">::</span><span class="kw">FLOAT</span> <span class="pun">/</span> <span class="fn">NULLIF</span><span class="pun">(</span><span class="fn">ARRAY_LENGTH</span><span class="pun">(</span>$1<span class="pun">,</span> <span class="n">1</span><span class="pun">),</span> <span class="n">0</span><span class="pun">),</span>
+    <span class="n">1.0</span>   <span class="c">-- sem filtro de skill → match perfeito</span>
+  <span class="pun">)</span> <span class="k">AS</span> skill_match_ratio<span class="pun">,</span>
+  <span class="c">-- Score de ranking calculado em SQL para permitir ORDER BY</span>
+  <span class="pun">(</span>
+    <span class="n">40</span> <span class="pun">*</span> <span class="pun">((</span>f<span class="pun">.</span>reputation_score <span class="pun">-</span> <span class="n">1.0</span><span class="pun">) /</span> <span class="n">4.0</span><span class="pun">)</span>
+    <span class="pun">+</span> <span class="n">20</span> <span class="pun">*</span> <span class="pun">(</span>f<span class="pun">.</span>completion_rate <span class="pun">/</span> <span class="n">100.0</span><span class="pun">)</span>
+    <span class="pun">+</span> <span class="n">15</span> <span class="pun">*</span> <span class="pun">(</span><span class="n">1.0</span> <span class="pun">-</span> <span class="fn">LEAST</span><span class="pun">(</span><span class="kw">COALESCE</span><span class="pun">(</span>f<span class="pun">.</span>avg_response_hours<span class="pun">,</span> <span class="n">24</span><span class="pun">) /</span> <span class="n">48.0</span><span class="pun">,</span> <span class="n">1.0</span><span class="pun">))</span>
+    <span class="pun">+</span> <span class="n">10</span> <span class="pun">*</span> <span class="fn">LEAST</span><span class="pun">(</span>f<span class="pun">.</span>completed_orders <span class="pun">::</span><span class="kw">FLOAT</span> <span class="pun">/</span> <span class="n">100.0</span><span class="pun">,</span> <span class="n">1.0</span><span class="pun">)</span>
+    <span class="pun">+</span> <span class="n">15</span> <span class="pun">* ...</span> <span class="c">-- skill_match_ratio acima</span>
+  <span class="pun">) * <span class="kw">CASE</span></span>
+      <span class="kw">WHEN</span> f<span class="pun">.</span>availability_status <span class="pun">=</span> <span class="s">'AVAILABLE'</span>   <span class="kw">THEN</span> <span class="n">1.0</span>
+      <span class="kw">WHEN</span> f<span class="pun">.</span>availability_status <span class="pun">=</span> <span class="s">'BUSY'</span>        <span class="kw">THEN</span> <span class="n">0.3</span>
+      <span class="kw">ELSE</span> <span class="n">0.0</span>
+    <span class="kw">END</span> <span class="k">AS</span> ranking_score
+<span class="kw">FROM</span> freelancers f
+<span class="kw">JOIN</span> users u <span class="kw">ON</span> u<span class="pun">.</span>id <span class="pun">=</span> f<span class="pun">.</span>user_id
+<span class="kw">WHERE</span>
+  u<span class="pun">.</span>status <span class="pun">=</span> <span class="s">'ACTIVE'</span>
+  <span class="kw">AND</span> u<span class="pun">.</span>deleted_at <span class="kw">IS NULL</span>
+  <span class="kw">AND</span> f<span class="pun">.</span>availability_status <span class="pun">!=</span> <span class="s">'UNAVAILABLE'</span>
+  <span class="c">-- Filtro de orçamento (opcional)</span>
+  <span class="kw">AND</span> <span class="pun">(</span>$2 <span class="kw">IS NULL</span> <span class="kw">OR</span> f<span class="pun">.</span>hourly_rate <span class="pun">&lt;=</span> $2<span class="pun">)</span>
+<span class="kw">ORDER BY</span> ranking_score <span class="kw">DESC</span>
+<span class="kw">LIMIT</span> <span class="n">50</span><span class="pun">;</span></pre>
+
+<!-- ══════════════════════════════
+     7. UPDATE JOB
+════════════════════════════════ -->
+<h2>7. Atualização de Reputação — Estratégia</h2>
+
+<p>O cálculo tem dois acionadores: <strong>evento</strong> (nova avaliação → recalcula imediatamente) e <strong>batch diário</strong> (recalcula todos os usuários para refletir o decaimento temporal que muda passivamente a cada dia).</p>
+
+<div class="grid2">
+  <div class="card">
+    <div class="card-title">Após nova avaliação (evento)</div>
+    <p style="margin:0;font-size:13px;">Worker consome <code>reputation.recalculate</code> da fila → recalcula para o ratee → salva em <code>reputation_scores</code> → invalida cache Redis do usuário. Latência &lt; 1 segundo.</p>
+  </div>
+  <div class="card">
+    <div class="card-title">Job diário (decaimento)</div>
+    <p style="margin:0;font-size:13px;">Cron <code>0 2 * * *</code> → recalcula todos os usuários em lotes de 200 → atualiza <code>reputation_scores</code> → invalida caches. Essencial porque avaliações antigas perdem peso mesmo sem novas avaliações.</p>
+  </div>
+</div>
+
+<div class="ftag">src/reputation/jobs/reputation-update.job.ts</div>
+<pre><span class="c">// Job diário: 0 2 * * * (2h da manhã)</span>
+<span class="kw">export async function</span> <span class="fn">reputationUpdateJob</span><span class="pun">() {</span>
+  <span class="kw">const</span> priorMean <span class="pun">=</span> <span class="kw">await</span> <span class="fn">computePlatformAverage</span><span class="pun">();</span>
+  <span class="c">// Atualiza a plataforma com a média atual para o prior Bayesiano</span>
+  <span class="kw">await</span> db<span class="pun">.</span><span class="fn">query</span><span class="pun">(</span><span class="s">`
+    UPDATE platform_settings SET value=$1 WHERE key='platform_avg_score'
+  `</span><span class="pun">, [</span>priorMean<span class="pun">.</span><span class="fn">toString</span><span class="pun">()]);</span>
+
+  <span class="kw">let</span> offset <span class="pun">=</span> <span class="n">0</span><span class="pun">;</span>
+  <span class="kw">const</span> BATCH_SIZE <span class="pun">=</span> <span class="n">200</span><span class="pun">;</span>
+
+  <span class="kw">while</span> <span class="pun">(</span><span class="b">true</span><span class="pun">) {</span>
+    <span class="kw">const</span> users <span class="pun">=</span> <span class="kw">await</span> db<span class="pun">.</span><span class="fn">query</span><span class="pun">(</span><span class="s">`
+      SELECT DISTINCT ratee_id AS user_id FROM ratings
+      WHERE is_removed = FALSE
+      ORDER BY ratee_id
+      LIMIT $1 OFFSET $2
+    `</span><span class="pun">, [</span>BATCH_SIZE<span class="pun">,</span> offset<span class="pun">]);</span>
+
+    <span class="kw">if</span> <span class="pun">(!</span>users<span class="pun">.</span>rows<span class="pun">.</span>length<span class="pun">)</span> <span class="kw">break</span><span class="pun">;</span>
+
+    <span class="c">// Processamento paralelo em lote (máx 20 concurrent)</span>
+    <span class="kw">await</span> <span class="fn">pLimit</span><span class="pun">(</span><span class="n">20</span><span class="pun">)(</span>
+      users<span class="pun">.</span>rows<span class="pun">.</span><span class="fn">map</span><span class="pun">(</span>row <span class="pun">=></span> <span class="kw">async</span> <span class="pun">() => {</span>
+        <span class="kw">await</span> <span class="fn">recalculateUserReputation</span><span class="pun">(</span>row<span class="pun">.</span>user_id<span class="pun">,</span> priorMean<span class="pun">);</span>
+        <span class="c">// Invalida cache Redis</span>
+        <span class="kw">await</span> redis<span class="pun">.</span><span class="fn">del</span><span class="pun">(</span><span class="s">`reputation:<span class="pun">${</span>row<span class="pun">.</span>user_id<span class="pun">}</span>`</span><span class="pun">);</span>
+      <span class="pun">})</span>
+    <span class="pun">);</span>
+
+    offset <span class="pun">+=</span> BATCH_SIZE<span class="pun">;</span>
+    <span class="c">// Sleep de 100ms entre lotes para não saturar o banco</span>
+    <span class="kw">await</span> <span class="fn">sleep</span><span class="pun">(</span><span class="n">100</span><span class="pun">);</span>
+  <span class="pun">}</span>
+
+  logger<span class="pun">.</span><span class="fn">info</span><span class="pun">({</span> processed<span class="pun">:</span> offset<span class="pun">,</span> priorMean <span class="pun">},</span> <span class="s">'Reputação recalculada'</span><span class="pun">);</span>
+<span class="pun">}</span>
+
+<span class="kw">async function</span> <span class="fn">recalculateUserReputation</span><span class="pun">(</span>userId<span class="pun">:</span> <span class="kw">string</span><span class="pun">,</span> priorMean<span class="pun">:</span> <span class="kw">number</span><span class="pun">) {</span>
+  <span class="kw">const</span> <span class="pun">[</span>ratingRows<span class="pun">,</span> penaltyRows<span class="pun">]</span> <span class="pun">=</span> <span class="kw">await</span> <span class="cls">Promise</span><span class="pun">.</span><span class="fn">all</span><span class="pun">([</span>
+    <span class="cls">RatingRepo</span><span class="pun">.</span><span class="fn">findAllForUser</span><span class="pun">(</span>userId<span class="pun">),</span>
+    <span class="cls">PenaltyRepo</span><span class="pun">.</span><span class="fn">findAllForUser</span><span class="pun">(</span>userId<span class="pun">),</span>
+  <span class="pun">]);</span>
+
+  <span class="kw">const</span> score <span class="pun">=</span> <span class="cls">ReputationCalculator</span><span class="pun">.</span><span class="fn">computeScore</span><span class="pun">(</span>ratingRows<span class="pun">,</span> penaltyRows<span class="pun">,</span> priorMean<span class="pun">);</span>
+
+  <span class="kw">await</span> db<span class="pun">.</span><span class="fn">query</span><span class="pun">(</span><span class="s">`
+    INSERT INTO reputation_scores (user_id, overall_score, total_ratings, last_calculated_at)
+    VALUES ($1, $2, $3, NOW())
+    ON CONFLICT (user_id) DO UPDATE
+      SET overall_score = $2, total_ratings = $3, last_calculated_at = NOW()
+  `</span><span class="pun">, [</span>userId<span class="pun">,</span> score<span class="pun">.</span>finalScore<span class="pun">,</span> ratingRows<span class="pun">.</span>length<span class="pun">]);</span>
+
+  <span class="c">// Espelha no perfil do freelancer/empresa para queries rápidas</span>
+  <span class="kw">await</span> db<span class="pun">.</span><span class="fn">query</span><span class="pun">(</span><span class="s">`
+    UPDATE freelancers SET reputation_score = $1 WHERE user_id = $2
+  `</span><span class="pun">, [</span>score<span class="pun">.</span>finalScore<span class="pun">,</span> userId<span class="pun">]);</span>
+<span class="pun">}</span></pre>
+
+<!-- ══════════════════════════════
+     8. PERFIL
+════════════════════════════════ -->
+<h2>8. Exibição no Perfil</h2>
+
+<p>A API de perfil público retorna os dados de reputação em formato pronto para renderização direta, incluindo sparkline de tendência e comparativo com a média da plataforma.</p>
+
+<div class="ftag">GET /freelancers/:id — campo reputation (fragmento)</div>
+<pre><span class="pun">{</span>
+  <span class="k">"reputation"</span><span class="pun">: {</span>
+    <span class="k">"overall_score"</span><span class="pun">:</span>      <span class="s">"4.67"</span><span class="pun">,</span>          <span class="c">// score Bayesiano com decaimento</span>
+    <span class="k">"total_ratings"</span><span class="pun">:</span>      <span class="n">48</span><span class="pun">,</span>
+    <span class="k">"platform_avg"</span><span class="pun">:</span>       <span class="s">"4.20"</span><span class="pun">,</span>          <span class="c">// para exibir "acima da média"</span>
+    <span class="k">"percentile_rank"</span><span class="pun">:</span>    <span class="s">"94.5"</span><span class="pun">,</span>          <span class="c">// top 5.5% dos freelancers</span>
+    <span class="k">"criteria_averages"</span><span class="pun">: {</span>
+      <span class="k">"quality"</span><span class="pun">:</span>         <span class="s">"4.75"</span><span class="pun">,</span>
+      <span class="k">"communication"</span><span class="pun">:</span>  <span class="s">"4.60"</span><span class="pun">,</span>
+      <span class="k">"timeliness"</span><span class="pun">:</span>     <span class="s">"4.70"</span><span class="pun">,</span>
+      <span class="k">"professionalism"</span><span class="pun">:</span> <span class="s">"4.65"</span>
+    <span class="pun">},</span>
+    <span class="k">"score_30d"</span><span class="pun">:</span>          <span class="s">"4.80"</span><span class="pun">,</span>          <span class="c">// tendência recente</span>
+    <span class="k">"score_90d"</span><span class="pun">:</span>          <span class="s">"4.72"</span><span class="pun">,</span>
+    <span class="k">"trend"</span><span class="pun">:</span>              <span class="s">"UP"</span><span class="pun">,</span>            <span class="c">// UP | DOWN | STABLE (comparando 30d vs 90d)</span>
+    <span class="k">"distribution"</span><span class="pun">: {</span>                      <span class="c">// distribuição de notas (para histograma)</span>
+      <span class="k">"5"</span><span class="pun">:</span> <span class="n">38</span><span class="pun">,</span> <span class="k">"4"</span><span class="pun">:</span> <span class="n">7</span><span class="pun">,</span> <span class="k">"3"</span><span class="pun">:</span> <span class="n">2</span><span class="pun">,</span> <span class="k">"2"</span><span class="pun">:</span> <span class="n">1</span><span class="pun">,</span> <span class="k">"1"</span><span class="pun">:</span> <span class="n">0</span>
+    <span class="pun">},</span>
+    <span class="k">"badges"</span><span class="pun">: [</span>
+      <span class="pun">{</span> <span class="k">"type"</span><span class="pun">:</span> <span class="s">"TOP_RATED"</span><span class="pun">,</span>       <span class="k">"label"</span><span class="pun">:</span> <span class="s">"Top Avaliado"</span>     <span class="pun">},</span>  <span class="c">// score >= 4.8</span>
+      <span class="pun">{</span> <span class="k">"type"</span><span class="pun">:</span> <span class="s">"HIGH_COMPLETION"</span><span class="pun">,</span>  <span class="k">"label"</span><span class="pun">:</span> <span class="s">"Alta Conclusão"</span>   <span class="pun">},</span>  <span class="c">// rate >= 95%</span>
+      <span class="pun">{</span> <span class="k">"type"</span><span class="pun">:</span> <span class="s">"FAST_RESPONDER"</span><span class="pun">,</span>  <span class="k">"label"</span><span class="pun">:</span> <span class="s">"Resposta Rápida"</span>  <span class="pun">}</span>   <span class="c">// avg_response < 2h</span>
+    <span class="pun">],</span>
+    <span class="k">"reviews"</span><span class="pun">: [</span>
+      <span class="pun">{</span>
+        <span class="k">"overall_score"</span><span class="pun">:</span>  <span class="s">"5.0"</span><span class="pun">,</span>
+        <span class="k">"comment"</span><span class="pun">:</span>        <span class="s">"Entregou antes do prazo com excelência..."</span><span class="pun">,</span>
+        <span class="k">"rater_name"</span><span class="pun">:</span>     <span class="s">"Tech Corp Ltda"</span><span class="pun">,</span>
+        <span class="k">"submitted_at"</span><span class="pun">:</span>   <span class="s">"2025-05-06T14:00:00Z"</span>
+      <span class="pun">}</span>
+    <span class="pun">]</span>
+  <span class="pun">}</span>
+<span class="pun">}</span></pre>
+
+<h3>Caching com Redis — leitura de alta frequência</h3>
+
+<div class="ftag">src/reputation/reputation.service.ts — getPublicReputation()</div>
+<pre><span class="kw">static async</span> <span class="fn">getPublicReputation</span><span class="pun">(</span>userId<span class="pun">:</span> <span class="kw">string</span><span class="pun">) {</span>
+  <span class="kw">const</span> cacheKey <span class="pun">=</span> <span class="s">`reputation:<span class="pun">${</span>userId<span class="pun">}</span>`</span><span class="pun">;</span>
+
+  <span class="c">// 1. Tenta cache Redis (TTL: 1 hora)</span>
+  <span class="kw">const</span> cached <span class="pun">=</span> <span class="kw">await</span> redis<span class="pun">.</span><span class="fn">get</span><span class="pun">(</span>cacheKey<span class="pun">);</span>
+  <span class="kw">if</span> <span class="pun">(</span>cached<span class="pun">)</span> <span class="kw">return</span> <span class="cls">JSON</span><span class="pun">.</span><span class="fn">parse</span><span class="pun">(</span>cached<span class="pun">);</span>
+
+  <span class="c">// 2. Lê de reputation_scores (tabela materializada, sempre atualizada)</span>
+  <span class="kw">const</span> result <span class="pun">=</span> <span class="kw">await</span> db<span class="pun">.</span><span class="fn">query</span><span class="pun">(</span><span class="s">`
+    SELECT rs.*, 
+      rs.score_30d - rs.score_90d AS trend_delta
+    FROM reputation_scores rs
+    WHERE rs.user_id = $1
+  `</span><span class="pun">, [</span>userId<span class="pun">]);</span>
+
+  <span class="kw">const</span> data <span class="pun">=</span> <span class="kw">await</span> <span class="kw">this</span><span class="pun">.</span><span class="fn">enrichWithReviews</span><span class="pun">(</span>result<span class="pun">.</span>rows<span class="pun">[</span><span class="n">0</span><span class="pun">]);</span>
+
+  <span class="c">// 3. Armazena cache por 1 hora. Invalidado ao receber nova avaliação.</span>
+  <span class="kw">await</span> redis<span class="pun">.</span><span class="fn">setEx</span><span class="pun">(</span>cacheKey<span class="pun">,</span> <span class="n">3600</span><span class="pun">,</span> <span class="cls">JSON</span><span class="pun">.</span><span class="fn">stringify</span><span class="pun">(</span>data<span class="pun">));</span>
+
+  <span class="kw">return</span> data<span class="pun">;</span>
+<span class="pun">}</span></pre>
+
+<!-- ══════════════════════════════
+     9. BADGES
+════════════════════════════════ -->
+<h2>9. Badges — Recompensas de Reputação</h2>
+
+<table class="table">
+<thead><tr><th>Badge</th><th>Critério</th><th>Expiração</th><th>Exibição</th></tr></thead>
+<tbody>
+<tr><td><span class="badge b-blue">★ Top Avaliado</span></td><td>reputation_score ≥ 4.8 com ≥ 10 avaliações</td><td>Recalculado diariamente — some se score cair</td><td>Destaque no perfil e nos resultados de busca</td></tr>
+<tr><td><span class="badge b-teal">✓ Alta Conclusão</span></td><td>completion_rate ≥ 95% com ≥ 20 ordens</td><td>Idem</td><td>Transmite confiabilidade na entrega</td></tr>
+<tr><td><span class="badge b-purple">⚡ Resposta Rápida</span></td><td>avg_response_hours ≤ 2 (último mês)</td><td>Idem (baseado nos últimos 30 dias)</td><td>Empresas com urgência valorizam</td></tr>
+<tr><td><span class="badge b-amber">🔒 Verificado</span></td><td>identity_verified_at IS NOT NULL + CPF validado</td><td>Permanente até invalidação manual</td><td>Aumenta confiança para novas empresas</td></tr>
+<tr><td><span class="badge b-gray">📦 Veterano</span></td><td>completed_orders ≥ 100</td><td>Permanente (só cresce)</td><td>Experiência acumulada</td></tr>
+</tbody>
+</table>
+
+<div class="warn"><p>⚠️ <strong>Badges nunca devem ser compráveis ou transferíveis.</strong> São calculados exclusivamente a partir de dados do sistema — qualquer tentativa de compra de avaliações para obter badges seria detectada pela análise de fraude e resultaria em suspensão da conta.</p></div>
+
+</div>
+</body>
+</html>

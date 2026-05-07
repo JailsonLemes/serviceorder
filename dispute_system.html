@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Sistema de Disputas</title>
+<style>
+:root{
+  --blue:#185FA5;--blue-bg:#E6F1FB;--blue-b:#B5D4F4;
+  --purple:#534AB7;--purple-bg:#EEEDFE;--purple-b:#AFA9EC;
+  --teal:#0F6E56;--teal-bg:#E1F5EE;--teal-b:#9FE1CB;
+  --amber:#854F0B;--amber-bg:#FAEEDA;--amber-b:#FAC775;
+  --red:#A32D2D;--red-bg:#FCEBEB;--red-b:#F7C1C1;
+  --gray:#5F5E5A;--gray-bg:#F1EFE8;--gray-b:#D3D1C7;
+  --code-bg:#18181a;--code-fg:#d4d4d4;
+  --key:#9cdcfe;--str:#ce9178;--num:#b5cea8;--bool:#569cd6;
+  --cmt:#6a9955;--fn:#dcdcaa;--kw:#c586c0;--cls:#4ec9b0;--pun:#d4d4d4;
+  --border:rgba(0,0,0,0.1);--surface:#f5f4f0;
+  --text:#1a1a18;--muted:#73726c;--bg:#fff;
+  --font:system-ui,-apple-system,sans-serif;
+  --mono:'SF Mono','Fira Code',Consolas,monospace;
+  --r:8px;
+}
+@media(prefers-color-scheme:dark){:root{
+  --code-bg:#0d1117;--border:rgba(255,255,255,0.1);--surface:#242422;
+  --text:#e8e6de;--muted:#9c9a92;--bg:#1c1c1a;
+  --blue-bg:#042C53;--purple-bg:#26215C;--teal-bg:#04342C;
+  --amber-bg:#412402;--red-bg:#501313;--gray-bg:#2C2C2A;
+}}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--font);color:var(--text);background:var(--bg);padding:40px 24px 80px;line-height:1.65;}
+.wrap{max-width:900px;margin:0 auto;}
+h1{font-size:26px;font-weight:600;margin-bottom:6px;}
+.lead{color:var(--muted);font-size:14px;margin-bottom:48px;max-width:640px;}
+h2{font-size:19px;font-weight:600;margin:52px 0 18px;padding-bottom:10px;border-bottom:2px solid var(--border);}
+h3{font-size:14px;font-weight:600;margin:22px 0 8px;}
+p{font-size:14px;color:var(--muted);margin-bottom:12px;line-height:1.7;}
+p strong{color:var(--text);}
+ul{font-size:14px;color:var(--muted);padding-left:20px;margin-bottom:14px;}
+li{margin-bottom:5px;line-height:1.6;}li strong{color:var(--text);}
+pre{background:var(--code-bg);color:var(--code-fg);padding:18px 20px;border-radius:var(--r);font-family:var(--mono);font-size:11.5px;overflow-x:auto;line-height:1.7;margin:10px 0 22px;border:1px solid rgba(255,255,255,.04);}
+.ftag{display:inline-block;background:rgba(255,255,255,.06);color:var(--muted);font-family:var(--mono);font-size:10px;padding:3px 10px;border-radius:4px 4px 0 0;margin-bottom:-2px;border:1px solid rgba(255,255,255,.08);border-bottom:none;}
+code{font-family:var(--mono);font-size:11.5px;background:var(--surface);border:1px solid var(--border);padding:1px 6px;border-radius:4px;}
+.k{color:var(--key);}.s{color:var(--str);}.n{color:var(--num);}.b{color:var(--bool);}
+.c{color:var(--cmt);font-style:italic;}.fn{color:var(--fn);}.kw{color:var(--kw);}.cls{color:var(--cls);}.pun{color:var(--pun);}
+.info{border-left:3px solid var(--blue);background:var(--blue-bg);padding:12px 16px;border-radius:0 var(--r) var(--r) 0;margin:16px 0;}
+.warn{border-left:3px solid var(--amber);background:var(--amber-bg);padding:12px 16px;border-radius:0 var(--r) var(--r) 0;margin:16px 0;}
+.danger{border-left:3px solid var(--red);background:var(--red-bg);padding:12px 16px;border-radius:0 var(--r) var(--r) 0;margin:16px 0;}
+.info p,.warn p,.danger p{margin:0;font-size:13px;}
+.table{width:100%;border-collapse:collapse;font-size:13px;margin:10px 0 22px;}
+.table th{text-align:left;padding:8px 12px;background:var(--surface);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);}
+.table td{padding:8px 12px;border-bottom:1px solid var(--border);vertical-align:top;line-height:1.5;}
+.table tr:last-child td{border-bottom:none;}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px 18px;margin:12px 0;}
+.card-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:8px;}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:12px 0;}
+@media(max-width:600px){.grid2{grid-template-columns:1fr;}}
+.badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;}
+.b-blue{background:var(--blue-bg);color:var(--blue);}
+.b-teal{background:var(--teal-bg);color:var(--teal);}
+.b-amber{background:var(--amber-bg);color:var(--amber);}
+.b-red{background:var(--red-bg);color:var(--red);}
+.b-gray{background:var(--gray-bg);color:var(--gray);}
+.b-purple{background:var(--purple-bg);color:var(--purple);}
+</style>
+</head>
+<body><div class="wrap">
+<h1>Sistema de Disputas</h1>
+<p class="lead">Mecanismo de resolução de conflitos entre empresa e freelancer. Escrow congelado durante a disputa. Admin com SLA de 48h e autoridade total sobre resolução financeira e reputacional.</p>
+
+<!-- ══ DIAGRAMA DE ESTADOS ══ -->
+<svg width="100%" viewBox="0 0 680 430" xmlns="http://www.w3.org/2000/svg" style="display:block;margin:20px 0 8px;">
+<defs>
+  <marker id="ar" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+    <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  </marker>
+</defs>
+
+<!-- SLA banner -->
+<rect x="0" y="0" width="680" height="18" rx="0" fill="rgba(163,45,45,0.07)"/>
+<text x="340" y="12" text-anchor="middle" font-size="9" fill="#A32D2D" font-weight="600" font-family="system-ui">SLA: atribuição ≤ 24h · resolução ≤ 48h · total máx 72h (extensível em AWAITING_EVIDENCE)</text>
+
+<!-- OPEN -->
+<rect x="30" y="38" width="128" height="48" rx="6" fill="#FCEBEB" stroke="#F7C1C1" stroke-width="1.2"/>
+<text x="94" y="58" text-anchor="middle" fill="#A32D2D" font-size="12" font-weight="700" font-family="system-ui">OPEN</text>
+<text x="94" y="73" text-anchor="middle" fill="#A32D2D" font-size="9" font-family="system-ui">escrow congelado · SLA 24h</text>
+
+<!-- OPEN → UNDER_REVIEW -->
+<line x1="158" y1="62" x2="208" y2="62" stroke="#9c9a92" stroke-width="1.2" marker-end="url(#ar)"/>
+<text x="183" y="56" text-anchor="middle" fill="#9c9a92" font-size="8" font-family="system-ui">admin atribui</text>
+
+<!-- UNDER_REVIEW -->
+<rect x="208" y="38" width="152" height="48" rx="6" fill="#FAEEDA" stroke="#FAC775" stroke-width="1.2"/>
+<text x="284" y="58" text-anchor="middle" fill="#854F0B" font-size="11" font-weight="700" font-family="system-ui">UNDER_REVIEW</text>
+<text x="284" y="73" text-anchor="middle" fill="#854F0B" font-size="9" font-family="system-ui">análise ativa · SLA 48h</text>
+
+<!-- UNDER_REVIEW → AWAITING_EVIDENCE -->
+<line x1="284" y1="86" x2="284" y2="156" stroke="#9c9a92" stroke-width="1.2" marker-end="url(#ar)"/>
+<text x="300" y="123" fill="#9c9a92" font-size="8" font-family="system-ui">pede evidências</text>
+
+<!-- AWAITING_EVIDENCE → UNDER_REVIEW (back) -->
+<path d="M 208,180 L 185,180 L 185,62 L 208,62" fill="none" stroke="#534AB7" stroke-width="1" stroke-dasharray="4 2" marker-end="url(#ar)"/>
+<text x="175" y="124" text-anchor="middle" fill="#534AB7" font-size="8" font-family="system-ui" transform="rotate(-90,175,124)">evidência enviada</text>
+
+<!-- AWAITING_EVIDENCE -->
+<rect x="208" y="156" width="152" height="48" rx="6" fill="#EEEDFE" stroke="#AFA9EC" stroke-width="1.2"/>
+<text x="284" y="176" text-anchor="middle" fill="#534AB7" font-size="10" font-weight="700" font-family="system-ui">AWAITING_EVIDENCE</text>
+<text x="284" y="191" text-anchor="middle" fill="#534AB7" font-size="9" font-family="system-ui">prazo 48h · sem resposta → decide</text>
+
+<!-- UNDER_REVIEW → ESCALATED -->
+<line x1="360" y1="62" x2="430" y2="62" stroke="#9c9a92" stroke-width="1.2" marker-end="url(#ar)"/>
+<text x="395" y="56" text-anchor="middle" fill="#9c9a92" font-size="8" font-family="system-ui">caso complexo</text>
+
+<!-- ESCALATED -->
+<rect x="430" y="38" width="138" height="48" rx="6" fill="#F1EFE8" stroke="#D3D1C7" stroke-width="1.2"/>
+<text x="499" y="58" text-anchor="middle" fill="#5F5E5A" font-size="11" font-weight="700" font-family="system-ui">ESCALATED</text>
+<text x="499" y="73" text-anchor="middle" fill="#5F5E5A" font-size="9" font-family="system-ui">admin sênior · prioridade máx</text>
+
+<!-- ESCALATED → UNDER_REVIEW back -->
+<path d="M 430,75 L 408,75 L 408,50 L 360,50" fill="none" stroke="#5F5E5A" stroke-width="1" stroke-dasharray="3 2" marker-end="url(#ar)"/>
+
+<!-- auto-escalate from OPEN -->
+<path d="M 94,38 C 94,14 499,14 499,38" fill="none" stroke="#A32D2D" stroke-width="0.8" stroke-dasharray="4 3" marker-end="url(#ar)"/>
+<text x="295" y="10" text-anchor="middle" fill="#A32D2D" font-size="7.5" font-family="system-ui">auto-escala se 24h sem atribuição</text>
+
+<!-- Distribution bar -->
+<line x1="284" y1="86" x2="284" y2="270" stroke="rgba(0,0,0,0.1)" stroke-width="1"/>
+<line x1="499" y1="86" x2="499" y2="250" stroke="rgba(0,0,0,0.1)" stroke-width="1"/>
+<line x1="499" y1="250" x2="284" y2="250" stroke="rgba(0,0,0,0.1)" stroke-width="1"/>
+<line x1="88" y1="270" x2="584" y2="270" stroke="rgba(0,0,0,0.1)" stroke-width="1"/>
+
+<!-- Drops to resolved -->
+<line x1="88"  y1="270" x2="88"  y2="286" stroke="#0F6E56" stroke-width="1.2" marker-end="url(#ar)"/>
+<line x1="254" y1="270" x2="254" y2="286" stroke="#185FA5" stroke-width="1.2" marker-end="url(#ar)"/>
+<line x1="430" y1="270" x2="430" y2="286" stroke="#854F0B" stroke-width="1.2" marker-end="url(#ar)"/>
+<line x1="584" y1="270" x2="584" y2="286" stroke="#5F5E5A" stroke-width="1.2" marker-end="url(#ar)"/>
+
+<text x="88"  y="266" text-anchor="middle" fill="#0F6E56" font-size="8" font-family="system-ui">freelancer vence</text>
+<text x="254" y="266" text-anchor="middle" fill="#185FA5" font-size="8" font-family="system-ui">empresa vence</text>
+<text x="430" y="266" text-anchor="middle" fill="#854F0B" font-size="8" font-family="system-ui">split/parcial</text>
+<text x="584" y="266" text-anchor="middle" fill="#5F5E5A" font-size="8" font-family="system-ui">reabrir</text>
+
+<!-- RESOLVED states -->
+<rect x="30"  y="286" width="116" height="52" rx="6" fill="#E1F5EE" stroke="#9FE1CB" stroke-width="1.2"/>
+<text x="88"  y="306" text-anchor="middle" fill="#0F6E56" font-size="9" font-weight="700" font-family="system-ui">RESOLVED</text>
+<text x="88"  y="319" text-anchor="middle" fill="#0F6E56" font-size="9" font-family="system-ui">FREELANCER</text>
+<text x="88"  y="332" text-anchor="middle" fill="#0F6E56" font-size="8" font-family="system-ui">pagamento liberado</text>
+
+<rect x="196" y="286" width="116" height="52" rx="6" fill="#E6F1FB" stroke="#B5D4F4" stroke-width="1.2"/>
+<text x="254" y="306" text-anchor="middle" fill="#185FA5" font-size="9" font-weight="700" font-family="system-ui">RESOLVED</text>
+<text x="254" y="319" text-anchor="middle" fill="#185FA5" font-size="9" font-family="system-ui">EMPRESA</text>
+<text x="254" y="332" text-anchor="middle" fill="#185FA5" font-size="8" font-family="system-ui">reembolso total</text>
+
+<rect x="372" y="286" width="116" height="52" rx="6" fill="#FAEEDA" stroke="#FAC775" stroke-width="1.2"/>
+<text x="430" y="306" text-anchor="middle" fill="#854F0B" font-size="9" font-weight="700" font-family="system-ui">RESOLVED</text>
+<text x="430" y="319" text-anchor="middle" fill="#854F0B" font-size="9" font-family="system-ui">SPLIT</text>
+<text x="430" y="332" text-anchor="middle" fill="#854F0B" font-size="8" font-family="system-ui">divisão personalizada</text>
+
+<rect x="526" y="286" width="116" height="52" rx="6" fill="#F1EFE8" stroke="#D3D1C7" stroke-width="1.2"/>
+<text x="584" y="306" text-anchor="middle" fill="#5F5E5A" font-size="9" font-weight="700" font-family="system-ui">REOPEN</text>
+<text x="584" y="319" text-anchor="middle" fill="#5F5E5A" font-size="9" font-family="system-ui">IN_PROGRESS</text>
+<text x="584" y="332" text-anchor="middle" fill="#5F5E5A" font-size="8" font-family="system-ui">novo ciclo de entrega</text>
+
+<!-- Fan-in to CLOSED -->
+<line x1="88"  y1="338" x2="88"  y2="374" stroke="#9c9a92" stroke-width="1"/>
+<line x1="254" y1="338" x2="254" y2="374" stroke="#9c9a92" stroke-width="1"/>
+<line x1="430" y1="338" x2="430" y2="374" stroke="#9c9a92" stroke-width="1"/>
+<line x1="88"  y1="374" x2="430" y2="374" stroke="#9c9a92" stroke-width="1"/>
+<line x1="254" y1="374" x2="254" y2="388" stroke="#9c9a92" stroke-width="1.2" marker-end="url(#ar)"/>
+
+<!-- REOPEN → back to order flow -->
+<path d="M 584,338 L 584,410 L 30,410" fill="none" stroke="#5F5E5A" stroke-width="0.8" stroke-dasharray="3 2"/>
+<text x="310" y="422" text-anchor="middle" fill="#5F5E5A" font-size="8" font-family="system-ui">disputa fecha · ordem volta a IN_PROGRESS · chat reaberto · novo prazo</text>
+
+<!-- CLOSED -->
+<rect x="178" y="388" width="152" height="44" rx="6" fill="#1c1c1a" stroke="#444" stroke-width="1.2"/>
+<text x="254" y="408" text-anchor="middle" fill="#e8e6de" font-size="12" font-weight="700" font-family="system-ui">CLOSED</text>
+<text x="254" y="423" text-anchor="middle" fill="#9c9a92" font-size="9" font-family="system-ui">financeiro + reputação aplicados</text>
+</svg>
+
+<!-- ══ 1. QUANDO PODE SER ABERTA ══ -->
+<h2>1. Quando Pode Ser Aberta</h2>
+<p>A disputa é <strong>último recurso</strong> — só fica disponível depois que as partes tiveram oportunidade de resolver diretamente. Regra fundamental: se existe pagamento capturado em escrow, a disputa pode ser aberta.</p>
+
+<table class="table">
+<thead><tr><th>Status da Ordem</th><th>Empresa</th><th>Freelancer</th><th>Observação</th></tr></thead>
+<tbody>
+<tr><td><code>IN_PROGRESS</code></td><td>✓</td><td>✓</td><td>Situação mais comum. Escrow capturado.</td></tr>
+<tr><td><code>PENDING_REVIEW</code></td><td>✓</td><td>✓</td><td>Empresa não aprova e não quer solicitar ajuste.</td></tr>
+<tr><td><code>ADJUSTMENT_REQUESTED</code></td><td>✗</td><td>✓ (mín 2 ciclos)</td><td>Proteção ao freelancer contra ciclos abusivos de revisão.</td></tr>
+<tr><td><code>DRAFT / PUBLISHED / IN_APPLICATION / SELECTED / ACCEPTED</code></td><td>✗</td><td>✗</td><td>Escrow não capturado. Cancelamento resolve.</td></tr>
+<tr><td><code>APPROVED / COMPLETED / CANCELLED</code></td><td>✗</td><td>✗</td><td>Estados terminais. Sem disputa possível.</td></tr>
+</tbody>
+</table>
+
+<div class="warn"><p>⚠️ <strong>Unicidade:</strong> apenas uma disputa ativa por ordem. Se a disputa for encerrada com <code>REOPEN</code> e o problema persistir, uma nova pode ser aberta — com prioridade máxima e atribuição ao mesmo admin.</p></div>
+
+<!-- ══ 2. FLUXO PASSO A PASSO ══ -->
+<h2>2. Fluxo Completo com SLA</h2>
+
+<table class="table">
+<thead><tr><th>#</th><th>Passo</th><th>Ator</th><th>SLA</th><th>O que acontece</th></tr></thead>
+<tbody>
+<tr><td>1</td><td><strong>Abertura</strong></td><td>Empresa ou Freelancer</td><td>—</td><td><code>POST /orders/:id/dispute</code> com reason + descrição (mín 50 chars). Escrow congelado imediatamente. Evento <code>dispute.opened</code> publicado.</td></tr>
+<tr><td>2</td><td><strong>Notificação</strong></td><td>Sistema</td><td>Imediato</td><td>Ambas as partes recebem push + email. Admin on-call recebe alerta Slack/PagerDuty.</td></tr>
+<tr><td>3</td><td><strong>Coleta inicial</strong></td><td>Empresa + Freelancer</td><td>Primeiras 24h</td><td>Partes enviam arquivos, prints, descrições pelo canal de disputas.</td></tr>
+<tr><td>4</td><td><strong>Atribuição</strong></td><td>Admin</td><td>≤ 24h</td><td><code>POST /disputes/:id/assign</code>. Status → UNDER_REVIEW. Admin recebe pacote completo de investigação.</td></tr>
+<tr><td>5</td><td><strong>Investigação</strong></td><td>Admin</td><td>≤ 48h</td><td>Analisa chat, evidências, histórico. Pode pedir mais provas (→ AWAITING_EVIDENCE, prazo 48h para parte responder).</td></tr>
+<tr><td>6</td><td><strong>Decisão</strong></td><td>Admin atribuído</td><td>Dentro do SLA</td><td><code>POST /disputes/:id/resolve</code> com tipo de resolução, valores e justificativa obrigatória (mín 50 chars).</td></tr>
+<tr><td>7</td><td><strong>Execução financeira</strong></td><td>Sistema</td><td>Síncrono (mesma tx)</td><td>Estorno + transferência executados atomicamente. Ledger atualizado.</td></tr>
+<tr><td>8</td><td><strong>Reputação + status</strong></td><td>Sistema (async)</td><td>≤ 1 min</td><td>Penalidades aplicadas. Scores recalculados via job. Ordem muda para status final.</td></tr>
+</tbody>
+</table>
+
+<!-- ══ 3. AÇÕES POR ATOR ══ -->
+<h2>3. Ações Possíveis por Ator</h2>
+
+<table class="table">
+<thead><tr><th>Ação</th><th>Empresa</th><th>Freelancer</th><th>Admin</th></tr></thead>
+<tbody>
+<tr><td>Abrir disputa</td><td>✓</td><td>✓ (condições por status)</td><td>✓ (qualquer status)</td></tr>
+<tr><td>Enviar mensagem pública</td><td>✓</td><td>✓</td><td>✓</td></tr>
+<tr><td>Escrever nota interna</td><td>✗</td><td>✗</td><td>✓ (invisível às partes)</td></tr>
+<tr><td>Anexar evidência</td><td>✓</td><td>✓</td><td>✓</td></tr>
+<tr><td>Atribuir disputa</td><td>✗</td><td>✗</td><td>✓ (para si ou outro admin)</td></tr>
+<tr><td>Solicitar mais evidências</td><td>✗</td><td>✗</td><td>✓ → muda para AWAITING_EVIDENCE</td></tr>
+<tr><td>Escalar caso</td><td>✗</td><td>✗</td><td>✓ → ESCALATED</td></tr>
+<tr><td><strong>Resolver</strong></td><td>✗</td><td>✗</td><td>✓ <em>somente admin atribuído</em></td></tr>
+</tbody>
+</table>
+
+<div class="info"><p>ℹ️ <strong>Admin não atribuído não pode resolver.</strong> Garante responsabilidade clara — cada disputa tem um dono que assina a decisão no audit_log. Em escaladas, o admin sênior pode fazer override com flag <code>is_senior_override: true</code>.</p></div>
+
+<!-- ══ 4. DADOS ANALISADOS ══ -->
+<h2>4. Pacote de Investigação</h2>
+<p><code>GET /disputes/:id/investigation-package</code> agrega tudo que o admin precisa para decidir:</p>
+
+<div class="grid2">
+<div class="card">
+  <div class="card-title">Dados da Ordem</div>
+  <ul style="margin:0;padding-left:16px;">
+    <li>Título, descrição, escopo acordado</li>
+    <li>Valor gross, taxa, freelancer_amount</li>
+    <li>Prazo original e revisões</li>
+    <li>Skills requeridas</li>
+  </ul>
+</div>
+<div class="card">
+  <div class="card-title">Histórico de Status</div>
+  <ul style="margin:0;padding-left:16px;">
+    <li>Cada transição com ator + timestamp</li>
+    <li>Contagem de ciclos ADJUSTMENT_REQUESTED</li>
+    <li>Tempo em cada estado</li>
+    <li>Quem fez o quê e quando</li>
+  </ul>
+</div>
+<div class="card">
+  <div class="card-title">Chat Completo</div>
+  <ul style="margin:0;padding-left:16px;">
+    <li>Transcript integral (mensagens deletadas incluídas com flag)</li>
+    <li>Anexos enviados no chat</li>
+    <li>Timestamps e leitura confirmada</li>
+    <li>Detecção automática de linguagem conflituosa</li>
+  </ul>
+</div>
+<div class="card">
+  <div class="card-title">Evidências de Entrega</div>
+  <ul style="margin:0;padding-left:16px;">
+    <li>Todas as tentativas de entrega (fotos, docs)</li>
+    <li>Descrições submetidas pelo freelancer</li>
+    <li>Evidências enviadas na disputa por ambas as partes</li>
+  </ul>
+</div>
+<div class="card">
+  <div class="card-title">Perfil das Partes</div>
+  <ul style="margin:0;padding-left:16px;">
+    <li>Score de reputação atual</li>
+    <li>Histórico de disputas (ganhas/perdidas)</li>
+    <li>Taxa de conclusão, cancelamentos</li>
+    <li>Tempo de conta na plataforma</li>
+  </ul>
+</div>
+<div class="card">
+  <div class="card-title">Sinais de Risco (auto)</div>
+  <ul style="margin:0;padding-left:16px;">
+    <li>Freelancer com 3+ disputas perdidas em 90d</li>
+    <li>Empresa com padrão serial de disputas</li>
+    <li>Ciclos excessivos de ajuste (abuso)</li>
+    <li>Sem nenhuma evidência de entrega submetida</li>
+  </ul>
+</div>
+</div>
+
+<!-- ══ 5. IMPLEMENTAÇÃO ══ -->
+<h2>5. Implementação — Abertura e Resolução</h2>
+
+<div class="ftag">src/dispute/dispute.service.ts — open()</div>
+<pre><span class="kw">static async</span> <span class="fn">open</span><span class="pun">(</span>input<span class="pun">:</span> <span class="cls">OpenDisputeInput</span><span class="pun">) {</span>
+  <span class="kw">const</span> order   <span class="pun">=</span> <span class="kw">await</span> <span class="cls">OrderRepo</span><span class="pun">.</span><span class="fn">findById</span><span class="pun">(</span>input<span class="pun">.</span>orderId<span class="pun">);</span>
+  <span class="kw">const</span> payment <span class="pun">=</span> <span class="kw">await</span> <span class="cls">PaymentRepo</span><span class="pun">.</span><span class="fn">findByOrder</span><span class="pun">(</span>input<span class="pun">.</span>orderId<span class="pun">);</span>
+
+  <span class="c">// Guard 1: status da ordem</span>
+  <span class="kw">const</span> DISPUTABLE <span class="pun">= [</span><span class="s">'IN_PROGRESS'</span><span class="pun">,</span> <span class="s">'PENDING_REVIEW'</span><span class="pun">,</span> <span class="s">'ADJUSTMENT_REQUESTED'</span><span class="pun">];</span>
+  <span class="kw">if</span> <span class="pun">(!</span>DISPUTABLE<span class="pun">.</span><span class="fn">includes</span><span class="pun">(</span>order<span class="pun">.</span>status<span class="pun">))</span>
+    <span class="kw">throw</span> <span class="kw">new</span> <span class="cls">InvalidStateError</span><span class="pun">(</span><span class="s">'ORDER_NOT_DISPUTABLE'</span><span class="pun">);</span>
+
+  <span class="c">// Guard 2: freelancer só pode disputar ADJUSTMENT_REQUESTED com ≥ 2 ciclos</span>
+  <span class="kw">if</span> <span class="pun">(</span>input<span class="pun">.</span>actorRole <span class="pun">===</span> <span class="s">'FREELANCER'</span> <span class="pun">&&</span> order<span class="pun">.</span>status <span class="pun">===</span> <span class="s">'ADJUSTMENT_REQUESTED'</span><span class="pun">) {</span>
+    <span class="kw">const</span> cycles <span class="pun">=</span> <span class="kw">await</span> <span class="cls">OrderStatusRepo</span><span class="pun">.</span><span class="fn">countAdjustmentCycles</span><span class="pun">(</span>input<span class="pun">.</span>orderId<span class="pun">);</span>
+    <span class="kw">if</span> <span class="pun">(</span>cycles <span class="pun">&lt;</span> <span class="n">2</span><span class="pun">)</span> <span class="kw">throw</span> <span class="kw">new</span> <span class="cls">BusinessError</span><span class="pun">(</span><span class="s">'MIN_ADJUSTMENT_CYCLES_NOT_REACHED'</span><span class="pun">);</span>
+  <span class="pun">}</span>
+
+  <span class="c">// Guard 3: descrição mínima para evitar disputas frívolas</span>
+  <span class="kw">if</span> <span class="pun">(</span>input<span class="pun">.</span>description<span class="pun">.</span>length <span class="pun">&lt;</span> <span class="n">50</span><span class="pun">)</span>
+    <span class="kw">throw</span> <span class="kw">new</span> <span class="cls">ValidationError</span><span class="pun">(</span><span class="s">'DESCRIPTION_TOO_SHORT'</span><span class="pun">);</span>
+
+  <span class="c">// Guard 4: unicidade — sem disputa ativa na mesma ordem</span>
+  <span class="kw">const</span> active <span class="pun">=</span> <span class="kw">await</span> db<span class="pun">.</span><span class="fn">query</span><span class="pun">(</span>
+    <span class="s">`SELECT id FROM disputes WHERE order_id=$1 AND status NOT IN ('CLOSED')`</span><span class="pun">, [</span>input<span class="pun">.</span>orderId<span class="pun">]</span>
+  <span class="pun">);</span>
+  <span class="kw">if</span> <span class="pun">(</span>active<span class="pun">.</span>rows<span class="pun">.</span>length<span class="pun">)</span> <span class="kw">throw</span> <span class="kw">new</span> <span class="cls">ConflictError</span><span class="pun">(</span><span class="s">'DISPUTE_ALREADY_ACTIVE'</span><span class="pun">);</span>
+
+  <span class="kw">return</span> db<span class="pun">.</span><span class="fn">transaction</span><span class="pun">(</span><span class="kw">async</span> <span class="pun">(</span>trx<span class="pun">) => {</span>
+    <span class="c">// 1. Cria disputa</span>
+    <span class="kw">const</span> dispute <span class="pun">=</span> <span class="kw">await</span> trx<span class="pun">.</span><span class="fn">query</span><span class="pun">(</span><span class="s">`
+      INSERT INTO disputes (order_id, payment_id, opened_by, opened_by_role,
+        reason_category, description, status, expected_resolution_at)
+      VALUES ($1,$2,$3,$4,$5,$6,'OPEN', NOW() + INTERVAL '72 hours')
+      RETURNING *
+    `</span><span class="pun">, [</span>input<span class="pun">.</span>orderId<span class="pun">,</span> payment<span class="pun">.</span>id<span class="pun">,</span> input<span class="pun">.</span>actorId<span class="pun">,</span>
+       input<span class="pun">.</span>actorRole<span class="pun">,</span> input<span class="pun">.</span>reason<span class="pun">,</span> input<span class="pun">.</span>description<span class="pun">]);</span>
+
+    <span class="c">// 2. Congela escrow — job de liberação ignora status DISPUTED</span>
+    <span class="kw">await</span> trx<span class="pun">.</span><span class="fn">query</span><span class="pun">(</span><span class="s">`UPDATE payments SET status='DISPUTED' WHERE id=$1`</span><span class="pun">, [</span>payment<span class="pun">.</span>id<span class="pun">]);</span>
+
+    <span class="c">// 3. Muda status da ordem</span>
+    <span class="kw">await</span> trx<span class="pun">.</span><span class="fn">query</span><span class="pun">(</span><span class="s">`UPDATE orders SET status='DISPUTED' WHERE id=$1`</span><span class="pun">, [</span>input<span class="pun">.</span>orderId<span class="pun">]);</span>
+
+    <span class="c">// 4. Registra no histórico de status (imutável)</span>
+    <span class="kw">await</span> trx<span class="pun">.</span><span class="fn">query</span><span class="pun">(</span><span class="s">`
+      INSERT INTO order_status_history (order_id, from_status, to_status, actor_id, actor_role)
+      VALUES ($1,$2,'DISPUTED',$3,$4)
+    `</span><span class="pun">, [</span>input<span class="pun">.</span>orderId<span class="pun">,</span> order<span class="pun">.</span>status<span class="pun">,</span> input<span class="pun">.</span>actorId<span class="pun">,</span> input<span class="pun">.</span>actorRole<span class="pun">]);</span>
+
+    <span class="c">// 5. Evento assíncrono: notificações + alerta admin on-call</span>
+    <span class="kw">await</span> queue<span class="pun">.</span><span class="fn">publish</span><span class="pun">(</span><span class="s">'dispute.opened'</span><span class="pun">, {</span> disputeId<span class="pun">:</span> dispute<span class="pun">.</span>rows<span class="pun">[</span><span class="n">0</span><span class="pun">].</span>id <span class="pun">});</span>
+    <span class="kw">return</span> dispute<span class="pun">.</span>rows<span class="pun">[</span><span class="n">0</span><span class="pun">];</span>
+  <span class="pun">});</span>
+<span class="pun">}</span></pre>
+
+<div class="ftag">src/dispute/dispute.service.ts — resolve()</div>
+<pre><span class="kw">static async</span> <span class="fn">resolve</span><span class="pun">(</span>input<span class="pun">:</span> <span class="cls">ResolveDisputeInput</span><span class="pun">) {</span>
+  <span class="kw">const</span> dispute <span class="pun">=</span> <span class="kw">await</span> <span class="cls">DisputeRepo</span><span class="pun">.</span><span class="fn">findById</span><span class="pun">(</span>input<span class="pun">.</span>disputeId<span class="pun">);</span>
+  <span class="kw">const</span> payment <span class="pun">=</span> <span class="kw">await</span> <span class="cls">PaymentRepo</span><span class="pun">.</span><span class="fn">findById</span><span class="pun">(</span>dispute<span class="pun">.</span>payment_id<span class="pun">);</span>
+
+  <span class="c">// Apenas admin atribuído resolve (ou sênior com flag)</span>
+  <span class="kw">if</span> <span class="pun">(</span>dispute<span class="pun">.</span>assigned_to <span class="pun">!==</span> input<span class="pun">.</span>adminId <span class="pun">&&</span> <span class="pun">!</span>input<span class="pun">.</span>isSeniorOverride<span class="pun">)</span>
+    <span class="kw">throw</span> <span class="kw">new</span> <span class="cls">ForbiddenError</span><span class="pun">(</span><span class="s">'NOT_ASSIGNED_ADMIN'</span><span class="pun">);</span>
+
+  <span class="kw">if</span> <span class="pun">(</span>input<span class="pun">.</span>resolutionNotes<span class="pun">.</span>length <span class="pun">&lt;</span> <span class="n">50</span><span class="pun">)</span>
+    <span class="kw">throw</span> <span class="kw">new</span> <span class="cls">ValidationError</span><span class="pun">(</span><span class="s">'RESOLUTION_NOTES_REQUIRED'</span><span class="pun">);</span>
+
+  <span class="kw">const</span> split <span class="pun">=</span> <span class="kw">this</span><span class="pun">.</span><span class="fn">calcSplit</span><span class="pun">(</span>input<span class="pun">.</span>decision<span class="pun">,</span> input<span class="pun">.</span>companyRefundAmount<span class="pun">,</span> payment<span class="pun">);</span>
+
+  <span class="kw">return</span> db<span class="pun">.</span><span class="fn">transaction</span><span class="pun">(</span><span class="kw">async</span> <span class="pun">(</span>trx<span class="pun">) => {</span>
+    <span class="c">// 1. Executa financeiro — estorno e/ou transferência na mesma transação</span>
+    <span class="kw">if</span> <span class="pun">(</span>split<span class="pun">) await</span> <span class="cls">DisputePaymentExecutor</span><span class="pun">.</span><span class="fn">execute</span><span class="pun">(</span>trx<span class="pun">,</span> payment<span class="pun">,</span> split<span class="pun">);</span>
+
+    <span class="c">// 2. Fecha disputa</span>
+    <span class="kw">await</span> trx<span class="pun">.</span><span class="fn">query</span><span class="pun">(</span><span class="s">`
+      UPDATE disputes SET status=$1, resolution=$2, resolution_amount=$3,
+        resolution_notes=$4, resolved_by=$5, resolved_at=NOW()
+      WHERE id=$6
+    `</span><span class="pun">, [</span><span class="fn">resolvedStatus</span><span class="pun">(</span>input<span class="pun">.</span>decision<span class="pun">),</span> input<span class="pun">.</span>decision<span class="pun">,</span> split<span class="pun">?.</span>companyRefund<span class="pun">,</span>
+       input<span class="pun">.</span>resolutionNotes<span class="pun">,</span> input<span class="pun">.</span>adminId<span class="pun">,</span> input<span class="pun">.</span>disputeId<span class="pun">]);</span>
+
+    <span class="c">// 3. Muda status da ordem conforme decisão</span>
+    <span class="kw">const</span> orderStatus <span class="pun">= {</span>
+      REFUND_FULL<span class="pun">:</span>      <span class="s">'CANCELLED'</span><span class="pun">,</span>
+      REFUND_PARTIAL<span class="pun">:</span>   <span class="s">'CANCELLED'</span><span class="pun">,</span>
+      PAYMENT_RELEASED<span class="pun">:</span> <span class="s">'COMPLETED'</span><span class="pun">,</span>
+      SPLIT<span class="pun">:</span>            <span class="s">'CANCELLED'</span><span class="pun">,</span>
+      NO_ACTION<span class="pun">:</span>        <span class="s">'APPROVED'</span><span class="pun">,</span>   <span class="c">// retoma fluxo normal de liberação</span>
+      REOPEN<span class="pun">:</span>           <span class="s">'IN_PROGRESS'</span><span class="pun">,</span>
+    <span class="pun">}[</span>input<span class="pun">.</span>decision<span class="pun">];</span>
+    <span class="kw">await</span> trx<span class="pun">.</span><span class="fn">query</span><span class="pun">(</span><span class="s">`UPDATE orders SET status=$1 WHERE id=$2`</span><span class="pun">, [</span>orderStatus<span class="pun">,</span> dispute<span class="pun">.</span>order_id<span class="pun">]);</span>
+
+    <span class="c">// 4. REOPEN: redefine prazo obrigatório + reabre chat</span>
+    <span class="kw">if</span> <span class="pun">(</span>input<span class="pun">.</span>decision <span class="pun">===</span> <span class="s">'REOPEN'</span><span class="pun">) {</span>
+      <span class="kw">if</span> <span class="pun">(!</span>input<span class="pun">.</span>newDeadlineAt<span class="pun">)</span> <span class="kw">throw</span> <span class="kw">new</span> <span class="cls">ValidationError</span><span class="pun">(</span><span class="s">'NEW_DEADLINE_REQUIRED'</span><span class="pun">);</span>
+      <span class="kw">await</span> trx<span class="pun">.</span><span class="fn">query</span><span class="pun">(</span><span class="s">`UPDATE orders SET deadline_at=$1 WHERE id=$2`</span><span class="pun">, [</span>input<span class="pun">.</span>newDeadlineAt<span class="pun">,</span> dispute<span class="pun">.</span>order_id<span class="pun">]);</span>
+      <span class="kw">await</span> trx<span class="pun">.</span><span class="fn">query</span><span class="pun">(</span><span class="s">`UPDATE chat_channels SET status='ACTIVE', closed_at=NULL WHERE order_id=$1`</span><span class="pun">, [</span>dispute<span class="pun">.</span>order_id<span class="pun">]);</span>
+    <span class="pun">}</span>
+
+    <span class="c">// 5. Penalidades de reputação + suspensão aplicadas assincronamente</span>
+    <span class="kw">await</span> queue<span class="pun">.</span><span class="fn">publish</span><span class="pun">(</span><span class="s">'dispute.resolved'</span><span class="pun">, {</span>
+      disputeId<span class="pun">:</span>   input<span class="pun">.</span>disputeId<span class="pun">,</span>    decision<span class="pun">:</span>     input<span class="pun">.</span>decision<span class="pun">,</span>
+      openedByRole<span class="pun">:</span> dispute<span class="pun">.</span>opened_by_role<span class="pun">,</span>
+      companyId<span class="pun">:</span>   dispute<span class="pun">.</span>company_user_id<span class="pun">,</span>
+      freelancerId<span class="pun">:</span> dispute<span class="pun">.</span>freelancer_user_id<span class="pun">,</span>
+      split<span class="pun">,</span>
+    <span class="pun">});</span>
+  <span class="pun">});</span>
+<span class="pun">}</span>
+
+<span class="kw">private static</span> <span class="fn">calcSplit</span><span class="pun">(</span>decision<span class="pun">:</span> <span class="kw">string</span><span class="pun">,</span> companyRefund<span class="pun">:</span> <span class="kw">string</span> <span class="pun">|</span> <span class="b">undefined</span><span class="pun">,</span> payment<span class="pun">:</span> <span class="cls">Payment</span><span class="pun">) {</span>
+  <span class="kw">switch</span> <span class="pun">(</span>decision<span class="pun">) {</span>
+    <span class="kw">case</span> <span class="s">'REFUND_FULL'</span><span class="pun">:</span>
+      <span class="kw">return</span> <span class="pun">{</span> companyRefund<span class="pun">:</span> payment<span class="pun">.</span>gross_amount<span class="pun">,</span> freelancerPay<span class="pun">:</span> <span class="s">'0'</span><span class="pun">,</span> platformRetains<span class="pun">:</span> <span class="s">'0'</span> <span class="pun">};</span>
+    <span class="kw">case</span> <span class="s">'PAYMENT_RELEASED'</span><span class="pun">:</span>
+      <span class="kw">return</span> <span class="pun">{</span> companyRefund<span class="pun">:</span> <span class="s">'0'</span><span class="pun">,</span> freelancerPay<span class="pun">:</span> payment<span class="pun">.</span>freelancer_amount<span class="pun">,</span> platformRetains<span class="pun">:</span> payment<span class="pun">.</span>platform_fee_amount <span class="pun">};</span>
+    <span class="kw">case</span> <span class="s">'REFUND_PARTIAL'</span><span class="pun">:</span>
+    <span class="kw">case</span> <span class="s">'SPLIT'</span><span class="pun">: {</span>
+      <span class="kw">const</span> r  <span class="pun">=</span> <span class="cls">Decimal</span><span class="pun">.</span><span class="fn">sub</span><span class="pun">(</span>payment<span class="pun">.</span>gross_amount<span class="pun">,</span> companyRefund <span class="pun">??</span> <span class="s">'0'</span><span class="pun">);</span>
+      <span class="kw">const</span> fee<span class="pun">=</span> <span class="cls">Decimal</span><span class="pun">.</span><span class="fn">mul</span><span class="pun">(</span>r<span class="pun">,</span> payment<span class="pun">.</span>platform_fee_rate<span class="pun">);</span>
+      <span class="kw">return</span> <span class="pun">{</span> companyRefund<span class="pun">,</span> freelancerPay<span class="pun">:</span> <span class="cls">Decimal</span><span class="pun">.</span><span class="fn">sub</span><span class="pun">(</span>r<span class="pun">,</span>fee<span class="pun">).</span><span class="fn">toFixed</span><span class="pun">(</span><span class="n">2</span><span class="pun">),</span> platformRetains<span class="pun">:</span> fee<span class="pun">.</span><span class="fn">toFixed</span><span class="pun">(</span><span class="n">2</span><span class="pun">) };</span>
+    <span class="pun">}</span>
+    <span class="kw">default</span><span class="pun">:</span> <span class="kw">return</span> <span class="b">null</span><span class="pun">;</span>  <span class="c">// NO_ACTION e REOPEN: sem movimento financeiro imediato</span>
+  <span class="pun">}</span>
+<span class="pun">}</span></pre>
+
+<!-- ══ 6. IMPACTO FINANCEIRO ══ -->
+<h2>6. Matriz de Impacto Financeiro</h2>
+<p>Exemplo: <strong>gross R$ 3.500</strong>, taxa 10% (R$ 350), freelancer_amount R$ 3.150.</p>
+
+<table class="table">
+<thead><tr><th>Decisão</th><th>Empresa</th><th>Freelancer</th><th>Plataforma</th><th>Ordem</th></tr></thead>
+<tbody>
+<tr><td><strong>REFUND_FULL</strong></td><td>R$ 3.500</td><td>R$ 0</td><td>R$ 0 <em style="color:var(--red)">(absorve perda)</em></td><td>CANCELLED</td></tr>
+<tr><td><strong>PAYMENT_RELEASED</strong></td><td>R$ 0</td><td>R$ 3.150</td><td>R$ 350</td><td>COMPLETED</td></tr>
+<tr><td><strong>REFUND_PARTIAL</strong> (empresa R$1.750)</td><td>R$ 1.750</td><td>R$ 1.575</td><td>R$ 175</td><td>CANCELLED</td></tr>
+<tr><td><strong>SPLIT</strong> (livre pelo admin)</td><td>Configurável</td><td>Restante − taxa proporcional</td><td>Taxa sobre parte freelancer</td><td>CANCELLED</td></tr>
+<tr><td><strong>NO_ACTION</strong></td><td>R$ 0</td><td>R$ 3.150</td><td>R$ 350</td><td>APPROVED → timer de liberação retoma</td></tr>
+<tr><td><strong>REOPEN</strong></td><td>R$ 0 (congelado)</td><td>R$ 0 (congelado)</td><td>R$ 0 (aguarda)</td><td>IN_PROGRESS + novo prazo</td></tr>
+</tbody>
+</table>
+
+<div class="danger"><p>🔴 <strong>REFUND_FULL causa perda de receita para a plataforma.</strong> A taxa não é repassada ao freelancer e a empresa recebe 100%. A perda é registrada em <code>platform_ledger</code> como <code>REFUND_ISSUED</code> negativo para controle contábil. Cobrança de taxa em falha comprovada geraria litígios e má reputação — não vale.</p></div>
+
+<!-- ══ 7. IMPACTO NA REPUTAÇÃO ══ -->
+<h2>7. Impacto na Reputação</h2>
+
+<table class="table">
+<thead><tr><th>Decisão</th><th>Quem abriu</th><th>Penalidade Freelancer</th><th>Penalidade Empresa</th></tr></thead>
+<tbody>
+<tr><td><strong>REFUND_FULL</strong></td><td>Empresa</td><td>−0.40 (falhou e perdeu)</td><td>Nenhuma</td></tr>
+<tr><td><strong>REFUND_FULL</strong></td><td>Freelancer</td><td>−0.50 (abriu e perdeu — agravante)</td><td>Nenhuma</td></tr>
+<tr><td><strong>PAYMENT_RELEASED</strong></td><td>Empresa</td><td>Nenhuma</td><td>−0.25 (disputa infundada)</td></tr>
+<tr><td><strong>PAYMENT_RELEASED</strong></td><td>Freelancer</td><td>Nenhuma</td><td>Nenhuma</td></tr>
+<tr><td><strong>SPLIT / REFUND_PARTIAL</strong></td><td>Qualquer</td><td>−0.10 a −0.20 (proporcional)</td><td>−0.10 (se abriu e perdeu parcialmente)</td></tr>
+<tr><td><strong>NO_ACTION</strong></td><td>Qualquer</td><td>Nenhuma</td><td>−0.15 (disputa considerada infundada)</td></tr>
+<tr><td><strong>REOPEN</strong></td><td>Qualquer</td><td>Nenhuma imediata (chance de resgatar)</td><td>Nenhuma</td></tr>
+</tbody>
+</table>
+
+<p>Todas as penalidades usam o mesmo <strong>decaimento temporal exponencial</strong> (λ = 0.00385, meia-vida 180 dias) do sistema de reputação — o impacto diminui progressivamente ao longo do tempo.</p>
+
+<!-- ══ 8. SLA JOB ══ -->
+<h2>8. Monitoramento de SLA</h2>
+
+<div class="ftag">src/dispute/jobs/dispute-sla.job.ts — cron: */15 * * * *</div>
+<pre><span class="kw">export async function</span> <span class="fn">disputeSLAJob</span><span class="pun">() {</span>
+  <span class="kw">const</span> now <span class="pun">=</span> <span class="kw">new</span> <span class="cls">Date</span><span class="pun">();</span>
+
+  <span class="c">// 1. OPEN sem atribuição em 24h → auto-escala</span>
+  <span class="kw">const</span> unassigned <span class="pun">=</span> <span class="kw">await</span> db<span class="pun">.</span><span class="fn">query</span><span class="pun">(</span><span class="s">`
+    SELECT id FROM disputes
+    WHERE status='OPEN' AND assigned_to IS NULL
+      AND created_at + INTERVAL '24 hours' &lt;= $1
+    FOR UPDATE SKIP LOCKED LIMIT 20
+  `</span><span class="pun">, [</span>now<span class="pun">]);</span>
+  <span class="kw">for</span> <span class="pun">(</span><span class="kw">const</span> d <span class="kw">of</span> unassigned<span class="pun">.</span>rows<span class="pun">) {</span>
+    <span class="kw">await</span> db<span class="pun">.</span><span class="fn">query</span><span class="pun">(</span><span class="s">`UPDATE disputes SET status='ESCALATED' WHERE id=$1`</span><span class="pun">, [</span>d<span class="pun">.</span>id<span class="pun">]);</span>
+    <span class="kw">await</span> <span class="fn">alertSeniorAdmin</span><span class="pun">({</span> disputeId<span class="pun">:</span> d<span class="pun">.</span>id<span class="pun">,</span> reason<span class="pun">:</span> <span class="s">'SLA_NO_ASSIGNMENT'</span><span class="pun">,</span> channel<span class="pun">:</span> <span class="s">'pagerduty'</span> <span class="pun">});</span>
+  <span class="pun">}</span>
+
+  <span class="c">// 2. UNDER_REVIEW com SLA de resolução vencido → alerta supervisor</span>
+  <span class="kw">const</span> overdue <span class="pun">=</span> <span class="kw">await</span> db<span class="pun">.</span><span class="fn">query</span><span class="pun">(</span><span class="s">`
+    SELECT id, assigned_to FROM disputes
+    WHERE status='UNDER_REVIEW' AND expected_resolution_at &lt; $1
+    FOR UPDATE SKIP LOCKED LIMIT 20
+  `</span><span class="pun">, [</span>now<span class="pun">]);</span>
+  <span class="kw">for</span> <span class="pun">(</span><span class="kw">const</span> d <span class="kw">of</span> overdue<span class="pun">.</span>rows<span class="pun">) {</span>
+    <span class="c">// Não escala automaticamente: admin pode ter boa razão</span>
+    <span class="c">// Supervisor decide se intervém ou estende o SLA</span>
+    <span class="kw">await</span> <span class="fn">alertSupervisor</span><span class="pun">({</span> disputeId<span class="pun">:</span> d<span class="pun">.</span>id<span class="pun">,</span> adminId<span class="pun">:</span> d<span class="pun">.</span>assigned_to <span class="pun">});</span>
+  <span class="pun">}</span>
+
+  <span class="c">// 3. AWAITING_EVIDENCE sem resposta em 48h → volta a UNDER_REVIEW</span>
+  <span class="kw">const</span> evidenceExpired <span class="pun">=</span> <span class="kw">await</span> db<span class="pun">.</span><span class="fn">query</span><span class="pun">(</span><span class="s">`
+    SELECT d.id, d.assigned_to FROM disputes d
+    WHERE d.status = 'AWAITING_EVIDENCE'
+      AND d.evidence_requested_at + INTERVAL '48 hours' &lt;= $1
+      AND NOT EXISTS (
+        SELECT 1 FROM dispute_evidences de
+        WHERE de.dispute_id = d.id AND de.created_at > d.evidence_requested_at
+          AND de.submitted_by_role != 'ADMIN'
+      )
+    FOR UPDATE SKIP LOCKED LIMIT 20
+  `</span><span class="pun">, [</span>now<span class="pun">]);</span>
+  <span class="kw">for</span> <span class="pun">(</span><span class="kw">const</span> d <span class="kw">of</span> evidenceExpired<span class="pun">.</span>rows<span class="pun">) {</span>
+    <span class="kw">await</span> db<span class="pun">.</span><span class="fn">query</span><span class="pun">(</span><span class="s">`UPDATE disputes SET status='UNDER_REVIEW' WHERE id=$1`</span><span class="pun">, [</span>d<span class="pun">.</span>id<span class="pun">]);</span>
+    <span class="kw">await</span> <span class="fn">alertAdmin</span><span class="pun">(</span>d<span class="pun">.</span>assigned_to<span class="pun">, {</span> reason<span class="pun">:</span> <span class="s">'EVIDENCE_EXPIRED_DECIDE_WITHOUT'</span> <span class="pun">});</span>
+  <span class="pun">}</span>
+<span class="pun">}</span></pre>
+
+<!-- ══ 9. SUSPENSÃO ══ -->
+<h2>9. Suspensão Automática por Reincidência</h2>
+
+<p>Usuário com <strong>3 ou mais disputas perdidas em 90 dias</strong> é suspenso automaticamente e entra em fila de revisão humana. A suspensão bloqueia candidaturas (freelancer) ou publicação de novas ordens (empresa) até a revisão.</p>
+
+<div class="ftag">src/dispute/services/suspension.service.ts</div>
+<pre><span class="kw">export async function</span> <span class="fn">checkSuspension</span><span class="pun">(</span>userId<span class="pun">:</span> <span class="kw">string</span><span class="pun">,</span> role<span class="pun">:</span> <span class="kw">string</span><span class="pun">) {</span>
+  <span class="kw">const</span> lostCount <span class="pun">=</span> <span class="kw">await</span> db<span class="pun">.</span><span class="fn">query</span><span class="pun">(</span><span class="s">`
+    SELECT COUNT(*) AS n FROM disputes d
+    WHERE d.created_at > NOW() - INTERVAL '90 days'
+      AND d.status LIKE 'RESOLVED_%'
+      AND (
+        (d.opened_by = $1 AND d.resolution IN ('REFUND_FULL','REFUND_PARTIAL','PAYMENT_RELEASED'))
+        <span class="c">-- abriu e perdeu qualquer coisa</span>
+      )
+  `</span><span class="pun">, [</span>userId<span class="pun">]);</span>
+
+  <span class="kw">if</span> <span class="pun">(</span><span class="cls">Number</span><span class="pun">(</span>lostCount<span class="pun">.</span>rows<span class="pun">[</span><span class="n">0</span><span class="pun">].</span>n<span class="pun">) >=</span> <span class="n">3</span><span class="pun">) {</span>
+    <span class="kw">await</span> db<span class="pun">.</span><span class="fn">query</span><span class="pun">(</span><span class="s">`
+      UPDATE users SET status='SUSPENDED', suspended_at=NOW(),
+        suspension_reason='AUTO_DISPUTE_REINCIDENCE'
+      WHERE id=$1
+    `</span><span class="pun">, [</span>userId<span class="pun">]);</span>
+    <span class="kw">await</span> <span class="fn">alertComplianceTeam</span><span class="pun">({</span> userId<span class="pun">,</span> role<span class="pun">,</span> reason<span class="pun">:</span> <span class="s">'3_DISPUTES_LOST_90D'</span> <span class="pun">});</span>
+    logger<span class="pun">.</span><span class="fn">warn</span><span class="pun">({</span> userId<span class="pun">,</span> role <span class="pun">},</span> <span class="s">'Usuário suspenso por reincidência em disputas'</span><span class="pun">);</span>
+  <span class="pun">}</span>
+<span class="pun">}</span></pre>
+
+<!-- ══ 10. ENDPOINTS ══ -->
+<h2>10. Endpoints da API</h2>
+
+<table class="table">
+<thead><tr><th>Método</th><th>Rota</th><th>Ator</th><th>Ação</th></tr></thead>
+<tbody>
+<tr><td><code>POST</code></td><td><code>/orders/:id/dispute</code></td><td>Empresa / Freelancer</td><td>Abrir disputa</td></tr>
+<tr><td><code>GET</code></td><td><code>/disputes/:id</code></td><td>Partes + Admin</td><td>Detalhes da disputa</td></tr>
+<tr><td><code>GET</code></td><td><code>/disputes/:id/investigation-package</code></td><td>Admin</td><td>Pacote completo de investigação</td></tr>
+<tr><td><code>POST</code></td><td><code>/disputes/:id/assign</code></td><td>Admin</td><td>Atribuir a si mesmo</td></tr>
+<tr><td><code>POST</code></td><td><code>/disputes/:id/messages</code></td><td>Partes + Admin</td><td>Enviar mensagem (pública ou interna)</td></tr>
+<tr><td><code>POST</code></td><td><code>/disputes/:id/evidences</code></td><td>Partes + Admin</td><td>Anexar arquivo de evidência</td></tr>
+<tr><td><code>POST</code></td><td><code>/disputes/:id/request-evidence</code></td><td>Admin</td><td>Solicitar mais provas → AWAITING_EVIDENCE</td></tr>
+<tr><td><code>POST</code></td><td><code>/disputes/:id/escalate</code></td><td>Admin</td><td>Escalar para admin sênior</td></tr>
+<tr><td><code>POST</code></td><td><code>/disputes/:id/resolve</code></td><td>Admin (atribuído)</td><td>Resolver com decisão + valores + notas</td></tr>
+<tr><td><code>GET</code></td><td><code>/admin/disputes</code></td><td>Admin</td><td>Fila de disputas com filtros (status, SLA, prioridade)</td></tr>
+</tbody>
+</table>
+
+</div></body></html>

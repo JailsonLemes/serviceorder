@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Chat Service — Implementação Completa</title>
+<style>
+:root {
+  --blue:#185FA5;--blue-bg:#E6F1FB;--blue-b:#B5D4F4;
+  --purple:#534AB7;--purple-bg:#EEEDFE;--purple-b:#AFA9EC;
+  --teal:#0F6E56;--teal-bg:#E1F5EE;--teal-b:#9FE1CB;
+  --amber:#854F0B;--amber-bg:#FAEEDA;--amber-b:#FAC775;
+  --red:#A32D2D;--red-bg:#FCEBEB;--red-b:#F7C1C1;
+  --gray:#5F5E5A;--gray-bg:#F1EFE8;--gray-b:#D3D1C7;
+  --code-bg:#18181a;--code-fg:#d4d4d4;
+  --key:#9cdcfe;--str:#ce9178;--num:#b5cea8;--bool:#569cd6;--cmt:#6a9955;--fn:#dcdcaa;--kw:#c586c0;--cls:#4ec9b0;
+  --border:rgba(0,0,0,0.1);--surface:#f5f4f0;
+  --text:#1a1a18;--muted:#73726c;--bg:#fff;
+  --font:system-ui,-apple-system,sans-serif;
+  --mono:'SF Mono','Fira Code',Consolas,monospace;
+  --r:8px;
+}
+@media(prefers-color-scheme:dark){
+  :root{
+    --code-bg:#0d1117;--border:rgba(255,255,255,0.1);
+    --surface:#242422;--text:#e8e6de;--muted:#9c9a92;--bg:#1c1c1a;
+    --blue-bg:#042C53;--purple-bg:#26215C;--teal-bg:#04342C;--amber-bg:#412402;--red-bg:#501313;--gray-bg:#2C2C2A;
+  }
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--font);color:var(--text);background:var(--bg);line-height:1.65;padding:40px 24px 80px;}
+.container{max-width:860px;margin:0 auto;}
+h1{font-size:26px;font-weight:600;margin-bottom:6px;}
+.lead{color:var(--muted);font-size:14px;margin-bottom:48px;max-width:600px;}
+h2{font-size:19px;font-weight:600;margin:56px 0 20px;padding-bottom:10px;border-bottom:2px solid var(--border);display:flex;align-items:center;gap:10px;}
+h3{font-size:15px;font-weight:600;margin:28px 0 10px;color:var(--text);}
+p{font-size:14px;color:var(--muted);line-height:1.7;margin-bottom:12px;}
+p strong{color:var(--text);}
+ul,ol{font-size:14px;color:var(--muted);padding-left:20px;margin-bottom:12px;}
+li{margin-bottom:4px;line-height:1.6;}
+li strong{color:var(--text);}
+
+/* Code */
+pre{background:var(--code-bg);color:var(--code-fg);padding:18px 20px;border-radius:var(--r);font-family:var(--mono);font-size:12px;overflow-x:auto;line-height:1.65;margin:12px 0 24px;border:1px solid rgba(255,255,255,.04);}
+.file-tag{display:inline-block;background:rgba(255,255,255,.06);color:var(--muted);font-family:var(--mono);font-size:10px;padding:3px 10px;border-radius:4px 4px 0 0;margin-bottom:-1px;border:1px solid rgba(255,255,255,.08);border-bottom:none;}
+code{font-family:var(--mono);font-size:12px;background:var(--surface);border:1px solid var(--border);padding:1px 6px;border-radius:4px;}
+.k{color:var(--key);}
+.s{color:var(--str);}
+.n{color:var(--num);}
+.b{color:var(--bool);}
+.c{color:var(--cmt);font-style:italic;}
+.fn{color:var(--fn);}
+.kw{color:var(--kw);}
+.cls{color:var(--cls);}
+.pun{color:var(--code-fg);}
+
+/* Cards */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:18px 20px;margin:12px 0;}
+.card-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:10px;}
+
+/* Event table */
+.etable{width:100%;border-collapse:collapse;font-size:12.5px;margin:10px 0 24px;}
+.etable th{text-align:left;padding:8px 12px;background:var(--surface);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);}
+.etable td{padding:8px 12px;border-bottom:1px solid var(--border);vertical-align:top;line-height:1.5;}
+.etable tr:last-child td{border-bottom:none;}
+.dir{font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;white-space:nowrap;}
+.c2s{background:var(--blue-bg);color:var(--blue);}
+.s2c{background:var(--teal-bg);color:var(--teal);}
+.sys{background:var(--gray-bg);color:var(--gray);}
+.ename{font-family:var(--mono);font-size:11.5px;font-weight:600;}
+
+/* Info boxes */
+.info{border-left:3px solid var(--blue);background:var(--blue-bg);padding:12px 16px;border-radius:0 var(--r) var(--r) 0;margin:16px 0;}
+.warn{border-left:3px solid var(--amber);background:var(--amber-bg);padding:12px 16px;border-radius:0 var(--r) var(--r) 0;margin:16px 0;}
+.danger{border-left:3px solid var(--red);background:var(--red-bg);padding:12px 16px;border-radius:0 var(--r) var(--r) 0;margin:16px 0;}
+.info p,.warn p,.danger p{margin:0;font-size:13px;}
+
+/* Badges */
+.badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;margin:1px;}
+.b-blue{background:var(--blue-bg);color:var(--blue);}
+.b-teal{background:var(--teal-bg);color:var(--teal);}
+.b-amber{background:var(--amber-bg);color:var(--amber);}
+.b-red{background:var(--red-bg);color:var(--red);}
+.b-gray{background:var(--gray-bg);color:var(--gray);}
+
+/* Flow steps */
+.steps{counter-reset:step;margin:16px 0 24px;}
+.step{display:flex;gap:14px;margin-bottom:14px;align-items:flex-start;}
+.step-num{counter-increment:step;content:counter(step);background:var(--blue);color:#fff;width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;margin-top:1px;}
+.step-num::before{content:counter(step);}
+.step-body{font-size:13.5px;color:var(--muted);line-height:1.6;}
+.step-body strong{color:var(--text);}
+
+/* Grid */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:12px 0 24px;}
+@media(max-width:640px){.grid2{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<div class="container">
+
+<h1>Chat Service — Implementação Completa</h1>
+<p class="lead">Sistema de chat em tempo real vinculado a ordens de serviço. Socket.io + Redis Pub/Sub + PostgreSQL. Chat liberado exclusivamente após transição para ACCEPTED.</p>
+
+<!-- ═══ ARQUITETURA ═══ -->
+<h2>1. Decisão Arquitetural</h2>
+
+<p><strong>Socket.io com Redis Adapter</strong> é a escolha correta para este sistema. Firebase Realtime Database oferece infraestrutura gerenciada, mas cria vendor lock-in, dificulta integração com a FSM de ordens (que vive no PostgreSQL), e torna o controle de acesso baseado em estado muito mais complexo. WebSocket nativo exige construir do zero reconexão, rooms, fallback e acknowledgements — esforço alto sem ganho real.</p>
+
+<p>Socket.io oferece: <strong>rooms nativas</strong> (uma por ordem), <strong>fallback automático</strong> para long-polling quando WebSocket não está disponível (redes corporativas, proxies), <strong>acknowledgements</strong> para entrega garantida, <strong>reconexão exponential backoff</strong> built-in, e o <strong>Redis Adapter</strong> (@socket.io/redis-adapter) que resolve escalabilidade horizontal sem sticky sessions.</p>
+
+<!-- Architecture SVG -->
+<svg width="100%" viewBox="0 0 700 380" xmlns="http://www.w3.org/2000/svg" style="margin:24px 0;display:block;">
+<defs>
+  <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+    <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  </marker>
+</defs>
+
+<!-- CLIENTS -->
+<rect x="20" y="30" width="110" height="44" rx="6" fill="#E6F1FB" stroke="#B5D4F4" stroke-width="1"/>
+<text x="75" y="49" text-anchor="middle" fill="#185FA5" font-size="12" font-weight="600" font-family="system-ui">Web App</text>
+<text x="75" y="65" text-anchor="middle" fill="#185FA5" font-size="10" font-family="system-ui">Next.js / React</text>
+
+<rect x="20" y="98" width="110" height="44" rx="6" fill="#E6F1FB" stroke="#B5D4F4" stroke-width="1"/>
+<text x="75" y="117" text-anchor="middle" fill="#185FA5" font-size="12" font-weight="600" font-family="system-ui">Mobile App</text>
+<text x="75" y="133" text-anchor="middle" fill="#185FA5" font-size="10" font-family="system-ui">React Native</text>
+
+<!-- WS arrows to LB -->
+<line x1="130" y1="52" x2="200" y2="90" stroke="#9c9a92" stroke-width="1" marker-end="url(#arr)"/>
+<line x1="130" y1="120" x2="200" y2="110" stroke="#9c9a92" stroke-width="1" marker-end="url(#arr)"/>
+<text x="148" y="76" fill="#9c9a92" font-size="9" font-family="system-ui">WSS</text>
+
+<!-- LOAD BALANCER -->
+<rect x="200" y="70" width="120" height="44" rx="6" fill="#F1EFE8" stroke="#D3D1C7" stroke-width="1"/>
+<text x="260" y="89" text-anchor="middle" fill="#5F5E5A" font-size="12" font-weight="600" font-family="system-ui">Load Balancer</text>
+<text x="260" y="105" text-anchor="middle" fill="#5F5E5A" font-size="10" font-family="system-ui">Nginx / ALB</text>
+
+<!-- LB to socket.io instances -->
+<line x1="320" y1="85" x2="388" y2="55" stroke="#9c9a92" stroke-width="1" marker-end="url(#arr)"/>
+<line x1="320" y1="92" x2="388" y2="92" stroke="#9c9a92" stroke-width="1" marker-end="url(#arr)"/>
+<line x1="320" y1="99" x2="388" y2="128" stroke="#9c9a92" stroke-width="1" marker-end="url(#arr)"/>
+
+<!-- Socket.io Instances -->
+<rect x="388" y="30" width="125" height="44" rx="6" fill="#EEEDFE" stroke="#AFA9EC" stroke-width="1"/>
+<text x="450" y="49" text-anchor="middle" fill="#534AB7" font-size="12" font-weight="600" font-family="system-ui">Socket.io #1</text>
+<text x="450" y="65" text-anchor="middle" fill="#534AB7" font-size="10" font-family="system-ui">Node.js Pod</text>
+
+<rect x="388" y="70" width="125" height="44" rx="6" fill="#EEEDFE" stroke="#AFA9EC" stroke-width="1"/>
+<text x="450" y="89" text-anchor="middle" fill="#534AB7" font-size="12" font-weight="600" font-family="system-ui">Socket.io #2</text>
+<text x="450" y="105" text-anchor="middle" fill="#534AB7" font-size="10" font-family="system-ui">Node.js Pod</text>
+
+<rect x="388" y="110" width="125" height="44" rx="6" fill="#EEEDFE" stroke="#AFA9EC" stroke-width="1"/>
+<text x="450" y="129" text-anchor="middle" fill="#534AB7" font-size="12" font-weight="600" font-family="system-ui">Socket.io #N</text>
+<text x="450" y="145" text-anchor="middle" fill="#534AB7" font-size="10" font-family="system-ui">Node.js Pod</text>
+
+<!-- Socket.io to Redis arrows (bidirectional) -->
+<line x1="513" y1="52" x2="557" y2="52" stroke="#0F6E56" stroke-width="1" marker-end="url(#arr)"/>
+<line x1="513" y1="92" x2="557" y2="92" stroke="#0F6E56" stroke-width="1" marker-end="url(#arr)"/>
+<line x1="513" y1="132" x2="557" y2="132" stroke="#0F6E56" stroke-width="1" marker-end="url(#arr)"/>
+<line x1="557" y1="60" x2="513" y2="76" stroke="#0F6E56" stroke-width="0.8" stroke-dasharray="3 2" marker-end="url(#arr)"/>
+
+<!-- REDIS -->
+<rect x="557" y="30" width="120" height="124" rx="6" fill="#E1F5EE" stroke="#9FE1CB" stroke-width="1"/>
+<text x="617" y="55" text-anchor="middle" fill="#0F6E56" font-size="12" font-weight="600" font-family="system-ui">Redis</text>
+<text x="617" y="72" text-anchor="middle" fill="#0F6E56" font-size="10" font-family="system-ui">Pub/Sub Backplane</text>
+<text x="617" y="92" text-anchor="middle" fill="#0F6E56" font-size="10" font-family="system-ui">• chat:{order_id}</text>
+<text x="617" y="108" text-anchor="middle" fill="#0F6E56" font-size="10" font-family="system-ui">• Typing TTL 5s</text>
+<text x="617" y="124" text-anchor="middle" fill="#0F6E56" font-size="10" font-family="system-ui">• Sessions / Cache</text>
+<text x="617" y="140" text-anchor="middle" fill="#0F6E56" font-size="10" font-family="system-ui">• Rate Limits</text>
+
+<!-- Separator line -->
+<line x1="20" y1="178" x2="680" y2="178" stroke="rgba(0,0,0,0.06)" stroke-width="1" stroke-dasharray="4 4"/>
+<text x="340" y="173" text-anchor="middle" fill="#9c9a92" font-size="9" font-family="system-ui">persistência</text>
+
+<!-- Socket.io to PostgreSQL -->
+<line x1="450" y1="154" x2="450" y2="193" stroke="#9c9a92" stroke-width="1"/>
+<line x1="450" y1="193" x2="170" y2="193" stroke="#9c9a92" stroke-width="1"/>
+<line x1="170" y1="193" x2="170" y2="210" stroke="#9c9a92" stroke-width="1" marker-end="url(#arr)"/>
+<text x="310" y="188" text-anchor="middle" fill="#9c9a92" font-size="9" font-family="system-ui">INSERT / SELECT (mensagens)</text>
+
+<!-- POSTGRESQL -->
+<rect x="80" y="210" width="180" height="64" rx="6" fill="#EEEDFE" stroke="#AFA9EC" stroke-width="1"/>
+<text x="170" y="233" text-anchor="middle" fill="#534AB7" font-size="12" font-weight="600" font-family="system-ui">PostgreSQL</text>
+<text x="170" y="250" text-anchor="middle" fill="#534AB7" font-size="10" font-family="system-ui">chat_messages</text>
+<text x="170" y="265" text-anchor="middle" fill="#534AB7" font-size="10" font-family="system-ui">chat_message_reads</text>
+
+<!-- S3 direct upload arrow from clients -->
+<line x1="75" y1="142" x2="75" y2="300" stroke="#9c9a92" stroke-width="1" stroke-dasharray="4 3"/>
+<line x1="75" y1="300" x2="460" y2="300" stroke="#9c9a92" stroke-width="1" stroke-dasharray="4 3"/>
+<line x1="460" y1="300" x2="460" y2="288" stroke="#9c9a92" stroke-width="0.8" stroke-dasharray="4 3" marker-end="url(#arr)"/>
+<text x="250" y="295" text-anchor="middle" fill="#9c9a92" font-size="9" font-family="system-ui">PUT direto (presigned URL)</text>
+
+<!-- S3 -->
+<rect x="390" y="220" width="160" height="64" rx="6" fill="#FAEEDA" stroke="#FAC775" stroke-width="1"/>
+<text x="470" y="243" text-anchor="middle" fill="#854F0B" font-size="12" font-weight="600" font-family="system-ui">S3 / Object Storage</text>
+<text x="470" y="260" text-anchor="middle" fill="#854F0B" font-size="10" font-family="system-ui">Imagens · Arquivos</text>
+<text x="470" y="276" text-anchor="middle" fill="#854F0B" font-size="10" font-family="system-ui">Presigned URLs</text>
+
+<!-- AUDIT LOG -->
+<rect x="560" y="210" width="120" height="64" rx="6" fill="#FCEBEB" stroke="#F7C1C1" stroke-width="1"/>
+<text x="620" y="233" text-anchor="middle" fill="#A32D2D" font-size="12" font-weight="600" font-family="system-ui">Audit Log</text>
+<text x="620" y="250" text-anchor="middle" fill="#A32D2D" font-size="10" font-family="system-ui">Imutável</text>
+<text x="620" y="266" text-anchor="middle" fill="#A32D2D" font-size="10" font-family="system-ui">Toda ação logada</text>
+
+<line x1="617" y1="154" x2="617" y2="210" stroke="#A32D2D" stroke-width="0.8" stroke-dasharray="3 2" marker-end="url(#arr)"/>
+
+<!-- Legend -->
+<rect x="20" y="322" width="660" height="40" rx="6" fill="var(--gray-bg,#F1EFE8)" opacity="0.7"/>
+<text x="40" y="340" fill="#9c9a92" font-size="9" font-family="system-ui">──── WebSocket / TCP</text>
+<text x="170" y="340" fill="#9c9a92" font-size="9" font-family="system-ui">• • • Upload direto S3</text>
+<text x="290" y="340" fill="#9c9a92" font-size="9" font-family="system-ui">← → Redis Pub/Sub (broadcast para todos os pods)</text>
+<text x="40" y="355" fill="#9c9a92" font-size="9" font-family="system-ui">Sem sticky sessions necessário — Redis Adapter roteia eventos entre pods automaticamente</text>
+</svg>
+
+<h2>2. Controle de Acesso — Chat só após ACCEPTED</h2>
+
+<p>O canal não existe até a transição para <strong>ACCEPTED</strong>. Quando o freelancer aceita, a tabela <code>chat_channels</code> é criada dentro da mesma transação de banco que registra a transição de status. Qualquer tentativa de conectar antes disso retorna erro.</p>
+
+<div class="warn"><p>⚠️ O <code>ws_token</code> tem validade de <strong>5 minutos</strong> e é obtido via REST (<code>GET /orders/:id/chat</code>). O servidor Socket.io valida este token no middleware de conexão — se inválido ou expirado, a conexão é recusada imediatamente.</p></div>
+
+<div class="file-tag">src/chat/middlewares/auth.middleware.ts</div>
+<pre><span class="kw">import</span> <span class="pun">{</span> <span class="cls">Socket</span> <span class="pun">}</span> <span class="kw">from</span> <span class="s">'socket.io'</span><span class="pun">;</span>
+<span class="kw">import</span> <span class="pun">{</span> verifyJwt <span class="pun">}</span> <span class="kw">from</span> <span class="s">'../auth/jwt'</span><span class="pun">;</span>
+<span class="kw">import</span> <span class="pun">{</span> db <span class="pun">}</span> <span class="kw">from</span> <span class="s">'../database'</span><span class="pun">;</span>
+
+<span class="kw">export async function</span> <span class="fn">chatAuthMiddleware</span><span class="pun">(</span>
+  socket<span class="pun">:</span> <span class="cls">Socket</span><span class="pun">,</span>
+  next<span class="pun">:</span> <span class="pun">(</span>err<span class="pun">?:</span> <span class="cls">Error</span><span class="pun">)</span> <span class="pun">=></span> <span class="kw">void</span>
+<span class="pun">) {</span>
+  <span class="kw">const</span> token <span class="pun">=</span> socket<span class="pun">.</span>handshake<span class="pun">.</span>auth<span class="pun">.</span>token<span class="pun">;</span>
+
+  <span class="kw">if</span> <span class="pun">(!</span>token<span class="pun">)</span> <span class="kw">return</span> <span class="fn">next</span><span class="pun">(</span><span class="kw">new</span> <span class="cls">Error</span><span class="pun">(</span><span class="s">'WS_TOKEN_REQUIRED'</span><span class="pun">));</span>
+
+  <span class="kw">let</span> payload<span class="pun">;</span>
+  <span class="kw">try</span> <span class="pun">{</span>
+    <span class="c">// ws_token tem tipo 'chat' no payload para distinguir do access_token</span>
+    payload <span class="pun">=</span> <span class="fn">verifyJwt</span><span class="pun">(</span>token<span class="pun">);</span>
+    <span class="kw">if</span> <span class="pun">(</span>payload<span class="pun">.</span>type <span class="pun">!==</span> <span class="s">'chat'</span><span class="pun">)</span> <span class="kw">throw</span> <span class="kw">new</span> <span class="cls">Error</span><span class="pun">();</span>
+  <span class="pun">}</span> <span class="kw">catch</span> <span class="pun">{</span>
+    <span class="kw">return</span> <span class="fn">next</span><span class="pun">(</span><span class="kw">new</span> <span class="cls">Error</span><span class="pun">(</span><span class="s">'WS_TOKEN_INVALID'</span><span class="pun">));</span>
+  <span class="pun">}</span>
+
+  <span class="c">// Verifica se o canal existe e está ativo (ordem em ACCEPTED ou posterior)</span>
+  <span class="kw">const</span> channel <span class="pun">=</span> <span class="kw">await</span> db<span class="pun">.</span>query<span class="pun">(</span><span class="s">`
+    SELECT c.id, c.order_id, c.status, c.company_id, c.freelancer_id,
+           o.status AS order_status
+    FROM chat_channels c
+    JOIN orders o ON o.id = c.order_id
+    WHERE c.id = $1
+      AND c.status = 'ACTIVE'
+      AND o.status NOT IN ('DRAFT','PUBLISHED','IN_APPLICATION','SELECTED')
+  `</span><span class="pun">, [</span>payload<span class="pun">.</span>channel_id<span class="pun">]);</span>
+
+  <span class="kw">if</span> <span class="pun">(!</span>channel<span class="pun">.</span>rows<span class="pun">.</span>length<span class="pun">)</span>
+    <span class="kw">return</span> <span class="fn">next</span><span class="pun">(</span><span class="kw">new</span> <span class="cls">Error</span><span class="pun">(</span><span class="s">'CHAT_NOT_AVAILABLE'</span><span class="pun">));</span>
+
+  <span class="kw">const</span> ch <span class="pun">=</span> channel<span class="pun">.</span>rows<span class="pun">[</span><span class="n">0</span><span class="pun">];</span>
+
+  <span class="c">// Verifica se o usuário é participante desta ordem</span>
+  <span class="kw">const</span> isParticipant <span class="pun">=</span>
+    <span class="pun">(</span>payload<span class="pun">.</span>role <span class="pun">===</span> <span class="s">'EMPRESA'</span>     <span class="pun">&&</span> ch<span class="pun">.</span>company_id    <span class="pun">===</span> payload<span class="pun">.</span>profile_id<span class="pun">)</span> <span class="pun">||</span>
+    <span class="pun">(</span>payload<span class="pun">.</span>role <span class="pun">===</span> <span class="s">'FREELANCER'</span>  <span class="pun">&&</span> ch<span class="pun">.</span>freelancer_id <span class="pun">===</span> payload<span class="pun">.</span>profile_id<span class="pun">);</span>
+
+  <span class="kw">if</span> <span class="pun">(!</span>isParticipant<span class="pun">)</span>
+    <span class="kw">return</span> <span class="fn">next</span><span class="pun">(</span><span class="kw">new</span> <span class="cls">Error</span><span class="pun">(</span><span class="s">'NOT_CHAT_PARTICIPANT'</span><span class="pun">));</span>
+
+  <span class="c">// Anexa dados ao socket para uso nos event handlers</span>
+  socket<span class="pun">.</span>data <span class="pun">= {</span>
+    userId<span class="pun">:</span>    payload<span class="pun">.</span>user_id<span class="pun">,</span>
+    role<span class="pun">:</span>      payload<span class="pun">.</span>role<span class="pun">,</span>
+    profileId<span class="pun">:</span> payload<span class="pun">.</span>profile_id<span class="pun">,</span>
+    channelId<span class="pun">:</span> ch<span class="pun">.</span>id<span class="pun">,</span>
+    orderId<span class="pun">:</span>   ch<span class="pun">.</span>order_id<span class="pun">,</span>
+  <span class="pun">};</span>
+
+  <span class="fn">next</span><span class="pun">();</span>
+<span class="pun">}</span></pre>
+
+<h2>3. Protocolo de Eventos WebSocket</h2>
+
+<p>Todos os eventos seguem o padrão <code>domínio:ação</code>. Eventos <strong>C→S</strong> são enviados pelo cliente; <strong>S→C</strong> são emitidos pelo servidor; <strong>SYS</strong> são gerados automaticamente pelo sistema.</p>
+
+<table class="etable">
+<thead><tr><th>Evento</th><th>Dir.</th><th>Payload</th><th>Descrição</th></tr></thead>
+<tbody>
+<tr><td><span class="ename">chat:message:send</span></td><td><span class="dir c2s">C→S</span></td><td><code>{content, content_type, reply_to_id?, attachment_keys[], client_msg_id}</code></td><td>Enviar mensagem. <code>client_msg_id</code> garante idempotência em retries.</td></tr>
+<tr><td><span class="ename">chat:message:new</span></td><td><span class="dir s2c">S→C</span></td><td><code>{id, content, sender, content_type, attachments[], created_at, client_msg_id}</code></td><td>Nova mensagem (emitida para todos na sala, incluindo remetente).</td></tr>
+<tr><td><span class="ename">chat:message:ack</span></td><td><span class="dir s2c">S→C</span></td><td><code>{client_msg_id, server_msg_id, created_at}</code></td><td>Confirmação de recebimento para o remetente. Mapeia ID do cliente para ID do servidor.</td></tr>
+<tr><td><span class="ename">chat:message:read</span></td><td><span class="dir c2s">C→S</span></td><td><code>{message_id}</code></td><td>Marca como lida. Marcar a mais recente marca todas as anteriores.</td></tr>
+<tr><td><span class="ename">chat:message:read</span></td><td><span class="dir s2c">S→C</span></td><td><code>{message_id, reader_id, read_at}</code></td><td>Notifica o outro participante sobre a leitura.</td></tr>
+<tr><td><span class="ename">chat:message:edit</span></td><td><span class="dir c2s">C→S</span></td><td><code>{message_id, content}</code></td><td>Editar. Janela de 15 minutos após criação.</td></tr>
+<tr><td><span class="ename">chat:message:edited</span></td><td><span class="dir s2c">S→C</span></td><td><code>{message_id, content, edited_at}</code></td><td>Broadcast para a sala após edição bem-sucedida.</td></tr>
+<tr><td><span class="ename">chat:message:delete</span></td><td><span class="dir c2s">C→S</span></td><td><code>{message_id}</code></td><td>Soft delete. Content zerado; registro permanece.</td></tr>
+<tr><td><span class="ename">chat:message:deleted</span></td><td><span class="dir s2c">S→C</span></td><td><code>{message_id, deleted_at}</code></td><td>Broadcast para a sala após exclusão.</td></tr>
+<tr><td><span class="ename">chat:typing:start</span></td><td><span class="dir c2s">C→S</span></td><td><code>{}</code></td><td>Throttle client-side: enviar no máximo 1x a cada 3s.</td></tr>
+<tr><td><span class="ename">chat:typing:stop</span></td><td><span class="dir c2s">C→S</span></td><td><code>{}</code></td><td>Enviar ao parar de digitar ou ao enviar mensagem.</td></tr>
+<tr><td><span class="ename">chat:typing</span></td><td><span class="dir s2c">S→C</span></td><td><code>{user_id, role, is_typing}</code></td><td>Broadcast para outros na sala. Auto-timeout de 5s via Redis TTL.</td></tr>
+<tr><td><span class="ename">chat:channel:closed</span></td><td><span class="dir sys">SYS</span></td><td><code>{reason, order_status}</code></td><td>Canal fechado (ordem COMPLETED, CANCELLED ou DISPUTED). Clientes devem desconectar.</td></tr>
+<tr><td><span class="ename">chat:error</span></td><td><span class="dir s2c">S→C</span></td><td><code>{code, message}</code></td><td>Erros específicos do chat (rate limit, permissão, etc.).</td></tr>
+<tr><td><span class="ename">chat:connected</span></td><td><span class="dir s2c">S→C</span></td><td><code>{channel_id, unread_count, last_message_at}</code></td><td>Emitido ao conectar com sucesso. Cliente usa para sincronizar estado.</td></tr>
+</tbody>
+</table>
+
+<h2>4. Implementação do Servidor</h2>
+
+<div class="file-tag">src/chat/chat.gateway.ts</div>
+<pre><span class="kw">import</span> <span class="pun">{</span> <span class="cls">Server</span><span class="pun">,</span> <span class="cls">Socket</span> <span class="pun">}</span> <span class="kw">from</span> <span class="s">'socket.io'</span><span class="pun">;</span>
+<span class="kw">import</span> <span class="pun">{</span> createAdapter <span class="pun">}</span> <span class="kw">from</span> <span class="s">'@socket.io/redis-adapter'</span><span class="pun">;</span>
+<span class="kw">import</span> <span class="pun">{</span> createClient <span class="pun">}</span> <span class="kw">from</span> <span class="s">'redis'</span><span class="pun">;</span>
+<span class="kw">import</span> <span class="pun">{</span> chatAuthMiddleware <span class="pun">}</span> <span class="kw">from</span> <span class="s">'./middlewares/auth.middleware'</span><span class="pun">;</span>
+<span class="kw">import</span> <span class="pun">{</span> <span class="cls">MessageService</span> <span class="pun">}</span> <span class="kw">from</span> <span class="s">'./services/message.service'</span><span class="pun">;</span>
+<span class="kw">import</span> <span class="pun">{</span> <span class="cls">TypingService</span> <span class="pun">}</span> <span class="kw">from</span> <span class="s">'./services/typing.service'</span><span class="pun">;</span>
+<span class="kw">import</span> <span class="pun">{</span> rateLimiter <span class="pun">}</span> <span class="kw">from</span> <span class="s">'./middlewares/rate-limit.middleware'</span><span class="pun">;</span>
+<span class="kw">import</span> <span class="pun">{</span> auditLog <span class="pun">}</span> <span class="kw">from</span> <span class="s">'../audit/audit.service'</span><span class="pun">;</span>
+
+<span class="kw">export async function</span> <span class="fn">bootstrapChatServer</span><span class="pun">(</span>httpServer<span class="pun">:</span> <span class="kw">any</span><span class="pun">) {</span>
+  <span class="c">// Redis clients separados para pub e sub (requisito do redis-adapter)</span>
+  <span class="kw">const</span> pubClient <span class="pun">=</span> <span class="fn">createClient</span><span class="pun">({</span> url<span class="pun">:</span> process<span class="pun">.</span>env<span class="pun">.</span>REDIS_URL <span class="pun">});</span>
+  <span class="kw">const</span> subClient <span class="pun">=</span> pubClient<span class="pun">.</span><span class="fn">duplicate</span><span class="pun">();</span>
+  <span class="kw">await</span> <span class="cls">Promise</span><span class="pun">.</span><span class="fn">all</span><span class="pun">([</span>pubClient<span class="pun">.</span><span class="fn">connect</span><span class="pun">(),</span> subClient<span class="pun">.</span><span class="fn">connect</span><span class="pun">()]);</span>
+
+  <span class="kw">const</span> io <span class="pun">= new</span> <span class="cls">Server</span><span class="pun">(</span>httpServer<span class="pun">, {</span>
+    adapter<span class="pun">:</span> <span class="fn">createAdapter</span><span class="pun">(</span>pubClient<span class="pun">,</span> subClient<span class="pun">),</span>
+    cors<span class="pun">: {</span> origin<span class="pun">:</span> process<span class="pun">.</span>env<span class="pun">.</span>ALLOWED_ORIGINS<span class="pun">.</span><span class="fn">split</span><span class="pun">(</span><span class="s">','</span><span class="pun">)</span> <span class="pun">},</span>
+    <span class="c">// Ping/pong para detectar conexões mortas</span>
+    pingTimeout<span class="pun">:</span>  <span class="n">20000</span><span class="pun">,</span>
+    pingInterval<span class="pun">:</span> <span class="n">25000</span><span class="pun">,</span>
+    <span class="c">// Limita tamanho do payload (previne mensagens gigantes)</span>
+    maxHttpBufferSize<span class="pun">:</span> <span class="n">1e6</span><span class="pun">,</span>  <span class="c">// 1 MB</span>
+  <span class="pun">});</span>
+
+  <span class="c">// Middleware global: autenticação e controle de acesso</span>
+  io<span class="pun">.</span><span class="fn">use</span><span class="pun">(</span>chatAuthMiddleware<span class="pun">);</span>
+
+  io<span class="pun">.</span><span class="fn">on</span><span class="pun">(</span><span class="s">'connection'</span><span class="pun">,</span> <span class="kw">async</span> <span class="pun">(</span>socket<span class="pun">:</span> <span class="cls">Socket</span><span class="pun">) => {</span>
+    <span class="kw">const</span> <span class="pun">{</span> userId<span class="pun">,</span> channelId<span class="pun">,</span> orderId<span class="pun">,</span> role <span class="pun">}</span> <span class="pun">=</span> socket<span class="pun">.</span>data<span class="pun">;</span>
+    <span class="kw">const</span> room <span class="pun">=</span> <span class="s">`order:<span class="pun">${</span>orderId<span class="pun">}</span>`</span><span class="pun">;</span>
+
+    <span class="c">// Entra na sala da ordem</span>
+    <span class="kw">await</span> socket<span class="pun">.</span><span class="fn">join</span><span class="pun">(</span>room<span class="pun">);</span>
+
+    <span class="c">// Envia estado inicial ao cliente</span>
+    <span class="kw">const</span> unreadCount <span class="pun">=</span> <span class="kw">await</span> <span class="cls">MessageService</span><span class="pun">.</span><span class="fn">getUnreadCount</span><span class="pun">(</span>channelId<span class="pun">,</span> userId<span class="pun">);</span>
+    socket<span class="pun">.</span><span class="fn">emit</span><span class="pun">(</span><span class="s">'chat:connected'</span><span class="pun">, {</span> channelId<span class="pun">,</span> unreadCount <span class="pun">});</span>
+
+    <span class="c">// ── Enviar mensagem ──────────────────────────────────</span>
+    socket<span class="pun">.</span><span class="fn">on</span><span class="pun">(</span><span class="s">'chat:message:send'</span><span class="pun">,</span> <span class="kw">async</span> <span class="pun">(</span>payload<span class="pun">,</span> ackFn<span class="pun">) => {</span>
+      <span class="c">// Rate limit: 10 mensagens/min por usuário</span>
+      <span class="kw">const</span> limited <span class="pun">=</span> <span class="kw">await</span> <span class="fn">rateLimiter</span><span class="pun">(</span><span class="s">`msg:<span class="pun">${</span>userId<span class="pun">}</span>`</span><span class="pun">,</span> <span class="n">10</span><span class="pun">,</span> <span class="n">60</span><span class="pun">);</span>
+      <span class="kw">if</span> <span class="pun">(</span>limited<span class="pun">)</span> <span class="pun">{</span>
+        socket<span class="pun">.</span><span class="fn">emit</span><span class="pun">(</span><span class="s">'chat:error'</span><span class="pun">, {</span> code<span class="pun">:</span> <span class="s">'RATE_LIMITED'</span> <span class="pun">});</span>
+        <span class="kw">return</span><span class="pun">;</span>
+      <span class="pun">}</span>
+
+      <span class="kw">try</span> <span class="pun">{</span>
+        <span class="c">// Salva no PostgreSQL. client_msg_id evita duplicatas em retry.</span>
+        <span class="kw">const</span> message <span class="pun">=</span> <span class="kw">await</span> <span class="cls">MessageService</span><span class="pun">.</span><span class="fn">create</span><span class="pun">({</span>
+          channelId<span class="pun">,</span>
+          senderId<span class="pun">:</span>     userId<span class="pun">,</span>
+          senderRole<span class="pun">:</span>   role<span class="pun">,</span>
+          content<span class="pun">:</span>      <span class="fn">sanitize</span><span class="pun">(</span>payload<span class="pun">.</span>content<span class="pun">),</span>
+          contentType<span class="pun">:</span>  payload<span class="pun">.</span>content_type<span class="pun">,</span>
+          replyToId<span class="pun">:</span>    payload<span class="pun">.</span>reply_to_id<span class="pun">,</span>
+          attachmentKeys<span class="pun">:</span> payload<span class="pun">.</span>attachment_keys <span class="pun">??</span> <span class="pun">[],</span>
+          clientMsgId<span class="pun">:</span>  payload<span class="pun">.</span>client_msg_id<span class="pun">,</span>
+        <span class="pun">});</span>
+
+        <span class="c">// ACK imediato para o remetente (mapeia client_id → server_id)</span>
+        <span class="kw">if</span> <span class="pun">(</span><span class="kw">typeof</span> ackFn <span class="pun">===</span> <span class="s">'function'</span><span class="pun">)</span>
+          <span class="fn">ackFn</span><span class="pun">({</span> server_msg_id<span class="pun">:</span> message<span class="pun">.</span>id<span class="pun">,</span> created_at<span class="pun">:</span> message<span class="pun">.</span>created_at <span class="pun">});</span>
+
+        <span class="c">// Broadcast para TODOS na sala (incluindo remetente via redis adapter)</span>
+        io<span class="pun">.</span><span class="fn">to</span><span class="pun">(</span>room<span class="pun">).</span><span class="fn">emit</span><span class="pun">(</span><span class="s">'chat:message:new'</span><span class="pun">,</span> message<span class="pun">);</span>
+
+        <span class="c">// Auditoria assíncrona</span>
+        <span class="fn">auditLog</span><span class="pun">({</span>
+          entityType<span class="pun">:</span> <span class="s">'chat_message'</span><span class="pun">,</span> entityId<span class="pun">:</span> message<span class="pun">.</span>id<span class="pun">,</span>
+          action<span class="pun">:</span>     <span class="s">'message.created'</span><span class="pun">,</span> actorId<span class="pun">:</span> userId<span class="pun">,</span>
+          afterData<span class="pun">: {</span> channelId<span class="pun">,</span> orderId<span class="pun">,</span> contentType<span class="pun">:</span> payload<span class="pun">.</span>content_type <span class="pun">},</span>
+        <span class="pun">});</span>
+      <span class="pun">}</span> <span class="kw">catch</span> <span class="pun">(</span>err<span class="pun">) {</span>
+        socket<span class="pun">.</span><span class="fn">emit</span><span class="pun">(</span><span class="s">'chat:error'</span><span class="pun">, {</span> code<span class="pun">:</span> <span class="s">'MESSAGE_SEND_FAILED'</span> <span class="pun">});</span>
+      <span class="pun">}</span>
+    <span class="pun">});</span>
+
+    <span class="c">// ── Leitura ──────────────────────────────────────────</span>
+    socket<span class="pun">.</span><span class="fn">on</span><span class="pun">(</span><span class="s">'chat:message:read'</span><span class="pun">,</span> <span class="kw">async</span> <span class="pun">({</span> message_id <span class="pun">}) => {</span>
+      <span class="kw">const</span> read_at <span class="pun">=</span> <span class="kw">await</span> <span class="cls">MessageService</span><span class="pun">.</span><span class="fn">markRead</span><span class="pun">(</span>message_id<span class="pun">,</span> userId<span class="pun">,</span> channelId<span class="pun">);</span>
+      <span class="c">// Notifica o outro participante</span>
+      socket<span class="pun">.</span><span class="fn">to</span><span class="pun">(</span>room<span class="pun">).</span><span class="fn">emit</span><span class="pun">(</span><span class="s">'chat:message:read'</span><span class="pun">, {</span> message_id<span class="pun">,</span> reader_id<span class="pun">:</span> userId<span class="pun">,</span> read_at <span class="pun">});</span>
+    <span class="pun">});</span>
+
+    <span class="c">// ── Indicador de digitação ────────────────────────────</span>
+    socket<span class="pun">.</span><span class="fn">on</span><span class="pun">(</span><span class="s">'chat:typing:start'</span><span class="pun">,</span> <span class="kw">async</span> <span class="pun">() => {</span>
+      <span class="c">// SETEX typing:{channelId}:{userId} 5 "1" — auto-expira em 5s</span>
+      <span class="kw">await</span> <span class="cls">TypingService</span><span class="pun">.</span><span class="fn">setTyping</span><span class="pun">(</span>channelId<span class="pun">,</span> userId<span class="pun">);</span>
+      socket<span class="pun">.</span><span class="fn">to</span><span class="pun">(</span>room<span class="pun">).</span><span class="fn">emit</span><span class="pun">(</span><span class="s">'chat:typing'</span><span class="pun">, {</span> user_id<span class="pun">:</span> userId<span class="pun">,</span> role<span class="pun">,</span> is_typing<span class="pun">:</span> <span class="b">true</span> <span class="pun">});</span>
+    <span class="pun">});</span>
+
+    socket<span class="pun">.</span><span class="fn">on</span><span class="pun">(</span><span class="s">'chat:typing:stop'</span><span class="pun">,</span> <span class="kw">async</span> <span class="pun">() => {</span>
+      <span class="kw">await</span> <span class="cls">TypingService</span><span class="pun">.</span><span class="fn">clearTyping</span><span class="pun">(</span>channelId<span class="pun">,</span> userId<span class="pun">);</span>
+      socket<span class="pun">.</span><span class="fn">to</span><span class="pun">(</span>room<span class="pun">).</span><span class="fn">emit</span><span class="pun">(</span><span class="s">'chat:typing'</span><span class="pun">, {</span> user_id<span class="pun">:</span> userId<span class="pun">,</span> role<span class="pun">,</span> is_typing<span class="pun">:</span> <span class="b">false</span> <span class="pun">});</span>
+    <span class="pun">});</span>
+
+    <span class="c">// ── Desconexão ───────────────────────────────────────</span>
+    socket<span class="pun">.</span><span class="fn">on</span><span class="pun">(</span><span class="s">'disconnect'</span><span class="pun">,</span> <span class="kw">async</span> <span class="pun">(</span>reason<span class="pun">) => {</span>
+      <span class="kw">await</span> <span class="cls">TypingService</span><span class="pun">.</span><span class="fn">clearTyping</span><span class="pun">(</span>channelId<span class="pun">,</span> userId<span class="pun">);</span>
+      socket<span class="pun">.</span><span class="fn">to</span><span class="pun">(</span>room<span class="pun">).</span><span class="fn">emit</span><span class="pun">(</span><span class="s">'chat:typing'</span><span class="pun">, {</span> user_id<span class="pun">:</span> userId<span class="pun">,</span> is_typing<span class="pun">:</span> <span class="b">false</span> <span class="pun">});</span>
+    <span class="pun">});</span>
+  <span class="pun">});</span>
+
+  <span class="kw">return</span> io<span class="pun">;</span>
+<span class="pun">}</span></pre>
+
+<h2>5. Persistência e Entrega Garantida</h2>
+
+<p>A mensagem é sempre <strong>salva primeiro no PostgreSQL</strong>, depois emitida. Nunca o contrário. Isso garante que uma mensagem que chegou ao servidor sempre pode ser recuperada via REST mesmo que o WebSocket caia antes do broadcast.</p>
+
+<div class="file-tag">src/chat/services/message.service.ts</div>
+<pre><span class="kw">export class</span> <span class="cls">MessageService</span> <span class="pun">{</span>
+  <span class="kw">static async</span> <span class="fn">create</span><span class="pun">(</span>input<span class="pun">:</span> <span class="cls">CreateMessageInput</span><span class="pun">) {</span>
+    <span class="kw">return</span> db<span class="pun">.</span><span class="fn">transaction</span><span class="pun">(</span><span class="kw">async</span> <span class="pun">(</span>trx<span class="pun">) => {</span>
+      <span class="c">// ON CONFLICT (client_msg_id) DO NOTHING — idempotente em retries</span>
+      <span class="kw">const</span> result <span class="pun">=</span> <span class="kw">await</span> trx<span class="pun">.</span><span class="fn">query</span><span class="pun">(</span><span class="s">`
+        INSERT INTO chat_messages
+          (channel_id, sender_id, sender_role, content, content_type,
+           reply_to_id, client_msg_id)
+        VALUES ($1,$2,$3,$4,$5,$6,$7)
+        ON CONFLICT (client_msg_id) DO UPDATE
+          SET client_msg_id = EXCLUDED.client_msg_id  -- no-op, retorna existing
+        RETURNING *
+      `</span><span class="pun">, [</span>
+        input<span class="pun">.</span>channelId<span class="pun">,</span>    input<span class="pun">.</span>senderId<span class="pun">,</span>
+        input<span class="pun">.</span>senderRole<span class="pun">,</span>  input<span class="pun">.</span>content<span class="pun">,</span>
+        input<span class="pun">.</span>contentType<span class="pun">,</span> input<span class="pun">.</span>replyToId<span class="pun">,</span>
+        input<span class="pun">.</span>clientMsgId<span class="pun">,</span>
+      <span class="pun">]);</span>
+
+      <span class="kw">const</span> message <span class="pun">=</span> result<span class="pun">.</span>rows<span class="pun">[</span><span class="n">0</span><span class="pun">];</span>
+
+      <span class="c">// Associa arquivos validando que pertencem a este canal</span>
+      <span class="kw">if</span> <span class="pun">(</span>input<span class="pun">.</span>attachmentKeys<span class="pun">.</span>length<span class="pun">) {</span>
+        <span class="kw">await</span> <span class="cls">AttachmentService</span><span class="pun">.</span><span class="fn">linkToMessage</span><span class="pun">(</span>
+          trx<span class="pun">,</span> message<span class="pun">.</span>id<span class="pun">,</span> input<span class="pun">.</span>attachmentKeys<span class="pun">,</span> input<span class="pun">.</span>channelId
+        <span class="pun">);</span>
+      <span class="pun">}</span>
+
+      <span class="c">// Atualiza contadores do canal (trigger já faz isso, mas retornamos o atualizado)</span>
+      <span class="kw">await</span> trx<span class="pun">.</span><span class="fn">query</span><span class="pun">(</span><span class="s">`
+        UPDATE chat_channels
+        SET last_message_at = $1, message_count = message_count + 1
+        WHERE id = $2
+      `</span><span class="pun">, [</span>message<span class="pun">.</span>created_at<span class="pun">,</span> input<span class="pun">.</span>channelId<span class="pun">]);</span>
+
+      <span class="kw">return</span> message<span class="pun">;</span>
+    <span class="pun">});</span>
+  <span class="pun">}</span>
+
+  <span class="kw">static async</span> <span class="fn">markRead</span><span class="pun">(</span>messageId<span class="pun">:</span> <span class="kw">string</span><span class="pun">,</span> userId<span class="pun">:</span> <span class="kw">string</span><span class="pun">,</span> channelId<span class="pun">:</span> <span class="kw">string</span><span class="pun">) {</span>
+    <span class="c">// Marca a mensagem indicada E todas as anteriores não lidas</span>
+    <span class="kw">const</span> result <span class="pun">=</span> <span class="kw">await</span> db<span class="pun">.</span><span class="fn">query</span><span class="pun">(</span><span class="s">`
+      INSERT INTO chat_message_reads (message_id, user_id)
+      SELECT m.id, $2
+      FROM chat_messages m
+      WHERE m.channel_id = $3
+        AND m.created_at <= (
+          SELECT created_at FROM chat_messages WHERE id = $1
+        )
+        AND m.sender_id != $2              -- não marca as próprias mensagens
+        AND NOT EXISTS (
+          SELECT 1 FROM chat_message_reads r
+          WHERE r.message_id = m.id AND r.user_id = $2
+        )
+      ON CONFLICT DO NOTHING
+      RETURNING NOW() AS read_at
+    `</span><span class="pun">, [</span>messageId<span class="pun">,</span> userId<span class="pun">,</span> channelId<span class="pun">]);</span>
+
+    <span class="kw">return</span> result<span class="pun">.</span>rows<span class="pun">[</span><span class="n">0</span><span class="pun">]?.</span>read_at <span class="pun">??</span> <span class="kw">new</span> <span class="cls">Date</span><span class="pun">().</span><span class="fn">toISOString</span><span class="pun">();</span>
+  <span class="pun">}</span>
+<span class="pun">}</span></pre>
+
+<h2>6. Estratégia de Reconexão no Cliente</h2>
+
+<p>O cliente precisa lidar com três cenários: conexão inicial, reconexão após queda, e reabertura do app. Em todos os casos, a estratégia é a mesma: buscar mensagens não recebidas via REST usando <code>after_id</code> como cursor.</p>
+
+<div class="file-tag">src/chat/chat.client.ts (React Native / React)</div>
+<pre><span class="kw">class</span> <span class="cls">ChatClient</span> <span class="pun">{</span>
+  <span class="kw">private</span> socket<span class="pun">:</span> <span class="cls">Socket</span> <span class="pun">|</span> <span class="b">null</span> <span class="pun">=</span> <span class="b">null</span><span class="pun">;</span>
+  <span class="kw">private</span> lastReceivedId<span class="pun">:</span> <span class="kw">string</span> <span class="pun">|</span> <span class="b">null</span> <span class="pun">=</span> <span class="b">null</span><span class="pun">;</span>
+  <span class="c">// Fila local de mensagens pendentes (enviadas mas sem ACK)</span>
+  <span class="kw">private</span> pendingMessages<span class="pun">:</span> <span class="cls">Map</span><span class="pun">&lt;</span><span class="kw">string</span><span class="pun">,</span> <span class="cls">PendingMessage</span><span class="pun">&gt;</span> <span class="pun">=</span> <span class="kw">new</span> <span class="cls">Map</span><span class="pun">();</span>
+
+  <span class="kw">async</span> <span class="fn">connect</span><span class="pun">(</span>wsToken<span class="pun">:</span> <span class="kw">string</span><span class="pun">,</span> wsUrl<span class="pun">:</span> <span class="kw">string</span><span class="pun">) {</span>
+    <span class="kw">this</span><span class="pun">.</span>socket <span class="pun">=</span> <span class="fn">io</span><span class="pun">(</span>wsUrl<span class="pun">, {</span>
+      auth<span class="pun">: {</span> token<span class="pun">:</span> wsToken <span class="pun">},</span>
+      <span class="c">// Reconexão automática com backoff exponencial</span>
+      reconnectionDelay<span class="pun">:</span>    <span class="n">1000</span><span class="pun">,</span>
+      reconnectionDelayMax<span class="pun">:</span> <span class="n">30000</span><span class="pun">,</span>
+      reconnectionAttempts<span class="pun">:</span> <span class="n">15</span><span class="pun">,</span>
+      transports<span class="pun">:</span> <span class="pun">[</span><span class="s">'websocket'</span><span class="pun">,</span> <span class="s">'polling'</span><span class="pun">],</span>
+    <span class="pun">});</span>
+
+    <span class="kw">this</span><span class="pun">.</span>socket<span class="pun">.</span><span class="fn">on</span><span class="pun">(</span><span class="s">'chat:message:new'</span><span class="pun">,</span> <span class="pun">(</span>msg<span class="pun">) => {</span>
+      <span class="kw">this</span><span class="pun">.</span>lastReceivedId <span class="pun">=</span> msg<span class="pun">.</span>id<span class="pun">;</span>
+      <span class="kw">this</span><span class="pun">.</span><span class="fn">handleNewMessage</span><span class="pun">(</span>msg<span class="pun">);</span>
+    <span class="pun">});</span>
+
+    <span class="c">// Ao reconectar: busca mensagens perdidas durante a desconexão</span>
+    <span class="kw">this</span><span class="pun">.</span>socket<span class="pun">.</span><span class="fn">on</span><span class="pun">(</span><span class="s">'reconnect'</span><span class="pun">,</span> <span class="kw">async</span> <span class="pun">() => {</span>
+      <span class="kw">if</span> <span class="pun">(</span><span class="kw">this</span><span class="pun">.</span>lastReceivedId<span class="pun">) {</span>
+        <span class="c">// REST API: GET /orders/:id/chat/messages?after_id={last}</span>
+        <span class="kw">const</span> missed <span class="pun">=</span> <span class="kw">await</span> <span class="fn">fetchMissedMessages</span><span class="pun">(</span><span class="kw">this</span><span class="pun">.</span>lastReceivedId<span class="pun">);</span>
+        missed<span class="pun">.</span><span class="fn">forEach</span><span class="pun">(</span>msg <span class="pun">=></span> <span class="kw">this</span><span class="pun">.</span><span class="fn">handleNewMessage</span><span class="pun">(</span>msg<span class="pun">));</span>
+      <span class="pun">}</span>
+      <span class="c">// Reenviar mensagens pendentes sem ACK</span>
+      <span class="kw">this</span><span class="pun">.</span>pendingMessages<span class="pun">.</span><span class="fn">forEach</span><span class="pun">(</span>pending <span class="pun">=></span> <span class="kw">this</span><span class="pun">.</span><span class="fn">sendWithAck</span><span class="pun">(</span>pending<span class="pun">));</span>
+    <span class="pun">});</span>
+  <span class="pun">}</span>
+
+  <span class="fn">sendWithAck</span><span class="pun">(</span>payload<span class="pun">:</span> <span class="cls">MessagePayload</span><span class="pun">) {</span>
+    <span class="kw">const</span> clientMsgId <span class="pun">=</span> <span class="fn">generateUUID</span><span class="pun">();</span>
+    <span class="c">// Adiciona à fila local com status 'sending'</span>
+    <span class="kw">this</span><span class="pun">.</span>pendingMessages<span class="pun">.</span><span class="fn">set</span><span class="pun">(</span>clientMsgId<span class="pun">, {</span> <span class="pun">...</span>payload<span class="pun">,</span> clientMsgId<span class="pun">,</span> status<span class="pun">:</span> <span class="s">'sending'</span> <span class="pun">});</span>
+
+    <span class="c">// Socket.io acknowledgement: callback chamado pelo servidor após persistência</span>
+    <span class="kw">this</span><span class="pun">.</span>socket<span class="pun">?..</span><span class="fn">emit</span><span class="pun">(</span>
+      <span class="s">'chat:message:send'</span><span class="pun">,</span>
+      <span class="pun">{</span> <span class="pun">...</span>payload<span class="pun">,</span> client_msg_id<span class="pun">:</span> clientMsgId <span class="pun">},</span>
+      <span class="pun">(</span>ack<span class="pun">: {</span> server_msg_id<span class="pun">:</span> <span class="kw">string</span> <span class="pun">}) => {</span>
+        <span class="c">// Remove da fila de pendentes ao receber ACK do servidor</span>
+        <span class="kw">this</span><span class="pun">.</span>pendingMessages<span class="pun">.</span><span class="fn">delete</span><span class="pun">(</span>clientMsgId<span class="pun">);</span>
+      <span class="pun">}</span>
+    <span class="pun">);</span>
+  <span class="pun">}</span>
+<span class="pun">}</span></pre>
+
+<h2>7. Upload de Arquivos — Fluxo Completo</h2>
+
+<p>O servidor nunca é intermediário do upload. O cliente envia diretamente ao S3 via presigned URL. Isso elimina uso de banda e CPU do servidor para arquivos.</p>
+
+<div class="steps">
+  <div class="step"><div class="step-num"></div><div class="step-body"><strong>Solicitar URL:</strong> cliente faz <code>POST /orders/:id/chat/attachments/presigned-url</code> com nome, tamanho e MIME type. Servidor valida tipo permitido e tamanho (máx 100MB), gera URL presignada S3 com expiração de 5 min.</div></div>
+  <div class="step"><div class="step-num"></div><div class="step-body"><strong>Upload direto:</strong> cliente faz <code>PUT {upload_url}</code> com o arquivo como body. Nenhuma autenticação adicional — a URL já contém as credenciais assinadas. Header <code>Content-Type</code> deve bater com o registrado.</div></div>
+  <div class="step"><div class="step-num"></div><div class="step-body"><strong>Enviar mensagem:</strong> após upload confirmado (status 200 do S3), cliente envia evento <code>chat:message:send</code> via WebSocket com <code>attachment_keys: [storage_key]</code>. O servidor valida que o key existe no S3 antes de persistir.</div></div>
+  <div class="step"><div class="step-num"></div><div class="step-body"><strong>Geração de thumbnail:</strong> para imagens, um job assíncrono (worker) processa o arquivo após salvar, gera thumbnail e atualiza <code>chat_attachments.thumbnail_key</code>. O evento <code>chat:message:new</code> já inclui <code>thumbnail_url</code> quando disponível.</div></div>
+  <div class="step"><div class="step-num"></div><div class="step-body"><strong>Exibição:</strong> os arquivos são servidos sempre por CDN (CloudFront), nunca pelo S3 diretamente. URLs na resposta da API têm expiração de 1h para arquivos privados (presigned GET URLs).</div></div>
+</div>
+
+<div class="file-tag">src/chat/services/attachment.service.ts</div>
+<pre><span class="kw">const</span> ALLOWED_MIME_TYPES <span class="pun">= [</span>
+  <span class="s">'image/jpeg'</span><span class="pun">,</span> <span class="s">'image/png'</span><span class="pun">,</span> <span class="s">'image/webp'</span><span class="pun">,</span> <span class="s">'image/gif'</span><span class="pun">,</span>
+  <span class="s">'video/mp4'</span><span class="pun">,</span>
+  <span class="s">'application/pdf'</span><span class="pun">,</span>
+  <span class="s">'application/zip'</span><span class="pun">,</span>
+  <span class="s">'text/plain'</span><span class="pun">,</span>
+  <span class="s">'audio/mpeg'</span><span class="pun">,</span> <span class="s">'audio/ogg'</span><span class="pun">,</span>
+<span class="pun">];</span>
+
+<span class="kw">export class</span> <span class="cls">AttachmentService</span> <span class="pun">{</span>
+  <span class="kw">static async</span> <span class="fn">generatePresignedUploadUrl</span><span class="pun">({</span> orderId<span class="pun">,</span> channelId<span class="pun">,</span> userId<span class="pun">,</span> fileName<span class="pun">,</span> fileSizeBytes<span class="pun">,</span> mimeType <span class="pun">}) {</span>
+    <span class="kw">if</span> <span class="pun">(!</span>ALLOWED_MIME_TYPES<span class="pun">.</span><span class="fn">includes</span><span class="pun">(</span>mimeType<span class="pun">))</span>
+      <span class="kw">throw</span> <span class="kw">new</span> <span class="cls">ValidationError</span><span class="pun">(</span><span class="s">'UNSUPPORTED_MIME_TYPE'</span><span class="pun">);</span>
+
+    <span class="kw">if</span> <span class="pun">(</span>fileSizeBytes <span class="pun">></span> <span class="n">100</span> <span class="pun">*</span> <span class="n">1024</span> <span class="pun">*</span> <span class="n">1024</span><span class="pun">)</span>
+      <span class="kw">throw</span> <span class="kw">new</span> <span class="cls">ValidationError</span><span class="pun">(</span><span class="s">'FILE_TOO_LARGE'</span><span class="pun">);</span>
+
+    <span class="c">// Key com UUID para evitar colisões e path traversal</span>
+    <span class="kw">const</span> key <span class="pun">=</span> <span class="s">`chat/<span class="pun">${</span>orderId<span class="pun">}</span>/<span class="pun">${</span><span class="fn">generateUUID</span><span class="pun">()}</span>/<span class="pun">${</span><span class="fn">sanitizeFileName</span><span class="pun">(</span>fileName<span class="pun">)}</span>`</span><span class="pun">;</span>
+
+    <span class="kw">const</span> uploadUrl <span class="pun">=</span> <span class="kw">await</span> <span class="fn">getSignedPutUrl</span><span class="pun">({</span>
+      bucket<span class="pun">:</span>   process<span class="pun">.</span>env<span class="pun">.</span>S3_BUCKET<span class="pun">,</span>
+      key<span class="pun">,</span>
+      mimeType<span class="pun">,</span>
+      expiresIn<span class="pun">:</span>  <span class="n">300</span><span class="pun">,</span>
+      <span class="c">// Content-Length obrigatório: previne upload de arquivo diferente do declarado</span>
+      conditions<span class="pun">: [[</span><span class="s">'content-length-range'</span><span class="pun">,</span> <span class="n">1</span><span class="pun">,</span> fileSizeBytes<span class="pun">]],</span>
+    <span class="pun">});</span>
+
+    <span class="kw">return</span> <span class="pun">{</span> uploadUrl<span class="pun">,</span> storageKey<span class="pun">:</span> key <span class="pun">};</span>
+  <span class="pun">}</span>
+
+  <span class="kw">static async</span> <span class="fn">linkToMessage</span><span class="pun">(</span>trx<span class="pun">,</span> messageId<span class="pun">,</span> keys<span class="pun">:</span> <span class="kw">string</span><span class="pun">[],</span> channelId<span class="pun">) {</span>
+    <span class="c">// Valida que os keys existem no S3 e pertencem a este canal</span>
+    <span class="kw">for</span> <span class="pun">(</span><span class="kw">const</span> key <span class="kw">of</span> keys<span class="pun">) {</span>
+      <span class="kw">const</span> orderId <span class="pun">=</span> key<span class="pun">.</span><span class="fn">split</span><span class="pun">(</span><span class="s">'/'</span><span class="pun">)[</span><span class="n">1</span><span class="pun">];</span>
+      <span class="c">// Verifica que o order_id do key bate com o canal (previne uso de keys de outras ordens)</span>
+      <span class="kw">const</span> channelOrder <span class="pun">=</span> <span class="kw">await</span> trx<span class="pun">.</span><span class="fn">query</span><span class="pun">(</span>
+        <span class="s">'SELECT order_id FROM chat_channels WHERE id = $1'</span><span class="pun">, [</span>channelId<span class="pun">]</span>
+      <span class="pun">);</span>
+      <span class="kw">if</span> <span class="pun">(</span>channelOrder<span class="pun">.</span>rows<span class="pun">[</span><span class="n">0</span><span class="pun">].</span>order_id <span class="pun">!==</span> orderId<span class="pun">)</span>
+        <span class="kw">throw</span> <span class="kw">new</span> <span class="cls">ValidationError</span><span class="pun">(</span><span class="s">'INVALID_FILE_KEY'</span><span class="pun">);</span>
+      <span class="c">// Verifica existência no S3</span>
+      <span class="kw">await</span> <span class="fn">s3HeadObject</span><span class="pun">(</span>key<span class="pun">);</span>
+    <span class="pun">}</span>
+
+    <span class="kw">await</span> trx<span class="pun">.</span><span class="fn">query</span><span class="pun">(</span><span class="s">`
+      INSERT INTO chat_attachments (message_id, storage_key, file_name, mime_type, file_size_bytes)
+      SELECT $1, key, split_part(key,'/',-1), mime_from_key(key), s3_size(key)
+      FROM UNNEST($2::text[]) AS key
+    `</span><span class="pun">, [</span>messageId<span class="pun">,</span> keys<span class="pun">]);</span>
+  <span class="pun">}</span>
+<span class="pun">}</span></pre>
+
+<h2>8. Notificações em Tempo Real — Fallback para Push</h2>
+
+<p>Quando o destinatário está <strong>offline</strong> (sem socket ativo), o evento WebSocket chega ao Redis Adapter mas não encontra nenhum socket na sala para aquele usuário. O servidor precisa detectar isso e disparar push notification como fallback.</p>
+
+<div class="file-tag">src/chat/services/notification-fallback.service.ts</div>
+<pre><span class="kw">export async function</span> <span class="fn">notifyIfOffline</span><span class="pun">(</span>
+  io<span class="pun">:</span> <span class="cls">Server</span><span class="pun">,</span>
+  room<span class="pun">:</span> <span class="kw">string</span><span class="pun">,</span>
+  recipientId<span class="pun">:</span> <span class="kw">string</span><span class="pun">,</span>
+  message<span class="pun">:</span> <span class="cls">ChatMessage</span>
+<span class="pun">) {</span>
+  <span class="c">// Verifica sockets ativos na sala para o destinatário</span>
+  <span class="kw">const</span> sockets <span class="pun">=</span> <span class="kw">await</span> io<span class="pun">.</span><span class="fn">in</span><span class="pun">(</span>room<span class="pun">).</span>fetchSockets<span class="pun">();</span>
+  <span class="kw">const</span> isOnline <span class="pun">=</span> sockets<span class="pun">.</span><span class="fn">some</span><span class="pun">(</span>s <span class="pun">=></span> s<span class="pun">.</span>data<span class="pun">.</span>userId <span class="pun">===</span> recipientId<span class="pun">);</span>
+
+  <span class="kw">if</span> <span class="pun">(!</span>isOnline<span class="pun">) {</span>
+    <span class="c">// Publica na fila de notificações para o worker processar</span>
+    <span class="kw">await</span> queue<span class="pun">.</span><span class="fn">publish</span><span class="pun">(</span><span class="s">'notifications'</span><span class="pun">, {</span>
+      type<span class="pun">:</span>        <span class="s">'CHAT_MESSAGE'</span><span class="pun">,</span>
+      userId<span class="pun">:</span>      recipientId<span class="pun">,</span>
+      title<span class="pun">:</span>       <span class="s">`Nova mensagem em <span class="pun">${</span>message<span class="pun">.</span>orderCode<span class="pun">}</span>`</span><span class="pun">,</span>
+      body<span class="pun">:</span>        <span class="fn">truncate</span><span class="pun">(</span>message<span class="pun">.</span>content<span class="pun">,</span> <span class="n">80</span><span class="pun">),</span>  <span class="c">// nunca expõe conteúdo completo no push</span>
+      data<span class="pun">: {</span>
+        screen<span class="pun">:</span>    <span class="s">'OrderChat'</span><span class="pun">,</span>
+        orderId<span class="pun">:</span>   message<span class="pun">.</span>orderId<span class="pun">,</span>
+        channelId<span class="pun">:</span> message<span class="pun">.</span>channelId<span class="pun">,</span>
+      <span class="pun">},</span>
+    <span class="pun">});</span>
+  <span class="pun">}</span>
+<span class="pun">}</span></pre>
+
+<h2>9. Escalabilidade — Redis Adapter e Múltiplas Instâncias</h2>
+
+<p>Sem Redis Adapter, cada instância Socket.io é uma ilha: se a empresa está conectada na instância A e o freelancer na instância B, a mensagem do freelancer nunca chega à empresa. Com o adapter, todos os eventos são roteados via Redis Pub/Sub automaticamente, sem sticky sessions.</p>
+
+<div class="grid2">
+  <div class="card">
+    <div class="card-title">Com Redis Adapter</div>
+    <p style="margin:0;font-size:13px;">Instância B recebe mensagem → persiste no PostgreSQL → publica no canal Redis <code>socket.io#order:456</code> → Instância A lê do Redis → emite para socket conectado. <strong>Transparente para o cliente.</strong></p>
+  </div>
+  <div class="card">
+    <div class="card-title">Gargalos e limites</div>
+    <p style="margin:0;font-size:13px;">Cada instância Node.js aguenta ~10.000 conexões simultâneas (ajuste <code>ulimit</code>). Para 100k usuários simultâneos: 10 pods. Redis suporta pub/sub com milhões de mensagens/s no modo Cluster.</p>
+  </div>
+</div>
+
+<div class="file-tag">deploy/kubernetes/chat-hpa.yaml (auto-scaling)</div>
+<pre><span class="kw">apiVersion</span><span class="pun">:</span> <span class="s">autoscaling/v2</span>
+<span class="kw">kind</span><span class="pun">:</span> <span class="cls">HorizontalPodAutoscaler</span>
+<span class="kw">spec</span><span class="pun">:</span>
+  <span class="kw">scaleTargetRef</span><span class="pun">:</span>
+    <span class="kw">name</span><span class="pun">:</span> <span class="s">chat-service</span>
+  <span class="kw">minReplicas</span><span class="pun">:</span> <span class="n">2</span>    <span class="c"># mínimo para HA</span>
+  <span class="kw">maxReplicas</span><span class="pun">:</span> <span class="n">20</span>
+  <span class="kw">metrics</span><span class="pun">:</span>
+    <span class="c"># Escala por conexões WebSocket ativas (métrica customizada via Prometheus)</span>
+  <span class="pun">-</span> <span class="kw">type</span><span class="pun">:</span> <span class="cls">Pods</span>
+    <span class="kw">pods</span><span class="pun">:</span>
+      <span class="kw">metric</span><span class="pun">:</span> <span class="pun">{</span> <span class="kw">name</span><span class="pun">:</span> <span class="s">ws_connections_active</span> <span class="pun">}</span>
+      <span class="kw">target</span><span class="pun">:</span> <span class="pun">{</span> <span class="kw">type</span><span class="pun">:</span> <span class="cls">AverageValue</span><span class="pun">,</span> <span class="kw">averageValue</span><span class="pun">:</span> <span class="s">"5000"</span> <span class="pun">}</span></pre>
+
+<h2>10. Segurança e Auditoria</h2>
+
+<div class="danger"><p>🔴 <strong>Nunca confiar no conteúdo das mensagens.</strong> Todo <code>content</code> passa por sanitização antes de persistir (remoção de HTML, links maliciosos, e conteúdo acima de 10k chars). Nunca executar código do cliente.</p></div>
+
+<h3>Controles de segurança implementados</h3>
+
+<ul>
+  <li><strong>ws_token de curta duração (5 min):</strong> mesmo que interceptado, a janela de uso é mínima. Renovação transparente via GET /orders/:id/chat.</li>
+  <li><strong>Rate limiting por evento:</strong> 10 mensagens/min, 30 typing events/min, 5 edições/hora por usuário. Implementado via Redis <code>INCR + EXPIRE</code>.</li>
+  <li><strong>Validação de participante em cada evento:</strong> o <code>socket.data</code> setado no middleware é autoritativo — não confiar em dados do payload do cliente.</li>
+  <li><strong>Content-Length obrigatório no presigned URL:</strong> previne substituição do arquivo após geração da URL assinada.</li>
+  <li><strong>maxHttpBufferSize: 1MB</strong> no Socket.io: previne mensagens maliciosas gigantes que esgotem memória.</li>
+  <li><strong>Sanitização de nome de arquivo:</strong> remove path traversal (<code>../</code>), caracteres especiais, e normaliza o nome antes de compor o S3 key.</li>
+</ul>
+
+<h3>Auditoria imutável</h3>
+
+<p>Todo evento crítico grava na tabela <code>audit_logs</code>. Para o chat, os eventos auditados são:</p>
+
+<table class="etable">
+  <thead><tr><th>Ação</th><th>Dados registrados</th></tr></thead>
+  <tbody>
+    <tr><td><code>chat.channel_created</code></td><td>order_id, triggered_by (ordem aceita), timestamp</td></tr>
+    <tr><td><code>chat.message_created</code></td><td>message_id, channel_id, order_id, content_type (nunca o conteúdo em si)</td></tr>
+    <tr><td><code>chat.message_deleted</code></td><td>message_id, actor_id, razão do delete</td></tr>
+    <tr><td><code>chat.channel_closed</code></td><td>order_id, reason (order_status que causou o fechamento)</td></tr>
+    <tr><td><code>chat.unauthorized_access</code></td><td>user_id tentante, order_id, motivo da rejeição</td></tr>
+  </tbody>
+</table>
+
+<div class="info"><p>ℹ️ O conteúdo das mensagens <strong>nunca</strong> é gravado no audit_log — apenas metadados. O conteúdo completo está em <code>chat_messages</code> com soft-delete. Mensagens deletadas têm <code>content = null</code> mas o registro permanece para fins de moderação e disputas.</p></div>
+
+<h2>11. Fechamento do Canal</h2>
+
+<p>Quando a ordem transita para COMPLETED, CANCELLED ou DISPUTED, o canal deve ser fechado imediatamente. Isso é feito via evento publicado no sistema de mensageria interno:</p>
+
+<div class="file-tag">src/chat/consumers/order-events.consumer.ts</div>
+<pre><span class="c">// Worker que ouve eventos da FSM de ordens</span>
+queue<span class="pun">.</span><span class="fn">subscribe</span><span class="pun">(</span><span class="s">'order.status_changed'</span><span class="pun">,</span> <span class="kw">async</span> <span class="pun">(</span>event<span class="pun">) => {</span>
+  <span class="kw">const</span> CLOSE_ON_STATUS <span class="pun">= [</span><span class="s">'COMPLETED'</span><span class="pun">,</span> <span class="s">'CANCELLED'</span><span class="pun">,</span> <span class="s">'DISPUTED'</span><span class="pun">];</span>
+
+  <span class="kw">if</span> <span class="pun">(!</span>CLOSE_ON_STATUS<span class="pun">.</span><span class="fn">includes</span><span class="pun">(</span>event<span class="pun">.</span>to_status<span class="pun">))</span> <span class="kw">return</span><span class="pun">;</span>
+
+  <span class="c">// Marca canal como CLOSED no banco</span>
+  <span class="kw">await</span> db<span class="pun">.</span><span class="fn">query</span><span class="pun">(</span><span class="s">`
+    UPDATE chat_channels
+    SET status = 'CLOSED', closed_at = NOW()
+    WHERE order_id = $1 AND status = 'ACTIVE'
+  `</span><span class="pun">, [</span>event<span class="pun">.</span>order_id<span class="pun">]);</span>
+
+  <span class="c">// Notifica todos os sockets conectados nesta sala</span>
+  io<span class="pun">.</span><span class="fn">to</span><span class="pun">(</span><span class="s">`order:<span class="pun">${</span>event<span class="pun">.</span>order_id<span class="pun">}</span>`</span><span class="pun">).</span><span class="fn">emit</span><span class="pun">(</span><span class="s">'chat:channel:closed'</span><span class="pun">, {</span>
+    reason<span class="pun">:</span>       event<span class="pun">.</span>to_status<span class="pun">,</span>
+    order_status<span class="pun">:</span> event<span class="pun">.</span>to_status<span class="pun">,</span>
+  <span class="pun">});</span>
+
+  <span class="c">// Faz io.to(room).disconnectSockets() após 3s (grace period)</span>
+  <span class="fn">setTimeout</span><span class="pun">(() =></span>
+    io<span class="pun">.</span><span class="fn">in</span><span class="pun">(</span><span class="s">`order:<span class="pun">${</span>event<span class="pun">.</span>order_id<span class="pun">}</span>`</span><span class="pun">).</span><span class="fn">disconnectSockets</span><span class="pun">(</span><span class="b">true</span><span class="pun">),</span>
+  <span class="n">3000</span><span class="pun">);</span>
+<span class="pun">});</span></pre>
+
+</div>
+</body>
+</html>

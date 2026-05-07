@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Estrutura de Projeto e Git</title>
+<style>
+:root{
+  --blue:#185FA5;--blue-bg:#E6F1FB;--blue-b:#B5D4F4;
+  --purple:#534AB7;--purple-bg:#EEEDFE;--purple-b:#AFA9EC;
+  --teal:#0F6E56;--teal-bg:#E1F5EE;--teal-b:#9FE1CB;
+  --amber:#854F0B;--amber-bg:#FAEEDA;--amber-b:#FAC775;
+  --red:#A32D2D;--red-bg:#FCEBEB;--red-b:#F7C1C1;
+  --gray:#5F5E5A;--gray-bg:#F1EFE8;--gray-b:#D3D1C7;
+  --border:rgba(0,0,0,0.1);--surface:#f5f4f0;
+  --text:#1a1a18;--muted:#73726c;--bg:#fff;
+  --font:system-ui,-apple-system,sans-serif;
+  --mono:'SF Mono','Fira Code',Consolas,monospace;
+  --r:8px;
+  --code-bg:#18181a;--code-fg:#d4d4d4;
+  --key:#9cdcfe;--str:#ce9178;--num:#b5cea8;--bool:#569cd6;
+  --cmt:#6a9955;--fn:#dcdcaa;--kw:#c586c0;--cls:#4ec9b0;--pun:#d4d4d4;
+  --dir:#e2c08d;--file:#d4d4d4;--dim:#555;
+}
+@media(prefers-color-scheme:dark){:root{
+  --border:rgba(255,255,255,0.1);--surface:#242422;
+  --text:#e8e6de;--muted:#9c9a92;--bg:#1c1c1a;
+  --blue-bg:#042C53;--purple-bg:#26215C;--teal-bg:#04342C;
+  --amber-bg:#412402;--red-bg:#501313;--gray-bg:#2C2C2A;
+  --code-bg:#0d1117;
+}}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--font);color:var(--text);background:var(--bg);padding:40px 24px 80px;line-height:1.65;}
+.wrap{max-width:900px;margin:0 auto;}
+h1{font-size:26px;font-weight:600;margin-bottom:6px;}
+.lead{color:var(--muted);font-size:14px;margin-bottom:48px;max-width:680px;line-height:1.7;}
+h2{font-size:19px;font-weight:600;margin:52px 0 18px;padding-bottom:10px;border-bottom:2px solid var(--border);}
+h3{font-size:14px;font-weight:600;margin:22px 0 8px;}
+p{font-size:14px;color:var(--muted);margin-bottom:12px;line-height:1.7;}
+p strong{color:var(--text);}
+ul{font-size:14px;color:var(--muted);padding-left:20px;margin-bottom:14px;}
+li{margin-bottom:5px;line-height:1.6;}li strong{color:var(--text);}
+pre{background:var(--code-bg);color:var(--code-fg);padding:18px 20px;border-radius:var(--r);font-family:var(--mono);font-size:11.5px;overflow-x:auto;line-height:1.7;margin:10px 0 22px;border:1px solid rgba(255,255,255,.04);}
+.ftag{display:inline-block;background:rgba(255,255,255,.06);color:var(--muted);font-family:var(--mono);font-size:10px;padding:3px 10px;border-radius:4px 4px 0 0;margin-bottom:-2px;border:1px solid rgba(255,255,255,.08);border-bottom:none;}
+code{font-family:var(--mono);font-size:11.5px;background:var(--surface);border:1px solid var(--border);padding:1px 6px;border-radius:4px;}
+.k{color:var(--key);}.s{color:var(--str);}.n{color:var(--num);}.b{color:var(--bool);}
+.c{color:var(--cmt);font-style:italic;}.fn{color:var(--fn);}.kw{color:var(--kw);}.cls{color:var(--cls);}.pun{color:var(--pun);}
+.dir{color:var(--dir);font-weight:600;}
+.file{color:var(--file);}
+.dim{color:var(--dim);}
+.info{border-left:3px solid var(--blue);background:var(--blue-bg);padding:12px 16px;border-radius:0 var(--r) var(--r) 0;margin:16px 0;}
+.warn{border-left:3px solid var(--amber);background:var(--amber-bg);padding:12px 16px;border-radius:0 var(--r) var(--r) 0;margin:16px 0;}
+.teal-box{border-left:3px solid var(--teal);background:var(--teal-bg);padding:12px 16px;border-radius:0 var(--r) var(--r) 0;margin:16px 0;}
+.info p,.warn p,.teal-box p{margin:0;font-size:13px;}
+.table{width:100%;border-collapse:collapse;font-size:13px;margin:10px 0 22px;}
+.table th{text-align:left;padding:8px 12px;background:var(--surface);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);}
+.table td{padding:8px 12px;border-bottom:1px solid var(--border);vertical-align:top;line-height:1.5;}
+.table tr:last-child td{border-bottom:none;}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px 18px;margin:12px 0;}
+.card-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:8px;}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:12px 0;}
+@media(max-width:600px){.grid2{grid-template-columns:1fr;}}
+.badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;margin:1px;}
+.b-blue{background:var(--blue-bg);color:var(--blue);}
+.b-teal{background:var(--teal-bg);color:var(--teal);}
+.b-amber{background:var(--amber-bg);color:var(--amber);}
+.b-gray{background:var(--gray-bg);color:var(--gray);}
+</style>
+</head>
+<body><div class="wrap">
+
+<h1>Estrutura de Projeto e Git</h1>
+<p class="lead">Monorepo com pnpm workspaces e Turborepo. Três apps (API, web, admin) e dois packages compartilhados (tipos e utilitários). Branch strategy com proteção de <code>main</code>, CI via GitHub Actions e deploy automático.</p>
+
+<!-- ══ 1. VISÃO GERAL ══ -->
+<h2>1. Visão Geral do Monorepo</h2>
+
+<p>Um único repositório contém tudo. A alternativa (múltiplos repos) gera complexidade de versioning entre frontend e backend que não se justifica antes de times grandes e independentes. Com pnpm + Turborepo, o <code>turbo build</code> reconhece o que mudou e só recompila o necessário.</p>
+
+<pre>
+<span class="dir">marketplace/</span>                        <span class="dim">← raiz do monorepo</span>
+├── <span class="dir">.github/</span>
+│   ├── <span class="dir">workflows/</span>
+│   │   ├── <span class="file">ci.yml</span>                  <span class="dim">← lint + typecheck + tests (todo PR)</span>
+│   │   ├── <span class="file">deploy-api.yml</span>          <span class="dim">← deploy do backend (push em main)</span>
+│   │   └── <span class="file">deploy-web.yml</span>          <span class="dim">← deploy do frontend</span>
+│   └── <span class="file">PULL_REQUEST_TEMPLATE.md</span>
+│
+├── <span class="dir">apps/</span>
+│   ├── <span class="dir">api/</span>                        <span class="dim">← Node.js + TypeScript + Express</span>
+│   ├── <span class="dir">web/</span>                        <span class="dim">← Next.js 14 (App Router)</span>
+│   └── <span class="dir">admin/</span>                      <span class="dim">← Next.js (painel admin separado)</span>
+│
+├── <span class="dir">packages/</span>
+│   ├── <span class="dir">types/</span>                      <span class="dim">← tipos TypeScript compartilhados</span>
+│   └── <span class="dir">utils/</span>                      <span class="dim">← funções utilitárias compartilhadas</span>
+│
+├── <span class="dir">infra/</span>
+│   ├── <span class="dir">docker/</span>
+│   │   └── <span class="file">docker-compose.yml</span>      <span class="dim">← ambiente local completo</span>
+│   └── <span class="dir">scripts/</span>
+│       ├── <span class="file">setup.sh</span>               <span class="dim">← setup inicial do projeto</span>
+│       └── <span class="file">seed-dev.sh</span>            <span class="dim">← popula banco de dados local</span>
+│
+├── <span class="file">.gitignore</span>
+├── <span class="file">.env.example</span>                   <span class="dim">← variáveis de ambiente documentadas</span>
+├── <span class="file">turbo.json</span>                     <span class="dim">← pipeline de build do Turborepo</span>
+├── <span class="file">pnpm-workspace.yaml</span>
+└── <span class="file">package.json</span>                   <span class="dim">← scripts raiz (dev, build, test)</span>
+</pre>
+
+<!-- ══ 2. ESTRUTURA DO BACKEND ══ -->
+<h2>2. Backend — <code>apps/api/</code></h2>
+
+<p>Organização por <strong>módulo de negócio</strong>, não por camada técnica. Cada módulo tem seu controller, service, repository, rotas e schema de validação juntos. Isso facilita encontrar tudo relacionado a "orders" em um lugar só, em vez de buscar em pastas separadas de controllers, services etc.</p>
+
+<pre>
+<span class="dir">apps/api/</span>
+├── <span class="dir">src/</span>
+│   ├── <span class="dir">config/</span>                     <span class="dim">← inicialização de serviços externos</span>
+│   │   ├── <span class="file">env.ts</span>                  <span class="dim">← validação de variáveis (zod)</span>
+│   │   ├── <span class="file">database.ts</span>             <span class="dim">← pool PostgreSQL + PgBouncer</span>
+│   │   ├── <span class="file">redis.ts</span>               <span class="dim">← cliente Redis (ioredis)</span>
+│   │   ├── <span class="file">queue.ts</span>               <span class="dim">← BullMQ ou pg-boss</span>
+│   │   ├── <span class="file">storage.ts</span>             <span class="dim">← cliente S3 / R2</span>
+│   │   └── <span class="file">stripe.ts</span>              <span class="dim">← instância Stripe</span>
+│   │
+│   ├── <span class="dir">modules/</span>                    <span class="dim">← um diretório por domínio</span>
+│   │   ├── <span class="dir">auth/</span>
+│   │   │   ├── <span class="file">auth.controller.ts</span>
+│   │   │   ├── <span class="file">auth.service.ts</span>
+│   │   │   ├── <span class="file">auth.routes.ts</span>
+│   │   │   └── <span class="file">auth.schema.ts</span>      <span class="dim">← validação zod dos inputs</span>
+│   │   │
+│   │   ├── <span class="dir">users/</span>
+│   │   │   ├── <span class="file">user.controller.ts</span>
+│   │   │   ├── <span class="file">user.service.ts</span>
+│   │   │   ├── <span class="file">user.repository.ts</span>  <span class="dim">← queries SQL deste domínio</span>
+│   │   │   ├── <span class="file">user.routes.ts</span>
+│   │   │   └── <span class="file">user.schema.ts</span>
+│   │   │
+│   │   ├── <span class="dir">orders/</span>
+│   │   │   ├── <span class="file">order.controller.ts</span>
+│   │   │   ├── <span class="file">order.service.ts</span>
+│   │   │   ├── <span class="file">order.repository.ts</span>
+│   │   │   ├── <span class="file">order.routes.ts</span>
+│   │   │   ├── <span class="file">order.schema.ts</span>
+│   │   │   └── <span class="file">order-state-machine.ts</span> <span class="dim">← FSM centralizada</span>
+│   │   │
+│   │   ├── <span class="dir">applications/</span>           <span class="dim">← candidaturas</span>
+│   │   │   ├── <span class="file">application.controller.ts</span>
+│   │   │   ├── <span class="file">application.service.ts</span>
+│   │   │   ├── <span class="file">application.repository.ts</span>
+│   │   │   └── <span class="file">application.routes.ts</span>
+│   │   │
+│   │   ├── <span class="dir">chat/</span>
+│   │   │   ├── <span class="file">chat.controller.ts</span>
+│   │   │   ├── <span class="file">chat.service.ts</span>
+│   │   │   ├── <span class="file">chat.repository.ts</span>
+│   │   │   ├── <span class="file">chat.routes.ts</span>
+│   │   │   └── <span class="file">chat.gateway.ts</span>     <span class="dim">← Socket.io handlers</span>
+│   │   │
+│   │   ├── <span class="dir">payments/</span>
+│   │   │   ├── <span class="file">payment.controller.ts</span>
+│   │   │   ├── <span class="file">payment.service.ts</span>
+│   │   │   ├── <span class="file">payment.repository.ts</span>
+│   │   │   ├── <span class="file">payment.routes.ts</span>
+│   │   │   ├── <span class="dir">gateways/</span>
+│   │   │   │   ├── <span class="file">payment-gateway.interface.ts</span>
+│   │   │   │   ├── <span class="file">stripe.gateway.ts</span>
+│   │   │   │   └── <span class="file">manual.gateway.ts</span>
+│   │   │   ├── <span class="dir">jobs/</span>
+│   │   │   │   ├── <span class="file">escrow-release.job.ts</span>
+│   │   │   │   └── <span class="file">reconciliation.job.ts</span>
+│   │   │   └── <span class="dir">webhooks/</span>
+│   │   │       └── <span class="file">stripe.webhook.ts</span>
+│   │   │
+│   │   ├── <span class="dir">ratings/</span>
+│   │   │   ├── <span class="file">rating.controller.ts</span>
+│   │   │   ├── <span class="file">rating.service.ts</span>
+│   │   │   └── <span class="file">rating.routes.ts</span>
+│   │   │
+│   │   ├── <span class="dir">categories/</span>
+│   │   │   ├── <span class="file">category.controller.ts</span>
+│   │   │   ├── <span class="file">category.service.ts</span>
+│   │   │   └── <span class="file">category.routes.ts</span>
+│   │   │
+│   │   └── <span class="dir">notifications/</span>
+│   │       ├── <span class="file">notification.service.ts</span>
+│   │       └── <span class="dir">templates/</span>           <span class="dim">← templates de email (HTML)</span>
+│   │
+│   ├── <span class="dir">admin/</span>                      <span class="dim">← rotas exclusivas do painel admin</span>
+│   │   ├── <span class="file">admin.guard.ts</span>          <span class="dim">← middleware RBAC</span>
+│   │   ├── <span class="dir">modules/</span>
+│   │   │   ├── <span class="file">admin-user.service.ts</span>
+│   │   │   ├── <span class="file">admin-order.service.ts</span>
+│   │   │   ├── <span class="file">admin-payment.service.ts</span>
+│   │   │   ├── <span class="file">admin-dashboard.service.ts</span>
+│   │   │   └── <span class="file">admin-settings.service.ts</span>
+│   │   └── <span class="file">admin.routes.ts</span>         <span class="dim">← prefixo /admin/* com guard</span>
+│   │
+│   ├── <span class="dir">shared/</span>                     <span class="dim">← código reutilizado entre módulos</span>
+│   │   ├── <span class="dir">middleware/</span>
+│   │   │   ├── <span class="file">auth.middleware.ts</span>      <span class="dim">← verifica JWT de usuário</span>
+│   │   │   ├── <span class="file">rate-limit.middleware.ts</span>
+│   │   │   ├── <span class="file">upload.middleware.ts</span>    <span class="dim">← multer + validação mime</span>
+│   │   │   └── <span class="file">error-handler.ts</span>       <span class="dim">← handler global de erros Express</span>
+│   │   ├── <span class="dir">errors/</span>
+│   │   │   ├── <span class="file">app-error.ts</span>           <span class="dim">← classe base de erros</span>
+│   │   │   ├── <span class="file">business-error.ts</span>
+│   │   │   ├── <span class="file">not-found-error.ts</span>
+│   │   │   └── <span class="file">validation-error.ts</span>
+│   │   ├── <span class="dir">audit/</span>
+│   │   │   └── <span class="file">audit-log.service.ts</span>
+│   │   └── <span class="dir">queue/</span>
+│   │       ├── <span class="file">queue.client.ts</span>
+│   │       └── <span class="file">queue.worker.ts</span>        <span class="dim">← bootstrap dos workers</span>
+│   │
+│   ├── <span class="dir">infrastructure/</span>
+│   │   ├── <span class="dir">database/</span>
+│   │   │   ├── <span class="dir">migrations/</span>            <span class="dim">← um arquivo SQL por migração</span>
+│   │   │   │   ├── <span class="file">001_initial_schema.sql</span>
+│   │   │   │   ├── <span class="file">002_add_categories.sql</span>
+│   │   │   │   └── <span class="file">003_add_payments.sql</span>
+│   │   │   └── <span class="dir">seeds/</span>
+│   │   │       ├── <span class="file">01_categories.ts</span>
+│   │   │       └── <span class="file">02_admin_user.ts</span>
+│   │   └── <span class="dir">storage/</span>
+│   │       └── <span class="file">s3.client.ts</span>
+│   │
+│   ├── <span class="file">app.ts</span>                      <span class="dim">← Express app (sem listen)</span>
+│   ├── <span class="file">server.ts</span>                   <span class="dim">← listen HTTP + Socket.io</span>
+│   └── <span class="file">worker.ts</span>                   <span class="dim">← entry point dos jobs (processo separado)</span>
+│
+├── <span class="dir">tests/</span>
+│   ├── <span class="dir">unit/</span>                       <span class="dim">← testes isolados (vitest)</span>
+│   │   ├── <span class="file">order-state-machine.test.ts</span>
+│   │   └── <span class="file">reputation-calculator.test.ts</span>
+│   ├── <span class="dir">integration/</span>               <span class="dim">← testes com banco real (testcontainers)</span>
+│   │   ├── <span class="file">order.service.test.ts</span>
+│   │   └── <span class="file">payment.service.test.ts</span>
+│   └── <span class="dir">e2e/</span>                        <span class="dim">← testes do loop completo</span>
+│       └── <span class="file">complete-order.test.ts</span>
+│
+├── <span class="file">.env.example</span>
+├── <span class="file">Dockerfile</span>
+├── <span class="file">package.json</span>
+└── <span class="file">tsconfig.json</span>
+</pre>
+
+<!-- ══ 3. ESTRUTURA DO FRONTEND ══ -->
+<h2>3. Frontend — <code>apps/web/</code></h2>
+
+<pre>
+<span class="dir">apps/web/</span>
+├── <span class="dir">src/</span>
+│   ├── <span class="dir">app/</span>                        <span class="dim">← Next.js App Router</span>
+│   │   ├── <span class="dir">(auth)/</span>                 <span class="dim">← route group sem layout de dashboard</span>
+│   │   │   ├── <span class="dir">login/</span>
+│   │   │   │   └── <span class="file">page.tsx</span>
+│   │   │   └── <span class="dir">register/</span>
+│   │   │       ├── <span class="dir">empresa/</span>
+│   │   │       │   └── <span class="file">page.tsx</span>
+│   │   │       └── <span class="dir">freelancer/</span>
+│   │   │           └── <span class="file">page.tsx</span>
+│   │   │
+│   │   ├── <span class="dir">(empresa)/</span>              <span class="dim">← layout específico para empresa</span>
+│   │   │   ├── <span class="file">layout.tsx</span>
+│   │   │   ├── <span class="dir">dashboard/</span>
+│   │   │   │   └── <span class="file">page.tsx</span>
+│   │   │   ├── <span class="dir">orders/</span>
+│   │   │   │   ├── <span class="file">page.tsx</span>            <span class="dim">← listagem</span>
+│   │   │   │   ├── <span class="dir">new/</span>
+│   │   │   │   │   └── <span class="file">page.tsx</span>        <span class="dim">← criar ordem</span>
+│   │   │   │   └── <span class="dir">[id]/</span>
+│   │   │   │       ├── <span class="file">page.tsx</span>        <span class="dim">← detalhe da ordem</span>
+│   │   │   │       ├── <span class="dir">applications/</span>
+│   │   │   │       │   └── <span class="file">page.tsx</span>    <span class="dim">← candidaturas recebidas</span>
+│   │   │   │       └── <span class="dir">chat/</span>
+│   │   │   │           └── <span class="file">page.tsx</span>
+│   │   │   └── <span class="dir">profile/</span>
+│   │   │       └── <span class="file">page.tsx</span>
+│   │   │
+│   │   ├── <span class="dir">(freelancer)/</span>           <span class="dim">← layout específico para freelancer</span>
+│   │   │   ├── <span class="file">layout.tsx</span>
+│   │   │   ├── <span class="dir">explore/</span>
+│   │   │   │   └── <span class="file">page.tsx</span>            <span class="dim">← busca de ordens</span>
+│   │   │   ├── <span class="dir">my-orders/</span>
+│   │   │   │   ├── <span class="file">page.tsx</span>
+│   │   │   │   └── <span class="dir">[id]/</span>
+│   │   │   │       ├── <span class="file">page.tsx</span>
+│   │   │   │       └── <span class="dir">chat/</span>
+│   │   │   │           └── <span class="file">page.tsx</span>
+│   │   │   └── <span class="dir">profile/</span>
+│   │   │       └── <span class="file">page.tsx</span>
+│   │   │
+│   │   ├── <span class="file">layout.tsx</span>               <span class="dim">← root layout (providers, fonts)</span>
+│   │   └── <span class="file">page.tsx</span>                 <span class="dim">← landing page</span>
+│   │
+│   ├── <span class="dir">components/</span>
+│   │   ├── <span class="dir">ui/</span>                     <span class="dim">← primitivos reutilizáveis</span>
+│   │   │   ├── <span class="file">button.tsx</span>
+│   │   │   ├── <span class="file">input.tsx</span>
+│   │   │   ├── <span class="file">badge.tsx</span>
+│   │   │   ├── <span class="file">card.tsx</span>
+│   │   │   ├── <span class="file">modal.tsx</span>
+│   │   │   └── <span class="file">avatar.tsx</span>
+│   │   └── <span class="dir">features/</span>              <span class="dim">← componentes específicos de domínio</span>
+│   │       ├── <span class="dir">orders/</span>
+│   │       │   ├── <span class="file">order-card.tsx</span>
+│   │       │   ├── <span class="file">order-status-badge.tsx</span>
+│   │       │   └── <span class="file">order-form.tsx</span>
+│   │       ├── <span class="dir">chat/</span>
+│   │       │   ├── <span class="file">chat-window.tsx</span>
+│   │       │   └── <span class="file">message-bubble.tsx</span>
+│   │       ├── <span class="dir">payments/</span>
+│   │       │   └── <span class="file">stripe-card-form.tsx</span>  <span class="dim">← Stripe Elements</span>
+│   │       └── <span class="dir">ratings/</span>
+│   │           └── <span class="file">star-rating.tsx</span>
+│   │
+│   ├── <span class="dir">hooks/</span>
+│   │   ├── <span class="file">use-auth.ts</span>
+│   │   ├── <span class="file">use-socket.ts</span>          <span class="dim">← conexão Socket.io gerenciada</span>
+│   │   ├── <span class="file">use-orders.ts</span>
+│   │   └── <span class="file">use-upload.ts</span>          <span class="dim">← upload via presigned URL</span>
+│   │
+│   ├── <span class="dir">lib/</span>
+│   │   ├── <span class="file">api.ts</span>                 <span class="dim">← cliente fetch centralizado com auth headers</span>
+│   │   ├── <span class="file">auth.ts</span>               <span class="dim">← helpers de sessão (next-auth ou custom)</span>
+│   │   └── <span class="file">format.ts</span>             <span class="dim">← formatação de moeda, datas</span>
+│   │
+│   └── <span class="dir">types/</span>
+│       └── <span class="file">index.ts</span>               <span class="dim">← re-exporta de @marketplace/types</span>
+│
+├── <span class="file">.env.example</span>
+├── <span class="file">next.config.ts</span>
+├── <span class="file">tailwind.config.ts</span>
+└── <span class="file">package.json</span>
+</pre>
+
+<!-- ══ 4. PACKAGES COMPARTILHADOS ══ -->
+<h2>4. Packages Compartilhados</h2>
+
+<pre>
+<span class="dir">packages/types/src/</span>
+├── <span class="file">user.ts</span>          <span class="dim">← interfaces User, Company, Freelancer</span>
+├── <span class="file">order.ts</span>         <span class="dim">← interfaces Order, OrderStatus, Application</span>
+├── <span class="file">payment.ts</span>       <span class="dim">← interfaces Payment, PaymentStatus</span>
+├── <span class="file">chat.ts</span>          <span class="dim">← interfaces ChatMessage, ChatChannel</span>
+├── <span class="file">rating.ts</span>        <span class="dim">← interface Rating</span>
+├── <span class="file">api.ts</span>           <span class="dim">← tipos de request/response da API (APIResponse, PaginatedResponse)</span>
+└── <span class="file">index.ts</span>         <span class="dim">← re-exporta tudo</span>
+
+<span class="dir">packages/utils/src/</span>
+├── <span class="file">decimal.ts</span>       <span class="dim">← operações financeiras seguras (Decimal.js wrapper)</span>
+├── <span class="file">dates.ts</span>         <span class="dim">← addHours, daysBetween, formatBR</span>
+├── <span class="file">validation.ts</span>    <span class="dim">← schemas zod reutilizados (CPF, CNPJ, email)</span>
+└── <span class="file">index.ts</span>
+</pre>
+
+<!-- ══ 5. ARQUIVOS DE CONFIGURAÇÃO ══ -->
+<h2>5. Arquivos de Configuração Raiz</h2>
+
+<div class="ftag">pnpm-workspace.yaml</div>
+<pre><span class="key">packages</span>:
+  - <span class="s">'apps/*'</span>
+  - <span class="s">'packages/*'</span></pre>
+
+<div class="ftag">turbo.json</div>
+<pre><span class="pun">{</span>
+  <span class="k">"$schema"</span><span class="pun">:</span> <span class="s">"https://turbo.build/schema.json"</span><span class="pun">,</span>
+  <span class="k">"pipeline"</span><span class="pun">: {</span>
+    <span class="k">"build"</span><span class="pun">: {</span>
+      <span class="k">"dependsOn"</span><span class="pun">: [</span><span class="s">"^build"</span><span class="pun">],</span>          <span class="c">// packages/* são buildados antes dos apps</span>
+      <span class="k">"outputs"</span><span class="pun">: [</span><span class="s">"dist/**"</span><span class="pun">,</span> <span class="s">".next/**"</span><span class="pun">]</span>
+    <span class="pun">},</span>
+    <span class="k">"lint"</span><span class="pun">: {</span>
+      <span class="k">"outputs"</span><span class="pun">: []</span>
+    <span class="pun">},</span>
+    <span class="k">"typecheck"</span><span class="pun">: {</span>
+      <span class="k">"dependsOn"</span><span class="pun">: [</span><span class="s">"^build"</span><span class="pun">],</span>
+      <span class="k">"outputs"</span><span class="pun">: []</span>
+    <span class="pun">},</span>
+    <span class="k">"test"</span><span class="pun">: {</span>
+      <span class="k">"dependsOn"</span><span class="pun">: [</span><span class="s">"^build"</span><span class="pun">],</span>
+      <span class="k">"outputs"</span><span class="pun">: [</span><span class="s">"coverage/**"</span><span class="pun">]</span>
+    <span class="pun">},</span>
+    <span class="k">"dev"</span><span class="pun">: {</span>
+      <span class="k">"cache"</span><span class="pun">:</span> <span class="b">false</span><span class="pun">,</span>
+      <span class="k">"persistent"</span><span class="pun">:</span> <span class="b">true</span>
+    <span class="pun">}</span>
+  <span class="pun">}</span>
+<span class="pun">}</span></pre>
+
+<div class="ftag">package.json (raiz)</div>
+<pre><span class="pun">{</span>
+  <span class="k">"name"</span><span class="pun">:</span>          <span class="s">"marketplace"</span><span class="pun">,</span>
+  <span class="k">"private"</span><span class="pun">:</span>       <span class="b">true</span><span class="pun">,</span>
+  <span class="k">"scripts"</span><span class="pun">: {</span>
+    <span class="k">"dev"</span><span class="pun">:</span>          <span class="s">"turbo dev"</span><span class="pun">,</span>
+    <span class="k">"build"</span><span class="pun">:</span>        <span class="s">"turbo build"</span><span class="pun">,</span>
+    <span class="k">"lint"</span><span class="pun">:</span>         <span class="s">"turbo lint"</span><span class="pun">,</span>
+    <span class="k">"typecheck"</span><span class="pun">:</span>    <span class="s">"turbo typecheck"</span><span class="pun">,</span>
+    <span class="k">"test"</span><span class="pun">:</span>         <span class="s">"turbo test"</span><span class="pun">,</span>
+    <span class="k">"db:migrate"</span><span class="pun">:</span>   <span class="s">"pnpm --filter api db:migrate"</span><span class="pun">,</span>
+    <span class="k">"db:seed"</span><span class="pun">:</span>      <span class="s">"pnpm --filter api db:seed"</span><span class="pun">,</span>
+    <span class="k">"infra:up"</span><span class="pun">:</span>     <span class="s">"docker compose -f infra/docker/docker-compose.yml up -d"</span><span class="pun">,</span>
+    <span class="k">"infra:down"</span><span class="pun">:</span>   <span class="s">"docker compose -f infra/docker/docker-compose.yml down"</span>
+  <span class="pun">},</span>
+  <span class="k">"devDependencies"</span><span class="pun">: {</span>
+    <span class="k">"turbo"</span><span class="pun">:</span>        <span class="s">"^2.0.0"</span><span class="pun">,</span>
+    <span class="k">"typescript"</span><span class="pun">:</span>  <span class="s">"^5.0.0"</span><span class="pun">,</span>
+    <span class="k">"prettier"</span><span class="pun">:</span>    <span class="s">"^3.0.0"</span><span class="pun">,</span>
+    <span class="k">"eslint"</span><span class="pun">:</span>      <span class="s">"^9.0.0"</span>
+  <span class="pun">}</span>
+<span class="pun">}</span></pre>
+
+<div class="ftag">apps/api/package.json</div>
+<pre><span class="pun">{</span>
+  <span class="k">"name"</span><span class="pun">:</span>    <span class="s">"api"</span><span class="pun">,</span>
+  <span class="k">"scripts"</span><span class="pun">: {</span>
+    <span class="k">"dev"</span><span class="pun">:</span>          <span class="s">"tsx watch src/server.ts"</span><span class="pun">,</span>
+    <span class="k">"build"</span><span class="pun">:</span>        <span class="s">"tsc -p tsconfig.json"</span><span class="pun">,</span>
+    <span class="k">"start"</span><span class="pun">:</span>        <span class="s">"node dist/server.js"</span><span class="pun">,</span>
+    <span class="k">"worker"</span><span class="pun">:</span>       <span class="s">"tsx watch src/worker.ts"</span><span class="pun">,</span>
+    <span class="k">"test"</span><span class="pun">:</span>         <span class="s">"vitest run"</span><span class="pun">,</span>
+    <span class="k">"test:watch"</span><span class="pun">:</span>   <span class="s">"vitest"</span><span class="pun">,</span>
+    <span class="k">"typecheck"</span><span class="pun">:</span>    <span class="s">"tsc --noEmit"</span><span class="pun">,</span>
+    <span class="k">"lint"</span><span class="pun">:</span>         <span class="s">"eslint src --ext .ts"</span><span class="pun">,</span>
+    <span class="k">"db:migrate"</span><span class="pun">:</span>   <span class="s">"node -r tsx/cjs scripts/migrate.ts"</span><span class="pun">,</span>
+    <span class="k">"db:seed"</span><span class="pun">:</span>      <span class="s">"node -r tsx/cjs src/infrastructure/database/seeds/index.ts"</span>
+  <span class="pun">},</span>
+  <span class="k">"dependencies"</span><span class="pun">: {</span>
+    <span class="k">"@marketplace/types"</span><span class="pun">:</span>   <span class="s">"workspace:*"</span><span class="pun">,</span>  <span class="c">// ← referência ao package local</span>
+    <span class="k">"@marketplace/utils"</span><span class="pun">:</span>   <span class="s">"workspace:*"</span><span class="pun">,</span>
+    <span class="k">"express"</span><span class="pun">:</span>              <span class="s">"^4.19.0"</span><span class="pun">,</span>
+    <span class="k">"socket.io"</span><span class="pun">:</span>            <span class="s">"^4.7.0"</span><span class="pun">,</span>
+    <span class="k">"ioredis"</span><span class="pun">:</span>              <span class="s">"^5.3.0"</span><span class="pun">,</span>
+    <span class="k">"pg"</span><span class="pun">:</span>                   <span class="s">"^8.11.0"</span><span class="pun">,</span>
+    <span class="k">"stripe"</span><span class="pun">:</span>               <span class="s">"^16.0.0"</span><span class="pun">,</span>
+    <span class="k">"zod"</span><span class="pun">:</span>                  <span class="s">"^3.22.0"</span><span class="pun">,</span>
+    <span class="k">"jsonwebtoken"</span><span class="pun">:</span>         <span class="s">"^9.0.0"</span><span class="pun">,</span>
+    <span class="k">"bullmq"</span><span class="pun">:</span>               <span class="s">"^5.0.0"</span><span class="pun">,</span>
+    <span class="k">"@aws-sdk/client-s3"</span><span class="pun">:</span>   <span class="s">"^3.0.0"</span><span class="pun">,</span>
+    <span class="k">"decimal.js"</span><span class="pun">:</span>           <span class="s">"^10.4.0"</span><span class="pun">,</span>
+    <span class="k">"pino"</span><span class="pun">:</span>                 <span class="s">"^9.0.0"</span>
+  <span class="pun">}</span>
+<span class="pun">}</span></pre>
+
+<!-- ══ 6. ENV ══ -->
+<h2>6. Variáveis de Ambiente</h2>
+
+<div class="ftag">.env.example (raiz + apps/api/.env.example)</div>
+<pre><span class="c"># ─── Banco de dados ──────────────────────────────────────────────</span>
+DATABASE_URL=postgresql://postgres:postgres@localhost:5432/marketplace_dev
+DATABASE_POOL_MIN=2
+DATABASE_POOL_MAX=10
+
+<span class="c"># ─── Redis ───────────────────────────────────────────────────────</span>
+REDIS_URL=redis://localhost:6379
+
+<span class="c"># ─── JWT (gere com: openssl genrsa -out private.pem 2048) ────────</span>
+JWT_PRIVATE_KEY=<span class="s">"-----BEGIN RSA PRIVATE KEY-----\n..."</span>
+JWT_PUBLIC_KEY=<span class="s">"-----BEGIN PUBLIC KEY-----\n..."</span>
+JWT_EXPIRES_IN=15m
+JWT_REFRESH_EXPIRES_IN=7d
+
+<span class="c"># ─── JWT Admin (chave separada do usuário comum) ─────────────────</span>
+ADMIN_JWT_PRIVATE_KEY=<span class="s">"-----BEGIN RSA PRIVATE KEY-----\n..."</span>
+ADMIN_JWT_PUBLIC_KEY=<span class="s">"-----BEGIN PUBLIC KEY-----\n..."</span>
+
+<span class="c"># ─── Stripe ──────────────────────────────────────────────────────</span>
+STRIPE_SECRET_KEY=sk_test_...
+STRIPE_WEBHOOK_SECRET=whsec_...
+STRIPE_PUBLISHABLE_KEY=pk_test_...    <span class="c"># enviado ao frontend via env pública</span>
+
+<span class="c"># ─── AWS S3 / Cloudflare R2 ──────────────────────────────────────</span>
+AWS_REGION=sa-east-1
+AWS_ACCESS_KEY_ID=...
+AWS_SECRET_ACCESS_KEY=...
+S3_BUCKET_NAME=marketplace-uploads-dev
+S3_PRESIGNED_URL_TTL=3600            <span class="c"># segundos</span>
+
+<span class="c"># ─── Email ───────────────────────────────────────────────────────</span>
+EMAIL_PROVIDER=resend                <span class="c"># ou ses, smtp</span>
+RESEND_API_KEY=re_...
+EMAIL_FROM=noreply@marketplace.com.br
+
+<span class="c"># ─── Plataforma ──────────────────────────────────────────────────</span>
+PLATFORM_FEE_RATE=0.10
+ESCROW_RELEASE_DAYS=3
+RATING_WINDOW_HOURS=72
+APP_URL=http://localhost:3000
+ADMIN_URL=http://localhost:3001
+API_URL=http://localhost:4000
+
+<span class="c"># ─── Sentry ──────────────────────────────────────────────────────</span>
+SENTRY_DSN=https://...@sentry.io/...
+
+NODE_ENV=development                 <span class="c"># development | staging | production</span></pre>
+
+<!-- ══ 7. DOCKER COMPOSE ══ -->
+<h2>7. Docker Compose — Ambiente Local</h2>
+
+<div class="ftag">infra/docker/docker-compose.yml</div>
+<pre><span class="key">version</span><span class="pun">:</span> <span class="s">'3.9'</span>
+
+<span class="key">services</span><span class="pun">:</span>
+  <span class="key">postgres</span><span class="pun">:</span>
+    <span class="key">image</span><span class="pun">:</span>    postgres:16-alpine
+    <span class="key">ports</span><span class="pun">:</span>    [<span class="s">"5432:5432"</span>]
+    <span class="key">environment</span><span class="pun">:</span>
+      POSTGRES_USER<span class="pun">:</span>     postgres
+      POSTGRES_PASSWORD<span class="pun">:</span> postgres
+      POSTGRES_DB<span class="pun">:</span>       marketplace_dev
+    <span class="key">volumes</span><span class="pun">:</span>
+      - postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    <span class="key">healthcheck</span><span class="pun">:</span>
+      test<span class="pun">:</span>     [<span class="s">"CMD-SHELL"</span>, <span class="s">"pg_isready -U postgres"</span>]
+      interval<span class="pun">:</span> 5s
+      timeout<span class="pun">:</span>  3s
+      retries<span class="pun">:</span>  5
+
+  <span class="key">redis</span><span class="pun">:</span>
+    <span class="key">image</span><span class="pun">:</span>    redis:7-alpine
+    <span class="key">ports</span><span class="pun">:</span>    [<span class="s">"6379:6379"</span>]
+    <span class="key">command</span><span class="pun">:</span>  redis-server --save 60 1
+    <span class="key">volumes</span><span class="pun">:</span>
+      - redis_data:/data
+
+  <span class="key">mailhog</span><span class="pun">:</span>                            <span class="c"># captura emails no dev (sem enviar de verdade)</span>
+    <span class="key">image</span><span class="pun">:</span>    mailhog/mailhog:latest
+    <span class="key">ports</span><span class="pun">:</span>
+      - <span class="s">"1025:1025"</span>                    <span class="c"># SMTP</span>
+      - <span class="s">"8025:8025"</span>                    <span class="c"># UI web</span>
+
+<span class="key">volumes</span><span class="pun">:</span>
+  postgres_data<span class="pun">:</span>
+  redis_data<span class="pun">:</span></pre>
+
+<!-- ══ 8. GITIGNORE ══ -->
+<h2>8. <code>.gitignore</code></h2>
+
+<div class="ftag">.gitignore</div>
+<pre><span class="c"># Dependencies</span>
+node_modules/
+.pnpm-store/
+
+<span class="c"># Build outputs</span>
+dist/
+.next/
+.turbo/
+*.tsbuildinfo
+
+<span class="c"># Environment — NUNCA commitar .env com valores reais</span>
+.env
+.env.local
+.env.*.local
+apps/**/.env
+apps/**/.env.local
+
+<span class="c"># Logs</span>
+*.log
+logs/
+
+<span class="c"># OS</span>
+.DS_Store
+Thumbs.db
+
+<span class="c"># IDE</span>
+.vscode/settings.json
+.idea/
+*.swp
+
+<span class="c"># Test coverage</span>
+coverage/
+
+<span class="c"># Uploads locais</span>
+uploads/</pre>
+
+<!-- ══ 9. ESTRATÉGIA DE BRANCHES ══ -->
+<h2>9. Estratégia de Branches e Commits</h2>
+
+<svg width="100%" viewBox="0 0 680 200" xmlns="http://www.w3.org/2000/svg" style="display:block;margin:16px 0;">
+<!-- main line -->
+<line x1="20" y1="30" x2="660" y2="30" stroke="#0F6E56" stroke-width="2"/>
+<text x="8" y="24" font-size="9" fill="#0F6E56" font-weight="700" font-family="system-ui">main</text>
+<circle cx="100" cy="30" r="5" fill="#0F6E56"/>
+<circle cx="300" cy="30" r="5" fill="#0F6E56"/>
+<circle cx="500" cy="30" r="5" fill="#0F6E56"/>
+<circle cx="640" cy="30" r="5" fill="#0F6E56"/>
+<text x="82" y="16" font-size="8" fill="#0F6E56" font-family="system-ui">v0.1.0</text>
+<text x="282" y="16" font-size="8" fill="#0F6E56" font-family="system-ui">v0.2.0</text>
+<text x="482" y="16" font-size="8" fill="#0F6E56" font-family="system-ui">v0.3.0</text>
+<text x="622" y="16" font-size="8" fill="#0F6E56" font-family="system-ui">v1.0.0</text>
+
+<!-- staging line -->
+<line x1="20" y1="80" x2="660" y2="80" stroke="#185FA5" stroke-width="1.5"/>
+<text x="8" y="74" font-size="9" fill="#185FA5" font-weight="700" font-family="system-ui">staging</text>
+<circle cx="180" cy="80" r="4" fill="#185FA5"/>
+<circle cx="380" cy="80" r="4" fill="#185FA5"/>
+<circle cx="560" cy="80" r="4" fill="#185FA5"/>
+
+<!-- main ↔ staging -->
+<line x1="100" y1="30" x2="180" y2="80" stroke="#9c9a92" stroke-width="0.8" stroke-dasharray="3 2"/>
+<line x1="180" y1="80" x2="300" y2="30" stroke="#9c9a92" stroke-width="0.8" stroke-dasharray="3 2"/>
+<line x1="300" y1="30" x2="380" y2="80" stroke="#9c9a92" stroke-width="0.8" stroke-dasharray="3 2"/>
+<line x1="380" y1="80" x2="500" y2="30" stroke="#9c9a92" stroke-width="0.8" stroke-dasharray="3 2"/>
+<line x1="500" y1="30" x2="560" y2="80" stroke="#9c9a92" stroke-width="0.8" stroke-dasharray="3 2"/>
+<line x1="560" y1="80" x2="640" y2="30" stroke="#9c9a92" stroke-width="0.8" stroke-dasharray="3 2"/>
+
+<!-- feature branches -->
+<line x1="100" y1="30" x2="130" y2="130" stroke="#534AB7" stroke-width="1.2" stroke-dasharray="4 2"/>
+<line x1="130" y1="130" x2="180" y2="80" stroke="#534AB7" stroke-width="1.2" stroke-dasharray="4 2"/>
+<text x="105" y="145" font-size="8" fill="#534AB7" font-family="system-ui">feature/orders</text>
+
+<line x1="300" y1="30" x2="330" y2="160" stroke="#534AB7" stroke-width="1.2" stroke-dasharray="4 2"/>
+<line x1="330" y1="160" x2="380" y2="80" stroke="#534AB7" stroke-width="1.2" stroke-dasharray="4 2"/>
+<text x="310" y="175" font-size="8" fill="#534AB7" font-family="system-ui">feature/payments</text>
+
+<!-- hotfix -->
+<line x1="500" y1="30" x2="540" y2="110" stroke="#A32D2D" stroke-width="1.2" stroke-dasharray="3 2"/>
+<line x1="540" y1="110" x2="560" y2="80" stroke="#A32D2D" stroke-width="1.2" stroke-dasharray="3 2"/>
+<line x1="540" y1="110" x2="640" y2="30" stroke="#A32D2D" stroke-width="0.8" stroke-dasharray="3 2"/>
+<text x="550" y="125" font-size="8" fill="#A32D2D" font-family="system-ui">hotfix/*</text>
+
+<!-- Legend -->
+<circle cx="30" cy="188" r="4" fill="#0F6E56"/><text x="40" y="192" font-size="8" fill="var(--muted,#73726c)" font-family="system-ui">main (produção, protegida)</text>
+<circle cx="160" cy="188" r="4" fill="#185FA5"/><text x="170" y="192" font-size="8" fill="var(--muted,#73726c)" font-family="system-ui">staging (homologação)</text>
+<circle cx="280" cy="188" r="4" fill="#534AB7"/><text x="290" y="192" font-size="8" fill="var(--muted,#73726c)" font-family="system-ui">feature/* (PR → staging)</text>
+<circle cx="400" cy="188" r="4" fill="#A32D2D"/><text x="410" y="192" font-size="8" fill="var(--muted,#73726c)" font-family="system-ui">hotfix/* (PR → main + staging)</text>
+</svg>
+
+<table class="table">
+<thead><tr><th>Branch</th><th>Origem</th><th>Merge para</th><th>Deploy automático</th><th>Proteções</th></tr></thead>
+<tbody>
+<tr><td><code>main</code></td><td>—</td><td>—</td><td>Produção</td><td>PR obrigatório · 1 review · CI verde · sem force push</td></tr>
+<tr><td><code>staging</code></td><td><code>main</code></td><td><code>main</code></td><td>Staging</td><td>PR obrigatório · CI verde</td></tr>
+<tr><td><code>feature/*</code></td><td><code>staging</code></td><td><code>staging</code></td><td>Nenhum</td><td>Nenhuma (branch livre)</td></tr>
+<tr><td><code>fix/*</code></td><td><code>staging</code></td><td><code>staging</code></td><td>Nenhum</td><td>Nenhuma</td></tr>
+<tr><td><code>hotfix/*</code></td><td><code>main</code></td><td><code>main</code> + <code>staging</code></td><td>Produção</td><td>PR obrigatório · 1 review</td></tr>
+</tbody>
+</table>
+
+<h3>Convenção de commits (Conventional Commits)</h3>
+
+<div class="ftag">formato: &lt;tipo&gt;(escopo): &lt;descrição&gt;</div>
+<pre><span class="c"># Exemplos corretos</span>
+feat(orders): add order state machine with 8 states
+fix(payments): prevent double-capture on webhook retry
+chore(deps): update stripe to 16.2.0
+docs(api): document payment endpoints
+test(chat): add integration tests for message persistence
+refactor(auth): extract token validation to shared middleware
+perf(orders): add GIN index for full-text search
+
+<span class="c"># Exemplos incorretos (evitar)</span>
+fix stuff                           <span class="c">← sem contexto</span>
+WIP                                 <span class="c">← nunca commitar WIP em branches compartilhadas</span>
+fixed the bug that João reported    <span class="c">← não rastreável</span>
+Update                              <span class="c">← não diz o que foi atualizado</span></pre>
+
+<!-- ══ 10. CI/CD ══ -->
+<h2>10. GitHub Actions — CI e Deploy</h2>
+
+<div class="ftag">.github/workflows/ci.yml</div>
+<pre><span class="key">name</span><span class="pun">:</span> CI
+
+<span class="key">on</span><span class="pun">:</span>
+  <span class="key">pull_request</span><span class="pun">:</span>
+    <span class="key">branches</span><span class="pun">:</span> [main, staging]
+  <span class="key">push</span><span class="pun">:</span>
+    <span class="key">branches</span><span class="pun">:</span> [main, staging]
+
+<span class="key">jobs</span><span class="pun">:</span>
+  <span class="key">ci</span><span class="pun">:</span>
+    <span class="key">runs-on</span><span class="pun">:</span> ubuntu-latest
+    <span class="key">services</span><span class="pun">:</span>
+      <span class="key">postgres</span><span class="pun">:</span>
+        <span class="key">image</span><span class="pun">:</span>    postgres:16
+        <span class="key">env</span><span class="pun">:</span>     { POSTGRES_PASSWORD: postgres }
+        <span class="key">options</span><span class="pun">:</span> >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-retries 5
+        <span class="key">ports</span><span class="pun">:</span>   [<span class="s">"5432:5432"</span>]
+      <span class="key">redis</span><span class="pun">:</span>
+        <span class="key">image</span><span class="pun">:</span>    redis:7
+        <span class="key">ports</span><span class="pun">:</span>   [<span class="s">"6379:6379"</span>]
+
+    <span class="key">steps</span><span class="pun">:</span>
+      - <span class="key">uses</span><span class="pun">:</span> actions/checkout@v4
+
+      - <span class="key">name</span><span class="pun">:</span> Setup pnpm
+        <span class="key">uses</span><span class="pun">:</span> pnpm/action-setup@v4
+        <span class="key">with</span><span class="pun">: {</span> version<span class="pun">:</span> 9 <span class="pun">}</span>
+
+      - <span class="key">name</span><span class="pun">:</span> Setup Node
+        <span class="key">uses</span><span class="pun">:</span> actions/setup-node@v4
+        <span class="key">with</span><span class="pun">:</span>
+          <span class="key">node-version</span><span class="pun">:</span> <span class="s">'20'</span>
+          <span class="key">cache</span><span class="pun">:</span>        <span class="s">'pnpm'</span>
+
+      - <span class="key">name</span><span class="pun">:</span> Install dependencies
+        <span class="key">run</span><span class="pun">:</span>  pnpm install --frozen-lockfile
+
+      - <span class="key">name</span><span class="pun">:</span> Typecheck
+        <span class="key">run</span><span class="pun">:</span>  pnpm typecheck
+
+      - <span class="key">name</span><span class="pun">:</span> Lint
+        <span class="key">run</span><span class="pun">:</span>  pnpm lint
+
+      - <span class="key">name</span><span class="pun">:</span> Run migrations
+        <span class="key">run</span><span class="pun">:</span>  pnpm db:migrate
+        <span class="key">env</span><span class="pun">:</span>
+          DATABASE_URL<span class="pun">:</span> postgresql://postgres:postgres@localhost:5432/postgres
+
+      - <span class="key">name</span><span class="pun">:</span> Tests
+        <span class="key">run</span><span class="pun">:</span>  pnpm test
+        <span class="key">env</span><span class="pun">:</span>
+          DATABASE_URL<span class="pun">:</span>  postgresql://postgres:postgres@localhost:5432/postgres
+          REDIS_URL<span class="pun">:</span>     redis://localhost:6379
+          NODE_ENV<span class="pun">:</span>      test
+
+      - <span class="key">name</span><span class="pun">:</span> Upload coverage
+        <span class="key">uses</span><span class="pun">:</span> codecov/codecov-action@v4</pre>
+
+<div class="ftag">.github/workflows/deploy-api.yml</div>
+<pre><span class="key">name</span><span class="pun">:</span> Deploy API
+
+<span class="key">on</span><span class="pun">:</span>
+  <span class="key">push</span><span class="pun">:</span>
+    <span class="key">branches</span><span class="pun">:</span> [main]
+    <span class="key">paths</span><span class="pun">:</span>    [<span class="s">'apps/api/**'</span>, <span class="s">'packages/**'</span>]   <span class="c"># só dispara se API mudou</span>
+
+<span class="key">jobs</span><span class="pun">:</span>
+  <span class="key">deploy</span><span class="pun">:</span>
+    <span class="key">runs-on</span><span class="pun">:</span> ubuntu-latest
+    <span class="key">steps</span><span class="pun">:</span>
+      - <span class="key">uses</span><span class="pun">:</span> actions/checkout@v4
+
+      - <span class="key">name</span><span class="pun">:</span> Build Docker image
+        <span class="key">run</span><span class="pun">:</span> |
+          docker build -t marketplace-api:${{ github.sha }} ./apps/api
+          docker tag marketplace-api:${{ github.sha }} marketplace-api:latest
+
+      <span class="c"># Adaptar ao provedor: Render, Railway, AWS ECS, Fly.io etc.</span>
+      - <span class="key">name</span><span class="pun">:</span> Deploy to Render
+        <span class="key">run</span><span class="pun">:</span> |
+          curl -X POST "${{ secrets.RENDER_DEPLOY_HOOK_API }}"
+
+      - <span class="key">name</span><span class="pun">:</span> Run migrations in production
+        <span class="key">run</span><span class="pun">:</span> pnpm db:migrate
+        <span class="key">env</span><span class="pun">:</span>
+          DATABASE_URL<span class="pun">:</span> ${{ secrets.PROD_DATABASE_URL }}</pre>
+
+<!-- ══ 11. SETUP INICIAL ══ -->
+<h2>11. Setup Inicial do Projeto</h2>
+
+<div class="ftag">infra/scripts/setup.sh — rodado uma vez por novo dev</div>
+<pre><span class="c">#!/bin/bash</span>
+set -e
+
+echo <span class="s">"🚀 Setup do marketplace"</span>
+
+<span class="c"># 1. Verifica dependências</span>
+command -v node  >/dev/null || { echo <span class="s">"Node 20+ necessário"</span>; exit 1; }
+command -v pnpm  >/dev/null || npm install -g pnpm
+command -v docker>/dev/null || { echo <span class="s">"Docker necessário"</span>; exit 1; }
+
+<span class="c"># 2. Instala dependências</span>
+pnpm install
+
+<span class="c"># 3. Copia .env de exemplo se não existir</span>
+[ ! -f .env ] && cp .env.example .env && echo <span class="s">"⚠️  Edite o .env com suas credenciais"</span>
+[ ! -f apps/api/.env ] && cp apps/api/.env.example apps/api/.env
+
+<span class="c"># 4. Sobe infra local</span>
+docker compose -f infra/docker/docker-compose.yml up -d
+echo <span class="s">"⏳ Aguardando PostgreSQL..."</span>
+sleep 3
+
+<span class="c"># 5. Roda migrations e seed</span>
+pnpm db:migrate
+pnpm db:seed
+
+echo <span class="s">"✅ Pronto! Rode: pnpm dev"</span>
+echo <span class="s">"   API:    http://localhost:4000"</span>
+echo <span class="s">"   Web:    http://localhost:3000"</span>
+echo <span class="s">"   Admin:  http://localhost:3001"</span>
+echo <span class="s">"   Emails: http://localhost:8025 (MailHog)"</span></pre>
+
+<!-- ══ 12. PRIMEIROS COMMITS ══ -->
+<h2>12. Sequência dos Primeiros Commits</h2>
+
+<div class="ftag">git log --oneline (primeiras semanas)</div>
+<pre><span class="fn">a1b2c3d</span> <span class="pun">(</span><span class="teal">main</span><span class="pun">)</span> chore: initial monorepo setup with turborepo and pnpm
+<span class="fn">e4f5g6h</span>          chore(api): configure express + typescript + zod
+<span class="fn">i7j8k9l</span>          chore(infra): add docker-compose for local dev
+<span class="fn">m0n1o2p</span>          chore(db): initial schema DDL migration
+<span class="fn">q3r4s5t</span>          feat(auth): user registration for empresa and freelancer
+<span class="fn">u6v7w8x</span>          feat(auth): login with JWT + refresh token
+<span class="fn">y9z0a1b</span>          feat(auth): email verification flow
+<span class="fn">c2d3e4f</span>          test(auth): add unit tests for auth service
+<span class="fn">g5h6i7j</span>          feat(orders): create and publish order
+<span class="fn">k8l9m0n</span>          feat(orders): order state machine (8 states)
+<span class="fn">o1p2q3r</span>          feat(orders): full-text search with PostgreSQL tsvector
+<span class="fn">s4t5u6v</span>          feat(applications): apply and select freelancer
+<span class="fn">w7x8y9z</span>          feat(applications): freelancer accept/reject
+<span class="fn">a0b1c2d</span>          feat(chat): socket.io channel after order acceptance
+<span class="fn">e3f4g5h</span>          feat(chat): message persistence before broadcast
+<span class="fn">i6j7k8l</span>          feat(orders): evidence upload via S3 presigned URL
+<span class="fn">m9n0o1p</span>          feat(orders): company approval flow
+<span class="fn">q2r3s4t</span>          feat(payments): stripe card authorization on selection
+<span class="fn">u5v6w7x</span>          feat(payments): escrow capture on acceptance
+<span class="fn">y8z9a0b</span>          fix(payments): use raw body for stripe webhook HMAC
+<span class="fn">c1d2e3f</span>          feat(payments): escrow release job with skip locked
+<span class="fn">g4h5i6j</span>          feat(ratings): submit rating after completion
+<span class="fn">k7l8m9n</span>          feat(admin): basic panel with user list and suspend
+<span class="fn">o0p1q2r</span>          feat(notifications): transactional email for key events
+<span class="fn">s3t4u5v</span>          test(e2e): complete order flow end-to-end
+<span class="fn">w6x7y8z</span> <span class="pun">(</span><span class="teal">tag: v0.1.0</span><span class="pun">)</span> chore: MVP ready for closed beta</pre>
+
+<div class="teal-box"><p>💡 <strong>Dica de onboarding:</strong> todo novo desenvolvedor no time deve conseguir rodar <code>bash infra/scripts/setup.sh</code> e ter o ambiente completo funcionando em menos de 5 minutos. Se não conseguir, é um bug no setup, não no desenvolvedor. Trate como bug e corrija.</p></div>
+
+</div></body></html>

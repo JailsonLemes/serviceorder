@@ -1,0 +1,2106 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>API Reference — Marketplace de Ordens de Serviço</title>
+<style>
+:root {
+  --get:#185FA5;--get-bg:#E6F1FB;--get-border:#B5D4F4;
+  --post:#0F6E56;--post-bg:#E1F5EE;--post-border:#9FE1CB;
+  --put:#854F0B;--put-bg:#FAEEDA;--put-border:#FAC775;
+  --patch:#534AB7;--patch-bg:#EEEDFE;--patch-border:#AFA9EC;
+  --del:#A32D2D;--del-bg:#FCEBEB;--del-border:#F7C1C1;
+  --code-bg:#18181a;--code-fg:#d4d4d4;
+  --key:#9cdcfe;--str:#ce9178;--num:#b5cea8;--bool:#569cd6;--cmt:#6a9955;--pun:#d4d4d4;
+  --border:rgba(0,0,0,0.1);--surface:#f5f4f0;
+  --text:#1a1a18;--muted:#73726c;--bg:#fff;
+  --font:system-ui,-apple-system,sans-serif;
+  --mono:'SF Mono','Fira Code',Consolas,monospace;
+  --radius:8px;
+}
+@media(prefers-color-scheme:dark){
+  :root{
+    --code-bg:#0d1117;
+    --border:rgba(255,255,255,0.1);--surface:#242422;
+    --text:#e8e6de;--muted:#9c9a92;--bg:#1c1c1a;
+    --get-bg:#042C53;--get-border:#0C447C;
+    --post-bg:#04342C;--post-border:#085041;
+    --put-bg:#412402;--put-border:#633806;
+    --patch-bg:#26215C;--patch-border:#3C3489;
+    --del-bg:#501313;--del-border:#791F1F;
+  }
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{font-family:var(--font);color:var(--text);background:var(--bg);line-height:1.6;}
+a{color:var(--get);text-decoration:none;}
+a:hover{text-decoration:underline;}
+
+/* ── Layout ── */
+.wrap{display:grid;grid-template-columns:260px 1fr;min-height:100vh;}
+nav{position:sticky;top:0;height:100vh;overflow-y:auto;background:var(--surface);border-right:1px solid var(--border);padding:16px 0 40px;flex-shrink:0;}
+main{padding:48px 56px;max-width:960px;}
+
+/* ── Nav ── */
+.nav-logo{padding:0 18px 20px;font-size:13px;font-weight:600;color:var(--muted);border-bottom:1px solid var(--border);margin-bottom:12px;}
+.nav-group{margin-bottom:6px;}
+.nav-group-title{padding:8px 18px 4px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);}
+nav a{display:flex;align-items:center;gap:8px;padding:5px 18px;font-size:12.5px;color:var(--text);transition:background .1s;}
+nav a:hover{background:rgba(0,0,0,.05);text-decoration:none;}
+.m{font-size:9px;font-weight:700;padding:2px 6px;border-radius:3px;letter-spacing:.04em;min-width:36px;text-align:center;flex-shrink:0;}
+.m.G{background:var(--get-bg);color:var(--get);}
+.m.P{background:var(--post-bg);color:var(--post);}
+.m.U{background:var(--put-bg);color:var(--put);}
+.m.D{background:var(--del-bg);color:var(--del);}
+
+/* ── Page header ── */
+.page-hd{margin-bottom:48px;padding-bottom:28px;border-bottom:2px solid var(--border);}
+.page-hd h1{font-size:26px;font-weight:600;margin-bottom:8px;}
+.page-hd p{color:var(--muted);font-size:14px;max-width:620px;}
+.base-url-box{display:inline-flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:9px 14px;margin-top:14px;font-family:var(--mono);font-size:13px;}
+.base-url-box strong{color:var(--muted);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;}
+.ver-badge{background:var(--post-bg);color:var(--post);font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;font-family:var(--font);letter-spacing:.04em;}
+
+/* ── Conventions box ── */
+.conv-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:20px;}
+.conv-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;}
+.conv-card h4{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:10px;}
+
+/* ── Section ── */
+.section{margin-bottom:72px;}
+.section-hd{font-size:20px;font-weight:600;padding-bottom:12px;border-bottom:2px solid var(--border);margin-bottom:28px;display:flex;align-items:center;gap:10px;}
+.section-hd .icon{font-size:18px;}
+
+/* ── Endpoint card ── */
+.ep{border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:32px;box-shadow:0 1px 3px rgba(0,0,0,.04);}
+.ep-hd{display:flex;align-items:center;gap:12px;padding:14px 18px;flex-wrap:wrap;gap:10px;}
+.ep-hd.GET{background:var(--get-bg);border-bottom:1px solid var(--get-border);}
+.ep-hd.POST{background:var(--post-bg);border-bottom:1px solid var(--post-border);}
+.ep-hd.PUT{background:var(--put-bg);border-bottom:1px solid var(--put-border);}
+.ep-hd.DELETE{background:var(--del-bg);border-bottom:1px solid var(--del-border);}
+.method-badge{font-size:11px;font-weight:700;padding:4px 10px;border-radius:5px;letter-spacing:.05em;flex-shrink:0;}
+.method-badge.GET{background:var(--get);color:#fff;}
+.method-badge.POST{background:var(--post);color:#fff;}
+.method-badge.PUT{background:var(--put);color:#fff;}
+.method-badge.DELETE{background:var(--del);color:#fff;}
+.ep-url{font-family:var(--mono);font-size:14px;font-weight:500;flex:1;color:var(--text);}
+.ep-url .param-seg{opacity:.6;}
+.auth-tag{margin-left:auto;display:flex;gap:6px;align-items:center;flex-shrink:0;flex-wrap:wrap;}
+.tag{font-size:10px;font-weight:600;padding:3px 8px;border-radius:4px;letter-spacing:.04em;white-space:nowrap;}
+.tag-public{background:var(--post-bg);color:var(--post);}
+.tag-auth{background:var(--surface);border:1px solid var(--border);color:var(--muted);}
+.tag-empresa{background:var(--get-bg);color:var(--get);}
+.tag-freelancer{background:var(--patch-bg);color:var(--patch);}
+.tag-admin{background:var(--put-bg);color:var(--put);}
+
+.ep-desc{padding:12px 18px;font-size:13.5px;color:var(--muted);border-bottom:1px solid var(--border);line-height:1.6;}
+
+.ep-body{padding:20px 18px;}
+.ep-body>*+*{margin-top:20px;}
+
+/* ── Params table ── */
+.ptable{width:100%;border-collapse:collapse;font-size:12.5px;}
+.ptable th{text-align:left;padding:7px 10px;background:var(--surface);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);}
+.ptable th:first-child{border-radius:var(--radius) 0 0 0;}
+.ptable th:last-child{border-radius:0 var(--radius) 0 0;}
+.ptable td{padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top;}
+.ptable tr:last-child td{border-bottom:none;}
+.pname{font-family:var(--mono);font-size:12px;font-weight:600;}
+.preq{color:var(--del);font-size:9px;font-weight:700;text-transform:uppercase;margin-left:4px;vertical-align:middle;}
+.popt{color:var(--muted);font-size:9px;text-transform:uppercase;margin-left:4px;vertical-align:middle;}
+.ptype{font-family:var(--mono);font-size:11px;background:var(--surface);border:1px solid var(--border);padding:1px 6px;border-radius:4px;white-space:nowrap;}
+
+/* ── Block label ── */
+.blabel{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:6px;}
+
+/* ── Code block ── */
+pre{background:var(--code-bg);color:var(--code-fg);padding:16px 18px;border-radius:var(--radius);font-family:var(--mono);font-size:12px;overflow-x:auto;line-height:1.65;border:1px solid rgba(255,255,255,.05);}
+.k{color:var(--key);}
+.s{color:var(--str);}
+.n{color:var(--num);}
+.b{color:var(--bool);}
+.c{color:var(--cmt);font-style:italic;}
+.pun{color:var(--pun);}
+
+/* ── Error table ── */
+.etable{width:100%;border-collapse:collapse;font-size:12.5px;}
+.etable th{text-align:left;padding:7px 10px;background:var(--surface);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);}
+.etable td{padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top;}
+.etable tr:last-child td{border-bottom:none;}
+.http-code{font-family:var(--mono);font-weight:700;font-size:12px;}
+.h4xx{color:var(--put);}
+.h5xx{color:var(--del);}
+.ecode{font-family:var(--mono);font-size:11px;background:var(--surface);border:1px solid var(--border);padding:2px 7px;border-radius:4px;}
+.sec-sub{font-size:13px;font-weight:600;margin-bottom:8px;color:var(--text);}
+
+@media(max-width:900px){
+  .wrap{grid-template-columns:1fr;}
+  nav{position:static;height:auto;}
+  main{padding:24px 20px;}
+  .conv-grid{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<!-- ═══════════════ SIDEBAR ═══════════════ -->
+<nav>
+  <div class="nav-logo">Marketplace API <span class="ver-badge">v1</span></div>
+
+  <div class="nav-group">
+    <div class="nav-group-title">Visão Geral</div>
+    <a href="#overview">Convenções e padrões</a>
+    <a href="#auth-header">Autenticação</a>
+    <a href="#errors">Erros globais</a>
+  </div>
+
+  <div class="nav-group">
+    <div class="nav-group-title">Autenticação</div>
+    <a href="#ep-reg-company"><span class="m P">POST</span>Cadastro empresa</a>
+    <a href="#ep-reg-freelancer"><span class="m P">POST</span>Cadastro freelancer</a>
+    <a href="#ep-login"><span class="m P">POST</span>Login</a>
+    <a href="#ep-refresh"><span class="m P">POST</span>Refresh token</a>
+    <a href="#ep-logout"><span class="m P">POST</span>Logout</a>
+    <a href="#ep-me"><span class="m G">GET</span>Meu perfil</a>
+    <a href="#ep-forgot"><span class="m P">POST</span>Recuperar senha</a>
+    <a href="#ep-reset"><span class="m P">POST</span>Redefinir senha</a>
+  </div>
+
+  <div class="nav-group">
+    <div class="nav-group-title">Ordens</div>
+    <a href="#ep-create-order"><span class="m P">POST</span>Criar ordem</a>
+    <a href="#ep-list-orders"><span class="m G">GET</span>Listar ordens</a>
+    <a href="#ep-get-order"><span class="m G">GET</span>Detalhe</a>
+    <a href="#ep-update-order"><span class="m U">PUT</span>Atualizar</a>
+    <a href="#ep-publish-order"><span class="m P">POST</span>Publicar</a>
+    <a href="#ep-cancel-order"><span class="m P">POST</span>Cancelar</a>
+    <a href="#ep-status-history"><span class="m G">GET</span>Histórico status</a>
+    <a href="#ep-order-attachments"><span class="m P">POST</span>Presign anexo</a>
+  </div>
+
+  <div class="nav-group">
+    <div class="nav-group-title">Candidaturas</div>
+    <a href="#ep-apply"><span class="m P">POST</span>Candidatar-se</a>
+    <a href="#ep-list-apps"><span class="m G">GET</span>Listar candidaturas</a>
+    <a href="#ep-get-app"><span class="m G">GET</span>Detalhe candidatura</a>
+    <a href="#ep-select"><span class="m P">POST</span>Selecionar freelancer</a>
+    <a href="#ep-withdraw"><span class="m D">DELETE</span>Retirar candidatura</a>
+  </div>
+
+  <div class="nav-group">
+    <div class="nav-group-title">Aceite e Execução</div>
+    <a href="#ep-accept"><span class="m P">POST</span>Aceitar ordem</a>
+    <a href="#ep-reject"><span class="m P">POST</span>Rejeitar ordem</a>
+    <a href="#ep-evidences"><span class="m P">POST</span>Enviar evidências</a>
+    <a href="#ep-get-evidences"><span class="m G">GET</span>Ver evidências</a>
+    <a href="#ep-approve"><span class="m P">POST</span>Aprovar entrega</a>
+    <a href="#ep-adjustment"><span class="m P">POST</span>Solicitar ajuste</a>
+  </div>
+
+  <div class="nav-group">
+    <div class="nav-group-title">Chat</div>
+    <a href="#ep-get-channel"><span class="m G">GET</span>Canal do chat</a>
+    <a href="#ep-list-messages"><span class="m G">GET</span>Listar mensagens</a>
+    <a href="#ep-send-msg"><span class="m P">POST</span>Enviar mensagem</a>
+    <a href="#ep-edit-msg"><span class="m U">PUT</span>Editar mensagem</a>
+    <a href="#ep-delete-msg"><span class="m D">DELETE</span>Apagar mensagem</a>
+    <a href="#ep-read-msg"><span class="m P">POST</span>Marcar lida</a>
+    <a href="#ep-chat-presign"><span class="m P">POST</span>Presign anexo chat</a>
+  </div>
+
+  <div class="nav-group">
+    <div class="nav-group-title">Pagamento</div>
+    <a href="#ep-pay-authorize"><span class="m P">POST</span>Autorizar (cartão)</a>
+    <a href="#ep-pay-pix"><span class="m P">POST</span>Gerar PIX</a>
+    <a href="#ep-pay-status"><span class="m G">GET</span>Status pagamento</a>
+    <a href="#ep-webhook"><span class="m P">POST</span>Webhook provedor</a>
+  </div>
+
+  <div class="nav-group">
+    <div class="nav-group-title">Avaliações</div>
+    <a href="#ep-submit-rating"><span class="m P">POST</span>Avaliar</a>
+    <a href="#ep-order-ratings"><span class="m G">GET</span>Avaliações da ordem</a>
+    <a href="#ep-user-ratings"><span class="m G">GET</span>Avaliações do usuário</a>
+  </div>
+
+  <div class="nav-group">
+    <div class="nav-group-title">Disputas</div>
+    <a href="#ep-open-dispute"><span class="m P">POST</span>Abrir disputa</a>
+    <a href="#ep-get-dispute"><span class="m G">GET</span>Detalhe</a>
+    <a href="#ep-dispute-msg"><span class="m P">POST</span>Mensagem disputa</a>
+    <a href="#ep-dispute-evidence"><span class="m P">POST</span>Evidência disputa</a>
+    <a href="#ep-assign-dispute"><span class="m P">POST</span>Atribuir admin</a>
+    <a href="#ep-resolve"><span class="m P">POST</span>Resolver disputa</a>
+  </div>
+
+  <div class="nav-group">
+    <div class="nav-group-title">Utilitários</div>
+    <a href="#ep-search-services"><span class="m G">GET</span>Buscar serviços</a>
+    <a href="#ep-search-freelancers"><span class="m G">GET</span>Buscar freelancers</a>
+    <a href="#ep-notifs"><span class="m G">GET</span>Notificações</a>
+    <a href="#ep-read-notif"><span class="m P">POST</span>Marcar lida</a>
+    <a href="#ep-categories"><span class="m G">GET</span>Categorias</a>
+  </div>
+</nav>
+
+<!-- ═══════════════ MAIN ═══════════════ -->
+<main>
+
+<!-- Overview -->
+<div class="page-hd" id="overview">
+  <h1>API Reference</h1>
+  <p>Documentação completa da API REST do marketplace de ordens de serviço. Todas as respostas são JSON. Datas em ISO 8601 UTC. Valores monetários como string decimal com 2 casas.</p>
+  <div class="base-url-box">
+    <strong>Base URL</strong>
+    <code>https://api.seudominio.com/v1</code>
+  </div>
+</div>
+
+<!-- Conventions -->
+<div class="section">
+  <div class="section-hd">Convenções e Padrões</div>
+
+  <div class="conv-grid">
+    <div class="conv-card">
+      <h4>Envelope de resposta</h4>
+      <pre><span class="c">// Sucesso</span>
+<span class="pun">{</span>
+  <span class="k">"data"</span><span class="pun">:</span> <span class="pun">{</span> <span class="c">/* payload */</span> <span class="pun">},</span>
+  <span class="k">"meta"</span><span class="pun">:</span> <span class="pun">{</span> <span class="c">/* paginação */</span> <span class="pun">}</span>
+<span class="pun">}</span>
+
+<span class="c">// Erro</span>
+<span class="pun">{</span>
+  <span class="k">"error"</span><span class="pun">:</span> <span class="pun">{</span>
+    <span class="k">"code"</span><span class="pun">:</span> <span class="s">"INVALID_CREDENTIALS"</span><span class="pun">,</span>
+    <span class="k">"message"</span><span class="pun">:</span> <span class="s">"E-mail ou senha inválidos"</span><span class="pun">,</span>
+    <span class="k">"details"</span><span class="pun">: []</span>
+  <span class="pun">}</span>
+<span class="pun">}</span></pre>
+    </div>
+
+    <div class="conv-card">
+      <h4>Paginação cursor</h4>
+      <pre><span class="c">// Query params</span>
+?page=1&per_page=20
+&sort_by=created_at&sort_dir=desc
+
+<span class="c">// Meta na resposta</span>
+<span class="k">"meta"</span><span class="pun">: {</span>
+  <span class="k">"page"</span><span class="pun">:</span> <span class="n">1</span><span class="pun">,</span>
+  <span class="k">"per_page"</span><span class="pun">:</span> <span class="n">20</span><span class="pun">,</span>
+  <span class="k">"total"</span><span class="pun">:</span> <span class="n">156</span><span class="pun">,</span>
+  <span class="k">"total_pages"</span><span class="pun">:</span> <span class="n">8</span>
+<span class="pun">}</span></pre>
+    </div>
+
+    <div class="conv-card" id="auth-header">
+      <h4>Autenticação JWT</h4>
+      <pre><span class="c">// Header obrigatório em rotas protegidas</span>
+Authorization: Bearer {access_token}
+
+<span class="c">// Tokens</span>
+access_token  → 15 min (RS256)
+refresh_token → 30 dias (HttpOnly cookie)</pre>
+    </div>
+
+    <div class="conv-card">
+      <h4>Idempotência (pagamentos)</h4>
+      <pre><span class="c">// Header obrigatório em operações financeiras</span>
+X-Idempotency-Key: 7f3d4a28-1c9e-4b22-a8f6
+
+<span class="c">// UUID gerado pelo CLIENTE antes do request.
+// Mesmo key = mesma resposta, sem dupla cobrança.</span></pre>
+    </div>
+  </div>
+
+  <div style="margin-top:24px;">
+    <div class="sec-sub" id="errors">Códigos HTTP globais</div>
+    <table class="etable">
+      <tr><th>HTTP</th><th>Código</th><th>Quando ocorre</th></tr>
+      <tr><td class="http-code">401</td><td><span class="ecode">UNAUTHORIZED</span></td><td>Token ausente, expirado ou inválido</td></tr>
+      <tr><td class="http-code">403</td><td><span class="ecode">FORBIDDEN</span></td><td>Token válido, mas role sem permissão para esta ação</td></tr>
+      <tr><td class="http-code">404</td><td><span class="ecode">NOT_FOUND</span></td><td>Recurso inexistente ou sem permissão de leitura</td></tr>
+      <tr><td class="http-code">429</td><td><span class="ecode">RATE_LIMITED</span></td><td>Limite de requisições excedido (header <code>Retry-After</code> indica espera)</td></tr>
+      <tr><td class="http-code">500</td><td><span class="ecode">INTERNAL_ERROR</span></td><td>Erro inesperado no servidor</td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- ═════════ AUTENTICAÇÃO ═════════ -->
+<div class="section">
+  <div class="section-hd">Autenticação e Cadastro</div>
+
+  <!-- Register Company -->
+  <div class="ep" id="ep-reg-company">
+    <div class="ep-hd POST">
+      <span class="method-badge POST">POST</span>
+      <span class="ep-url">/auth/register/company</span>
+      <div class="auth-tag"><span class="tag tag-public">Público</span></div>
+    </div>
+    <div class="ep-desc">Cadastra empresa e retorna tokens imediatamente. E-mail de verificação enviado em background. Conta começa como <code>PENDING_VERIFICATION</code>.</div>
+    <div class="ep-body">
+      <div class="blabel">Request Body</div>
+      <pre><span class="pun">{</span>
+  <span class="k">"email"</span><span class="pun">:</span>        <span class="s">"contato@techcorp.com.br"</span><span class="pun">,</span>    <span class="c">// obrigatório, único</span>
+  <span class="k">"password"</span><span class="pun">:</span>     <span class="s">"MinhaS3nh@!"</span><span class="pun">,</span>             <span class="c">// min 8 chars, 1 maiúscula, 1 número, 1 especial</span>
+  <span class="k">"full_name"</span><span class="pun">:</span>    <span class="s">"João Silva"</span><span class="pun">,</span>               <span class="c">// nome do responsável</span>
+  <span class="k">"company_name"</span><span class="pun">:</span> <span class="s">"Tech Corp Ltda"</span><span class="pun">,</span>          <span class="c">// obrigatório</span>
+  <span class="k">"cnpj"</span><span class="pun">:</span>         <span class="s">"12345678000195"</span><span class="pun">,</span>          <span class="c">// opcional — 14 dígitos sem pontuação</span>
+  <span class="k">"phone"</span><span class="pun">:</span>        <span class="s">"+5511999990000"</span><span class="pun">,</span>          <span class="c">// E.164</span>
+  <span class="k">"timezone"</span><span class="pun">:</span>     <span class="s">"America/Sao_Paulo"</span>        <span class="c">// padrão quando omitido</span>
+<span class="pun">}</span></pre>
+
+      <div class="blabel">Response 201</div>
+      <pre><span class="pun">{</span>
+  <span class="k">"data"</span><span class="pun">: {</span>
+    <span class="k">"access_token"</span><span class="pun">:</span>  <span class="s">"eyJhbGciOiJSUzI1NiJ9.eyJzdWIiOiI1NTBlODQwMCIsInJvbGUiOiJFTVBSRVNBIn0..."</span><span class="pun">,</span>
+    <span class="k">"refresh_token"</span><span class="pun">:</span> <span class="s">"dGhpcyBpcyBhIHNlY3VyZSByZWZyZXNoIHRva2Vu..."</span><span class="pun">,</span>
+    <span class="k">"token_type"</span><span class="pun">:</span>    <span class="s">"Bearer"</span><span class="pun">,</span>
+    <span class="k">"expires_in"</span><span class="pun">:</span>    <span class="n">900</span><span class="pun">,</span>                      <span class="c">// segundos (15 min)</span>
+    <span class="k">"user"</span><span class="pun">: {</span>
+      <span class="k">"id"</span><span class="pun">:</span>         <span class="s">"550e8400-e29b-41d4-a716-446655440000"</span><span class="pun">,</span>
+      <span class="k">"email"</span><span class="pun">:</span>      <span class="s">"contato@techcorp.com.br"</span><span class="pun">,</span>
+      <span class="k">"role"</span><span class="pun">:</span>       <span class="s">"EMPRESA"</span><span class="pun">,</span>
+      <span class="k">"status"</span><span class="pun">:</span>     <span class="s">"PENDING_VERIFICATION"</span><span class="pun">,</span>
+      <span class="k">"full_name"</span><span class="pun">:</span>  <span class="s">"João Silva"</span><span class="pun">,</span>
+      <span class="k">"profile_id"</span><span class="pun">:</span> <span class="s">"661f9511-e29b-41d4-b827-557766551111"</span>  <span class="c">// company.id</span>
+    <span class="pun">},</span>
+    <span class="k">"company"</span><span class="pun">: {</span>
+      <span class="k">"id"</span><span class="pun">:</span>               <span class="s">"661f9511-e29b-41d4-b827-557766551111"</span><span class="pun">,</span>
+      <span class="k">"company_name"</span><span class="pun">:</span>     <span class="s">"Tech Corp Ltda"</span><span class="pun">,</span>
+      <span class="k">"reputation_score"</span><span class="pun">:</span> <span class="s">"0.00"</span><span class="pun">,</span>
+      <span class="k">"completed_orders"</span><span class="pun">:</span> <span class="n">0</span>
+    <span class="pun">}</span>
+  <span class="pun">}</span>
+<span class="pun">}</span></pre>
+
+      <div class="blabel">Erros específicos</div>
+      <table class="etable">
+        <tr><th>HTTP</th><th>Código</th><th>Causa</th></tr>
+        <tr><td class="http-code h4xx">409</td><td><span class="ecode">EMAIL_ALREADY_EXISTS</span></td><td>E-mail já cadastrado</td></tr>
+        <tr><td class="http-code h4xx">422</td><td><span class="ecode">INVALID_CNPJ</span></td><td>CNPJ com dígito verificador inválido</td></tr>
+        <tr><td class="http-code h4xx">422</td><td><span class="ecode">WEAK_PASSWORD</span></td><td>Senha não atende os requisitos de segurança</td></tr>
+        <tr><td class="http-code h4xx">400</td><td><span class="ecode">VALIDATION_ERROR</span></td><td>Campos ausentes ou malformados — <code>details[]</code> lista cada campo</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- Register Freelancer -->
+  <div class="ep" id="ep-reg-freelancer">
+    <div class="ep-hd POST">
+      <span class="method-badge POST">POST</span>
+      <span class="ep-url">/auth/register/freelancer</span>
+      <div class="auth-tag"><span class="tag tag-public">Público</span></div>
+    </div>
+    <div class="ep-desc">Cadastra freelancer. CPF é criptografado antes de persistir (LGPD). PIX pode ser configurado depois via <code>PUT /freelancers/:id</code>.</div>
+    <div class="ep-body">
+      <div class="blabel">Request Body</div>
+      <pre><span class="pun">{</span>
+  <span class="k">"email"</span><span class="pun">:</span>            <span class="s">"maria@dev.com"</span><span class="pun">,</span>
+  <span class="k">"password"</span><span class="pun">:</span>         <span class="s">"MinhaS3nh@!"</span><span class="pun">,</span>
+  <span class="k">"full_name"</span><span class="pun">:</span>        <span class="s">"Maria Santos"</span><span class="pun">,</span>
+  <span class="k">"phone"</span><span class="pun">:</span>            <span class="s">"+5511988880000"</span><span class="pun">,</span>
+  <span class="k">"cpf"</span><span class="pun">:</span>              <span class="s">"12345678901"</span><span class="pun">,</span>        <span class="c">// opcional — 11 dígitos</span>
+  <span class="k">"bio"</span><span class="pun">:</span>              <span class="s">"Desenvolvedora Full-Stack com 5 anos de experiência em Node.js e PostgreSQL..."</span><span class="pun">,</span>
+  <span class="k">"hourly_rate"</span><span class="pun">:</span>      <span class="s">"150.00"</span><span class="pun">,</span>            <span class="c">// em BRL</span>
+  <span class="k">"experience_years"</span><span class="pun">:</span> <span class="n">5</span>
+<span class="pun">}</span></pre>
+
+      <div class="blabel">Response 201</div>
+      <pre><span class="pun">{</span>
+  <span class="k">"data"</span><span class="pun">: {</span>
+    <span class="k">"access_token"</span><span class="pun">:</span> <span class="s">"eyJhbGciOiJSUzI1NiJ9..."</span><span class="pun">,</span>
+    <span class="k">"refresh_token"</span><span class="pun">:</span> <span class="s">"dGhpcyBpcyBhIHJlZnJlc2..."</span><span class="pun">,</span>
+    <span class="k">"expires_in"</span><span class="pun">:</span> <span class="n">900</span><span class="pun">,</span>
+    <span class="k">"user"</span><span class="pun">: {</span>
+      <span class="k">"id"</span><span class="pun">:</span>         <span class="s">"772g0622-f30c-52e5-c938-668877662222"</span><span class="pun">,</span>
+      <span class="k">"role"</span><span class="pun">:</span>       <span class="s">"FREELANCER"</span><span class="pun">,</span>
+      <span class="k">"status"</span><span class="pun">:</span>     <span class="s">"PENDING_VERIFICATION"</span><span class="pun">,</span>
+      <span class="k">"full_name"</span><span class="pun">:</span>  <span class="s">"Maria Santos"</span><span class="pun">,</span>
+      <span class="k">"profile_id"</span><span class="pun">:</span> <span class="s">"883h1733-g41d-63f6-d049-779988773333"</span>   <span class="c">// freelancer.id</span>
+    <span class="pun">},</span>
+    <span class="k">"freelancer"</span><span class="pun">: {</span>
+      <span class="k">"id"</span><span class="pun">:</span>                  <span class="s">"883h1733-g41d-63f6-d049-779988773333"</span><span class="pun">,</span>
+      <span class="k">"availability_status"</span><span class="pun">:</span> <span class="s">"AVAILABLE"</span><span class="pun">,</span>
+      <span class="k">"reputation_score"</span><span class="pun">:</span>   <span class="s">"0.00"</span><span class="pun">,</span>
+      <span class="k">"completion_rate"</span><span class="pun">:</span>    <span class="s">"0.00"</span>
+    <span class="pun">}</span>
+  <span class="pun">}</span>
+<span class="pun">}</span></pre>
+
+      <div class="blabel">Erros específicos</div>
+      <table class="etable">
+        <tr><th>HTTP</th><th>Código</th><th>Causa</th></tr>
+        <tr><td class="http-code h4xx">409</td><td><span class="ecode">EMAIL_ALREADY_EXISTS</span></td><td>E-mail já cadastrado</td></tr>
+        <tr><td class="http-code h4xx">422</td><td><span class="ecode">INVALID_CPF</span></td><td>CPF com dígito verificador inválido</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- Login -->
+  <div class="ep" id="ep-login">
+    <div class="ep-hd POST">
+      <span class="method-badge POST">POST</span>
+      <span class="ep-url">/auth/login</span>
+      <div class="auth-tag"><span class="tag tag-public">Público</span></div>
+    </div>
+    <div class="ep-desc">Autentica usuário. O <code>refresh_token</code> também é gravado como cookie <code>HttpOnly; Secure; SameSite=Strict</code> automaticamente. Rate limit: 5 tentativas / 15 min por IP.</div>
+    <div class="ep-body">
+      <div class="blabel">Request Body</div>
+      <pre><span class="pun">{</span>
+  <span class="k">"email"</span><span class="pun">:</span>    <span class="s">"contato@techcorp.com.br"</span><span class="pun">,</span>
+  <span class="k">"password"</span><span class="pun">:</span> <span class="s">"MinhaS3nh@!"</span><span class="pun">,</span>
+  <span class="k">"device_info"</span><span class="pun">: {</span>                   <span class="c">// opcional — permite invalidação por dispositivo</span>
+    <span class="k">"platform"</span><span class="pun">:</span>    <span class="s">"IOS"</span><span class="pun">,</span>            <span class="c">// IOS | ANDROID | WEB</span>
+    <span class="k">"app_version"</span><span class="pun">:</span> <span class="s">"1.4.2"</span>
+  <span class="pun">}</span>
+<span class="pun">}</span></pre>
+
+      <div class="blabel">Response 200</div>
+      <pre><span class="pun">{</span>
+  <span class="k">"data"</span><span class="pun">: {</span>
+    <span class="k">"access_token"</span><span class="pun">:</span>  <span class="s">"eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI1NTBlODQwMCIsInJvbGUiOiJFTVBSRVNBIiwicHJvZmlsZV9pZCI6IjY2MWY5NTExIiwiaWF0IjoxNzQ2NTQwMjAwLCJleHAiOjE3NDY1NDExMDB9.assinatura"</span><span class="pun">,</span>
+    <span class="k">"refresh_token"</span><span class="pun">:</span> <span class="s">"dGhpcyBpcyBhIHNlY3VyZSByZWZyZXNoIHRva2Vu"</span><span class="pun">,</span>
+    <span class="k">"token_type"</span><span class="pun">:</span>    <span class="s">"Bearer"</span><span class="pun">,</span>
+    <span class="k">"expires_in"</span><span class="pun">:</span>    <span class="n">900</span><span class="pun">,</span>
+    <span class="k">"user"</span><span class="pun">: {</span>
+      <span class="k">"id"</span><span class="pun">:</span>          <span class="s">"550e8400-e29b-41d4-a716-446655440000"</span><span class="pun">,</span>
+      <span class="k">"email"</span><span class="pun">:</span>       <span class="s">"contato@techcorp.com.br"</span><span class="pun">,</span>
+      <span class="k">"role"</span><span class="pun">:</span>        <span class="s">"EMPRESA"</span><span class="pun">,</span>
+      <span class="k">"status"</span><span class="pun">:</span>      <span class="s">"ACTIVE"</span><span class="pun">,</span>
+      <span class="k">"full_name"</span><span class="pun">:</span>   <span class="s">"João Silva"</span><span class="pun">,</span>
+      <span class="k">"avatar_url"</span><span class="pun">:</span>  <span class="b">null</span><span class="pun">,</span>
+      <span class="k">"profile_id"</span><span class="pun">:</span>  <span class="s">"661f9511-e29b-41d4-b827-557766551111"</span>
+    <span class="pun">}</span>
+  <span class="pun">}</span>
+<span class="pun">}</span></pre>
+
+      <div class="blabel">Erros específicos</div>
+      <table class="etable">
+        <tr><th>HTTP</th><th>Código</th><th>Causa</th></tr>
+        <tr><td class="http-code h4xx">401</td><td><span class="ecode">INVALID_CREDENTIALS</span></td><td>E-mail ou senha incorretos (mensagem propositalmente genérica)</td></tr>
+        <tr><td class="http-code h4xx">403</td><td><span class="ecode">ACCOUNT_SUSPENDED</span></td><td>Conta suspensa por admin</td></tr>
+        <tr><td class="http-code h4xx">403</td><td><span class="ecode">EMAIL_NOT_VERIFIED</span></td><td>E-mail ainda não verificado (reenviar via <code>POST /auth/resend-verification</code>)</td></tr>
+        <tr><td class="http-code h4xx">429</td><td><span class="ecode">TOO_MANY_ATTEMPTS</span></td><td>Rate limit — header <code>Retry-After</code> indica quando tentar novamente</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- Refresh -->
+  <div class="ep" id="ep-refresh">
+    <div class="ep-hd POST">
+      <span class="method-badge POST">POST</span>
+      <span class="ep-url">/auth/refresh</span>
+      <div class="auth-tag"><span class="tag tag-public">Público</span></div>
+    </div>
+    <div class="ep-desc">Renova o access token. Aceita o refresh_token via body ou via cookie HttpOnly. O token antigo é invalidado (token rotation).</div>
+    <div class="ep-body">
+      <div class="blabel">Request Body</div>
+      <pre><span class="pun">{</span>
+  <span class="k">"refresh_token"</span><span class="pun">:</span> <span class="s">"dGhpcyBpcyBhIHJlZnJlc2ggdG9rZW4..."</span>   <span class="c">// ou via cookie — um dos dois</span>
+<span class="pun">}</span></pre>
+
+      <div class="blabel">Response 200</div>
+      <pre><span class="pun">{</span>
+  <span class="k">"data"</span><span class="pun">: {</span>
+    <span class="k">"access_token"</span><span class="pun">:</span>  <span class="s">"eyJhbGciOiJSUzI1NiJ9.novo_token..."</span><span class="pun">,</span>
+    <span class="k">"refresh_token"</span><span class="pun">:</span> <span class="s">"novo_refresh_token..."</span><span class="pun">,</span>
+    <span class="k">"expires_in"</span><span class="pun">:</span>    <span class="n">900</span>
+  <span class="pun">}</span>
+<span class="pun">}</span></pre>
+
+      <div class="blabel">Erros específicos</div>
+      <table class="etable">
+        <tr><th>HTTP</th><th>Código</th><th>Causa</th></tr>
+        <tr><td class="http-code h4xx">401</td><td><span class="ecode">REFRESH_TOKEN_INVALID</span></td><td>Token expirado, revogado, reutilizado (token rotation) ou inexistente</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- Logout -->
+  <div class="ep" id="ep-logout">
+    <div class="ep-hd POST">
+      <span class="method-badge POST">POST</span>
+      <span class="ep-url">/auth/logout</span>
+      <div class="auth-tag"><span class="tag tag-auth">🔒 Autenticado</span></div>
+    </div>
+    <div class="ep-desc">Revoga o refresh token informado. Invalida a sessão imediatamente — o access token expira naturalmente em até 15 min.</div>
+    <div class="ep-body">
+      <div class="blabel">Request Body</div>
+      <pre><span class="pun">{</span> <span class="k">"refresh_token"</span><span class="pun">:</span> <span class="s">"dGhpcyBpcyBhIHJlZnJlc2ggdG9rZW4..."</span> <span class="pun">}</span></pre>
+      <div class="blabel">Response 204</div>
+      <pre><span class="c">// Sem body</span></pre>
+    </div>
+  </div>
+
+  <!-- Me -->
+  <div class="ep" id="ep-me">
+    <div class="ep-hd GET">
+      <span class="method-badge GET">GET</span>
+      <span class="ep-url">/auth/me</span>
+      <div class="auth-tag"><span class="tag tag-auth">🔒 Autenticado</span></div>
+    </div>
+    <div class="ep-desc">Retorna o perfil completo do usuário autenticado, incluindo dados da empresa ou do freelancer conforme o role.</div>
+    <div class="ep-body">
+      <div class="blabel">Response 200 — role EMPRESA</div>
+      <pre><span class="pun">{</span>
+  <span class="k">"data"</span><span class="pun">: {</span>
+    <span class="k">"id"</span><span class="pun">:</span>               <span class="s">"550e8400-e29b-41d4-a716-446655440000"</span><span class="pun">,</span>
+    <span class="k">"email"</span><span class="pun">:</span>            <span class="s">"contato@techcorp.com.br"</span><span class="pun">,</span>
+    <span class="k">"role"</span><span class="pun">:</span>             <span class="s">"EMPRESA"</span><span class="pun">,</span>
+    <span class="k">"status"</span><span class="pun">:</span>           <span class="s">"ACTIVE"</span><span class="pun">,</span>
+    <span class="k">"full_name"</span><span class="pun">:</span>        <span class="s">"João Silva"</span><span class="pun">,</span>
+    <span class="k">"avatar_url"</span><span class="pun">:</span>       <span class="s">"https://cdn.exemplo.com/avatars/joao.jpg"</span><span class="pun">,</span>
+    <span class="k">"notification_prefs"</span><span class="pun">:</span> <span class="pun">{</span> <span class="k">"push"</span><span class="pun">:</span> <span class="b">true</span><span class="pun">,</span> <span class="k">"email"</span><span class="pun">:</span> <span class="b">true</span><span class="pun">,</span> <span class="k">"sms"</span><span class="pun">:</span> <span class="b">false</span> <span class="pun">},</span>
+    <span class="k">"company"</span><span class="pun">: {</span>
+      <span class="k">"id"</span><span class="pun">:</span>                  <span class="s">"661f9511-e29b-41d4-b827-557766551111"</span><span class="pun">,</span>
+      <span class="k">"company_name"</span><span class="pun">:</span>        <span class="s">"Tech Corp Ltda"</span><span class="pun">,</span>
+      <span class="k">"cnpj_verified_at"</span><span class="pun">:</span>    <span class="s">"2025-01-15T10:00:00Z"</span><span class="pun">,</span>
+      <span class="k">"reputation_score"</span><span class="pun">:</span>    <span class="s">"4.80"</span><span class="pun">,</span>
+      <span class="k">"total_orders"</span><span class="pun">:</span>        <span class="n">23</span><span class="pun">,</span>
+      <span class="k">"completed_orders"</span><span class="pun">:</span>    <span class="n">21</span><span class="pun">,</span>
+      <span class="k">"total_paid_brl"</span><span class="pun">:</span>      <span class="s">"72500.00"</span>
+    <span class="pun">}</span>
+  <span class="pun">}</span>
+<span class="pun">}</span></pre>
+    </div>
+  </div>
+
+  <!-- Forgot -->
+  <div class="ep" id="ep-forgot">
+    <div class="ep-hd POST">
+      <span class="method-badge POST">POST</span>
+      <span class="ep-url">/auth/forgot-password</span>
+      <div class="auth-tag"><span class="tag tag-public">Público</span></div>
+    </div>
+    <div class="ep-desc">Envia e-mail com link de redefinição. Sempre retorna 200 para não vazar se o e-mail existe (timing attack prevention).</div>
+    <div class="ep-body">
+      <div class="blabel">Request Body</div>
+      <pre><span class="pun">{</span> <span class="k">"email"</span><span class="pun">:</span> <span class="s">"contato@techcorp.com.br"</span> <span class="pun">}</span></pre>
+      <div class="blabel">Response 200</div>
+      <pre><span class="pun">{</span> <span class="k">"data"</span><span class="pun">: {</span> <span class="k">"message"</span><span class="pun">:</span> <span class="s">"Se o e-mail estiver cadastrado, você receberá as instruções em breve."</span> <span class="pun">}</span> <span class="pun">}</span></pre>
+    </div>
+  </div>
+
+  <!-- Reset -->
+  <div class="ep" id="ep-reset">
+    <div class="ep-hd POST">
+      <span class="method-badge POST">POST</span>
+      <span class="ep-url">/auth/reset-password</span>
+      <div class="auth-tag"><span class="tag tag-public">Público</span></div>
+    </div>
+    <div class="ep-body">
+      <div class="blabel">Request Body</div>
+      <pre><span class="pun">{</span>
+  <span class="k">"token"</span><span class="pun">:</span>        <span class="s">"abc123def456..."</span><span class="pun">,</span>   <span class="c">// do link enviado por e-mail</span>
+  <span class="k">"new_password"</span><span class="pun">:</span> <span class="s">"NovaSenha@2025"</span>
+<span class="pun">}</span></pre>
+      <div class="blabel">Response 200</div>
+      <pre><span class="pun">{</span> <span class="k">"data"</span><span class="pun">: {</span> <span class="k">"message"</span><span class="pun">:</span> <span class="s">"Senha redefinida com sucesso."</span> <span class="pun">}</span> <span class="pun">}</span></pre>
+      <div class="blabel">Erros específicos</div>
+      <table class="etable">
+        <tr><th>HTTP</th><th>Código</th><th>Causa</th></tr>
+        <tr><td class="http-code h4xx">422</td><td><span class="ecode">RESET_TOKEN_INVALID</span></td><td>Token expirado (24h) ou já utilizado</td></tr>
+        <tr><td class="http-code h4xx">422</td><td><span class="ecode">WEAK_PASSWORD</span></td><td>Nova senha não atende os requisitos</td></tr>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ═════════ ORDENS ═════════ -->
+<div class="section">
+  <div class="section-hd">Ordens de Serviço</div>
+
+  <!-- Create -->
+  <div class="ep" id="ep-create-order">
+    <div class="ep-hd POST">
+      <span class="method-badge POST">POST</span>
+      <span class="ep-url">/orders</span>
+      <div class="auth-tag"><span class="tag tag-empresa">Empresa</span></div>
+    </div>
+    <div class="ep-desc">Cria ordem no estado <code>DRAFT</code>. Invisível para freelancers até <code>POST /orders/:id/publish</code>.</div>
+    <div class="ep-body">
+      <div class="blabel">Request Body</div>
+      <pre><span class="pun">{</span>
+  <span class="k">"title"</span><span class="pun">:</span>                    <span class="s">"Desenvolvimento de API REST em Node.js"</span><span class="pun">,</span>      <span class="c">// min 10 chars</span>
+  <span class="k">"description"</span><span class="pun">:</span>             <span class="s">"Precisamos de uma API REST completa com autenticação JWT, CRUD de usuários, gestão de produtos e integração com gateway de pagamento..."</span><span class="pun">,</span>
+  <span class="k">"requirements"</span><span class="pun">:</span>            <span class="s">"Node.js 20+, PostgreSQL 15, Jest para testes, deploy via Docker."</span><span class="pun">,</span>
+  <span class="k">"category_id"</span><span class="pun">:</span>             <span class="s">"cat-uuid-desenvolvimento"</span><span class="pun">,</span>
+  <span class="k">"budget_type"</span><span class="pun">:</span>              <span class="s">"FIXED"</span><span class="pun">,</span>                                          <span class="c">// FIXED | HOURLY | NEGOTIABLE</span>
+  <span class="k">"budget_min"</span><span class="pun">:</span>               <span class="s">"2000.00"</span><span class="pun">,</span>
+  <span class="k">"budget_max"</span><span class="pun">:</span>               <span class="s">"5000.00"</span><span class="pun">,</span>
+  <span class="k">"currency"</span><span class="pun">:</span>                 <span class="s">"BRL"</span><span class="pun">,</span>
+  <span class="k">"estimated_hours"</span><span class="pun">:</span>          <span class="n">40</span><span class="pun">,</span>
+  <span class="k">"deadline_at"</span><span class="pun">:</span>              <span class="s">"2025-06-30T23:59:59Z"</span><span class="pun">,</span>
+  <span class="k">"location_type"</span><span class="pun">:</span>            <span class="s">"REMOTE"</span><span class="pun">,</span>                                         <span class="c">// REMOTE | ON_SITE | HYBRID</span>
+  <span class="k">"max_applications"</span><span class="pun">:</span>         <span class="n">10</span><span class="pun">,</span>
+  <span class="k">"applications_open_until"</span><span class="pun">:</span>  <span class="s">"2025-05-20T23:59:59Z"</span><span class="pun">,</span>
+  <span class="k">"visibility"</span><span class="pun">:</span>               <span class="s">"PUBLIC"</span><span class="pun">,</span>                                         <span class="c">// PUBLIC | PRIVATE | INVITE_ONLY</span>
+  <span class="k">"required_skill_ids"</span><span class="pun">: [</span>
+    <span class="s">"skill-nodejs-uuid"</span><span class="pun">,</span>
+    <span class="s">"skill-postgresql-uuid"</span>
+  <span class="pun">]</span>
+<span class="pun">}</span></pre>
+
+      <div class="blabel">Response 201</div>
+      <pre><span class="pun">{</span>
+  <span class="k">"data"</span><span class="pun">: {</span>
+    <span class="k">"id"</span><span class="pun">:</span>                 <span class="s">"ord-550e8400-e29b-41d4-a716-446655440abc"</span><span class="pun">,</span>
+    <span class="k">"code"</span><span class="pun">:</span>               <span class="s">"ORD-2025-000001"</span><span class="pun">,</span>
+    <span class="k">"status"</span><span class="pun">:</span>             <span class="s">"DRAFT"</span><span class="pun">,</span>
+    <span class="k">"title"</span><span class="pun">:</span>              <span class="s">"Desenvolvimento de API REST em Node.js"</span><span class="pun">,</span>
+    <span class="k">"budget_type"</span><span class="pun">:</span>        <span class="s">"FIXED"</span><span class="pun">,</span>
+    <span class="k">"budget_min"</span><span class="pun">:</span>         <span class="s">"2000.00"</span><span class="pun">,</span>
+    <span class="k">"budget_max"</span><span class="pun">:</span>         <span class="s">"5000.00"</span><span class="pun">,</span>
+    <span class="k">"currency"</span><span class="pun">:</span>           <span class="s">"BRL"</span><span class="pun">,</span>
+    <span class="k">"location_type"</span><span class="pun">:</span>      <span class="s">"REMOTE"</span><span class="pun">,</span>
+    <span class="k">"deadline_at"</span><span class="pun">:</span>        <span class="s">"2025-06-30T23:59:59Z"</span><span class="pun">,</span>
+    <span class="k">"application_count"</span><span class="pun">:</span>  <span class="n">0</span><span class="pun">,</span>
+    <span class="k">"required_skills"</span><span class="pun">: [</span>
+      <span class="pun">{</span> <span class="k">"id"</span><span class="pun">:</span> <span class="s">"skill-nodejs-uuid"</span><span class="pun">,</span> <span class="k">"name"</span><span class="pun">:</span> <span class="s">"Node.js"</span><span class="pun">,</span> <span class="k">"is_mandatory"</span><span class="pun">:</span> <span class="b">true</span> <span class="pun">}</span>
+    <span class="pun">],</span>
+    <span class="k">"company"</span><span class="pun">: {</span>
+      <span class="k">"id"</span><span class="pun">:</span>             <span class="s">"661f9511-..."</span><span class="pun">,</span>
+      <span class="k">"company_name"</span><span class="pun">:</span>  <span class="s">"Tech Corp Ltda"</span><span class="pun">,</span>
+      <span class="k">"reputation_score"</span><span class="pun">:</span> <span class="s">"4.80"</span>
+    <span class="pun">},</span>
+    <span class="k">"created_at"</span><span class="pun">:</span>        <span class="s">"2025-05-06T14:30:00Z"</span>
+  <span class="pun">}</span>
+<span class="pun">}</span></pre>
+
+      <div class="blabel">Erros específicos</div>
+      <table class="etable">
+        <tr><th>HTTP</th><th>Código</th><th>Causa</th></tr>
+        <tr><td class="http-code h4xx">403</td><td><span class="ecode">ROLE_REQUIRED</span></td><td>Somente EMPRESA pode criar ordens</td></tr>
+        <tr><td class="http-code h4xx">422</td><td><span class="ecode">INVALID_BUDGET_RANGE</span></td><td><code>budget_min</code> maior que <code>budget_max</code></td></tr>
+        <tr><td class="http-code h4xx">422</td><td><span class="ecode">DEADLINE_TOO_SOON</span></td><td>Prazo menor que NOW + 24h</td></tr>
+        <tr><td class="http-code h4xx">404</td><td><span class="ecode">CATEGORY_NOT_FOUND</span></td><td><code>category_id</code> inexistente ou inativa</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- List Orders -->
+  <div class="ep" id="ep-list-orders">
+    <div class="ep-hd GET">
+      <span class="method-badge GET">GET</span>
+      <span class="ep-url">/orders</span>
+      <div class="auth-tag"><span class="tag tag-auth">🔒 Autenticado</span></div>
+    </div>
+    <div class="ep-desc">Lista ordens com filtros. Empresas veem suas próprias ordens (todos os status). Freelancers veem apenas ordens PUBLISHED e IN_APPLICATION.</div>
+    <div class="ep-body">
+      <div class="blabel">Query Parameters</div>
+      <table class="ptable">
+        <tr><th>Parâmetro</th><th>Tipo</th><th>Descrição</th></tr>
+        <tr><td><span class="pname">status</span><span class="popt">opcional</span></td><td><span class="ptype">string</span></td><td>Ex: <code>PUBLISHED,IN_APPLICATION</code> — múltiplos separados por vírgula</td></tr>
+        <tr><td><span class="pname">q</span><span class="popt">opcional</span></td><td><span class="ptype">string</span></td><td>Busca full-text em título e descrição (mínimo 2 chars)</td></tr>
+        <tr><td><span class="pname">category_id</span><span class="popt">opcional</span></td><td><span class="ptype">uuid</span></td><td>Filtra por categoria</td></tr>
+        <tr><td><span class="pname">budget_min / budget_max</span><span class="popt">opcional</span></td><td><span class="ptype">decimal</span></td><td>Faixa de orçamento</td></tr>
+        <tr><td><span class="pname">location_type</span><span class="popt">opcional</span></td><td><span class="ptype">string</span></td><td><code>REMOTE</code> | <code>ON_SITE</code> | <code>HYBRID</code></td></tr>
+        <tr><td><span class="pname">sort_by</span><span class="popt">opcional</span></td><td><span class="ptype">string</span></td><td><code>created_at</code> (padrão) | <code>deadline_at</code> | <code>budget_max</code></td></tr>
+        <tr><td><span class="pname">sort_dir</span><span class="popt">opcional</span></td><td><span class="ptype">string</span></td><td><code>desc</code> (padrão) | <code>asc</code></td></tr>
+        <tr><td><span class="pname">page / per_page</span><span class="popt">opcional</span></td><td><span class="ptype">integer</span></td><td>Paginação — padrão: 1 / 20, máx per_page: 100</td></tr>
+      </table>
+      <div class="blabel">Response 200</div>
+      <pre><span class="pun">{</span>
+  <span class="k">"data"</span><span class="pun">: [</span>
+    <span class="pun">{</span>
+      <span class="k">"id"</span><span class="pun">:</span>                <span class="s">"ord-550e8400-..."</span><span class="pun">,</span>
+      <span class="k">"code"</span><span class="pun">:</span>              <span class="s">"ORD-2025-000001"</span><span class="pun">,</span>
+      <span class="k">"title"</span><span class="pun">:</span>             <span class="s">"Desenvolvimento de API REST em Node.js"</span><span class="pun">,</span>
+      <span class="k">"status"</span><span class="pun">:</span>            <span class="s">"PUBLISHED"</span><span class="pun">,</span>
+      <span class="k">"budget_type"</span><span class="pun">:</span>       <span class="s">"FIXED"</span><span class="pun">,</span>
+      <span class="k">"budget_min"</span><span class="pun">:</span>        <span class="s">"2000.00"</span><span class="pun">,</span>
+      <span class="k">"budget_max"</span><span class="pun">:</span>        <span class="s">"5000.00"</span><span class="pun">,</span>
+      <span class="k">"location_type"</span><span class="pun">:</span>     <span class="s">"REMOTE"</span><span class="pun">,</span>
+      <span class="k">"deadline_at"</span><span class="pun">:</span>       <span class="s">"2025-06-30T23:59:59Z"</span><span class="pun">,</span>
+      <span class="k">"application_count"</span><span class="pun">:</span> <span class="n">3</span><span class="pun">,</span>
+      <span class="k">"published_at"</span><span class="pun">:</span>      <span class="s">"2025-05-06T15:00:00Z"</span><span class="pun">,</span>
+      <span class="k">"company"</span><span class="pun">: {</span> <span class="k">"company_name"</span><span class="pun">:</span> <span class="s">"Tech Corp Ltda"</span><span class="pun">,</span> <span class="k">"reputation_score"</span><span class="pun">:</span> <span class="s">"4.80"</span> <span class="pun">},</span>
+      <span class="k">"category"</span><span class="pun">: {</span> <span class="k">"name"</span><span class="pun">:</span> <span class="s">"Desenvolvimento"</span> <span class="pun">}</span>
+    <span class="pun">}</span>
+  <span class="pun">],</span>
+  <span class="k">"meta"</span><span class="pun">: {</span> <span class="k">"page"</span><span class="pun">:</span> <span class="n">1</span><span class="pun">,</span> <span class="k">"per_page"</span><span class="pun">:</span> <span class="n">20</span><span class="pun">,</span> <span class="k">"total"</span><span class="pun">:</span> <span class="n">84</span><span class="pun">,</span> <span class="k">"total_pages"</span><span class="pun">:</span> <span class="n">5</span> <span class="pun">}</span>
+<span class="pun">}</span></pre>
+    </div>
+  </div>
+
+  <!-- Get Order -->
+  <div class="ep" id="ep-get-order">
+    <div class="ep-hd GET">
+      <span class="method-badge GET">GET</span>
+      <span class="ep-url">/orders/<span class="param-seg">:order_id</span></span>
+      <div class="auth-tag"><span class="tag tag-auth">🔒 Autenticado</span></div>
+    </div>
+    <div class="ep-desc">Retorna detalhes completos. <code>selected_freelancer</code> só aparece para a empresa dona e o freelancer selecionado. <code>my_application</code> aparece para o freelancer autenticado.</div>
+    <div class="ep-body">
+      <div class="blabel">Path Parameters</div>
+      <table class="ptable">
+        <tr><th>Parâmetro</th><th>Tipo</th><th>Descrição</th></tr>
+        <tr><td><span class="pname">order_id</span><span class="preq">obrigatório</span></td><td><span class="ptype">uuid</span></td><td>ID da ordem</td></tr>
+      </table>
+      <div class="blabel">Response 200</div>
+      <pre><span class="pun">{</span>
+  <span class="k">"data"</span><span class="pun">: {</span>
+    <span class="k">"id"</span><span class="pun">:</span>                   <span class="s">"ord-550e8400-e29b-41d4-a716-446655440abc"</span><span class="pun">,</span>
+    <span class="k">"code"</span><span class="pun">:</span>                 <span class="s">"ORD-2025-000001"</span><span class="pun">,</span>
+    <span class="k">"status"</span><span class="pun">:</span>               <span class="s">"IN_PROGRESS"</span><span class="pun">,</span>
+    <span class="k">"title"</span><span class="pun">:</span>                <span class="s">"Desenvolvimento de API REST em Node.js"</span><span class="pun">,</span>
+    <span class="k">"description"</span><span class="pun">:</span>          <span class="s">"Precisamos de uma API REST..."</span><span class="pun">,</span>
+    <span class="k">"requirements"</span><span class="pun">:</span>         <span class="s">"Node.js 20+, PostgreSQL 15..."</span><span class="pun">,</span>
+    <span class="k">"budget_type"</span><span class="pun">:</span>           <span class="s">"FIXED"</span><span class="pun">,</span>
+    <span class="k">"budget_min"</span><span class="pun">:</span>            <span class="s">"2000.00"</span><span class="pun">,</span>
+    <span class="k">"budget_max"</span><span class="pun">:</span>            <span class="s">"5000.00"</span><span class="pun">,</span>
+    <span class="k">"agreed_value"</span><span class="pun">:</span>          <span class="s">"3500.00"</span><span class="pun">,</span>
+    <span class="k">"location_type"</span><span class="pun">:</span>         <span class="s">"REMOTE"</span><span class="pun">,</span>
+    <span class="k">"deadline_at"</span><span class="pun">:</span>           <span class="s">"2025-06-30T23:59:59Z"</span><span class="pun">,</span>
+    <span class="k">"started_at"</span><span class="pun">:</span>            <span class="s">"2025-05-07T09:00:00Z"</span><span class="pun">,</span>
+    <span class="k">"application_count"</span><span class="pun">:</span>     <span class="n">7</span><span class="pun">,</span>
+    <span class="k">"company"</span><span class="pun">: {</span>
+      <span class="k">"id"</span><span class="pun">:</span>              <span class="s">"661f9511-..."</span><span class="pun">,</span>
+      <span class="k">"company_name"</span><span class="pun">:</span>   <span class="s">"Tech Corp Ltda"</span><span class="pun">,</span>
+      <span class="k">"reputation_score"</span><span class="pun">:</span> <span class="s">"4.80"</span><span class="pun">,</span>
+      <span class="k">"avatar_url"</span><span class="pun">:</span>     <span class="s">"https://cdn.exemplo.com/logos/techcorp.png"</span>
+    <span class="pun">},</span>
+    <span class="k">"selected_freelancer"</span><span class="pun">: {</span>           <span class="c">// null se não selecionado</span>
+      <span class="k">"id"</span><span class="pun">:</span>              <span class="s">"883h1733-..."</span><span class="pun">,</span>
+      <span class="k">"full_name"</span><span class="pun">:</span>      <span class="s">"Maria Santos"</span><span class="pun">,</span>
+      <span class="k">"reputation_score"</span><span class="pun">:</span> <span class="s">"4.90"</span><span class="pun">,</span>
+      <span class="k">"completion_rate"</span><span class="pun">:</span> <span class="s">"97.92"</span>
+    <span class="pun">},</span>
+    <span class="k">"category"</span><span class="pun">: {</span> <span class="k">"id"</span><span class="pun">:</span> <span class="s">"..."</span><span class="pun">,</span> <span class="k">"name"</span><span class="pun">:</span> <span class="s">"Desenvolvimento"</span> <span class="pun">},</span>
+    <span class="k">"required_skills"</span><span class="pun">: [</span>
+      <span class="pun">{</span> <span class="k">"id"</span><span class="pun">:</span> <span class="s">"..."</span><span class="pun">,</span> <span class="k">"name"</span><span class="pun">:</span> <span class="s">"Node.js"</span><span class="pun">,</span> <span class="k">"is_mandatory"</span><span class="pun">:</span> <span class="b">true</span> <span class="pun">}</span>
+    <span class="pun">],</span>
+    <span class="k">"has_active_chat"</span><span class="pun">:</span>    <span class="b">true</span><span class="pun">,</span>
+    <span class="k">"has_dispute"</span><span class="pun">:</span>        <span class="b">false</span><span class="pun">,</span>
+    <span class="k">"my_application"</span><span class="pun">:</span>    <span class="b">null</span><span class="pun">,</span>          <span class="c">// candidatura do freelancer autenticado</span>
+    <span class="k">"created_at"</span><span class="pun">:</span>        <span class="s">"2025-05-06T14:30:00Z"</span><span class="pun">,</span>
+    <span class="k">"published_at"</span><span class="pun">:</span>      <span class="s">"2025-05-06T15:00:00Z"</span>
+  <span class="pun">}</span>
+<span class="pun">}</span></pre>
+      <div class="blabel">Erros específicos</div>
+      <table class="etable">
+        <tr><th>HTTP</th><th>Código</th><th>Causa</th></tr>
+        <tr><td class="http-code h4xx">404</td><td><span class="ecode">ORDER_NOT_FOUND</span></td><td>Ordem inexistente ou usuário sem permissão de acesso</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- Update -->
+  <div class="ep" id="ep-update-order">
+    <div class="ep-hd PUT">
+      <span class="method-badge PUT">PUT</span>
+      <span class="ep-url">/orders/<span class="param-seg">:order_id</span></span>
+      <div class="auth-tag"><span class="tag tag-empresa">Empresa</span></div>
+    </div>
+    <div class="ep-desc">Atualiza campos da ordem. Permitido apenas no status <code>DRAFT</code>. Todos os campos são opcionais (PATCH semântico).</div>
+    <div class="ep-body">
+      <div class="blabel">Request Body</div>
+      <pre><span class="pun">{</span>
+  <span class="k">"title"</span><span class="pun">:</span>         <span class="s">"Título revisado"</span><span class="pun">,</span>
+  <span class="k">"description"</span><span class="pun">:</span>  <span class="s">"Descrição atualizada com novos requisitos..."</span><span class="pun">,</span>
+  <span class="k">"budget_max"</span><span class="pun">:</span>   <span class="s">"6000.00"</span><span class="pun">,</span>
+  <span class="k">"deadline_at"</span><span class="pun">:</span>  <span class="s">"2025-07-15T23:59:59Z"</span>
+<span class="pun">}</span></pre>
+      <div class="blabel">Response 200 — ordem atualizada</div>
+      <pre><span class="pun">{</span> <span class="k">"data"</span><span class="pun">: {</span> <span class="c">/* ordem completa atualizada */</span> <span class="pun">}</span> <span class="pun">}</span></pre>
+      <div class="blabel">Erros específicos</div>
+      <table class="etable">
+        <tr><th>HTTP</th><th>Código</th><th>Causa</th></tr>
+        <tr><td class="http-code h4xx">409</td><td><span class="ecode">ORDER_NOT_EDITABLE</span></td><td>Ordem fora do status DRAFT</td></tr>
+        <tr><td class="http-code h4xx">403</td><td><span class="ecode">NOT_ORDER_OWNER</span></td><td>Empresa autenticada não é dona da ordem</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- Publish -->
+  <div class="ep" id="ep-publish-order">
+    <div class="ep-hd POST">
+      <span class="method-badge POST">POST</span>
+      <span class="ep-url">/orders/<span class="param-seg">:order_id</span>/publish</span>
+      <div class="auth-tag"><span class="tag tag-empresa">Empresa</span></div>
+    </div>
+    <div class="ep-desc">Publica a ordem tornando-a visível para freelancers. Valida completude antes. Dispara evento <code>order.published</code> e indexa no Elasticsearch.</div>
+    <div class="ep-body">
+      <div class="blabel">Response 200</div>
+      <pre><span class="pun">{</span>
+  <span class="k">"data"</span><span class="pun">: {</span>
+    <span class="k">"id"</span><span class="pun">:</span>           <span class="s">"ord-550e8400-..."</span><span class="pun">,</span>
+    <span class="k">"status"</span><span class="pun">:</span>       <span class="s">"PUBLISHED"</span><span class="pun">,</span>
+    <span class="k">"published_at"</span><span class="pun">:</span> <span class="s">"2025-05-06T15:00:00Z"</span>
+  <span class="pun">}</span>
+<span class="pun">}</span></pre>
+      <div class="blabel">Erros específicos</div>
+      <table class="etable">
+        <tr><th>HTTP</th><th>Código</th><th>Causa</th></tr>
+        <tr><td class="http-code h4xx">409</td><td><span class="ecode">INVALID_TRANSITION</span></td><td>Ordem não está em DRAFT</td></tr>
+        <tr><td class="http-code h4xx">422</td><td><span class="ecode">ORDER_INCOMPLETE</span></td><td>Campos obrigatórios não preenchidos — <code>details[]</code> lista cada campo faltante</td></tr>
+        <tr><td class="http-code h4xx">422</td><td><span class="ecode">DEADLINE_TOO_SOON</span></td><td>Prazo menor que 24h a partir de agora</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- Cancel -->
+  <div class="ep" id="ep-cancel-order">
+    <div class="ep-hd POST">
+      <span class="method-badge POST">POST</span>
+      <span class="ep-url">/orders/<span class="param-seg">:order_id</span>/cancel</span>
+      <div class="auth-tag"><span class="tag tag-empresa">Empresa</span> <span class="tag tag-admin">Admin</span></div>
+    </div>
+    <div class="ep-desc">Cancela uma ordem. A partir de ACCEPTED aplica penalidade (% configurável). Calcula compensação do freelancer e reembolso da empresa atomicamente.</div>
+    <div class="ep-body">
+      <div class="blabel">Request Body</div>
+      <pre><span class="pun">{</span>
+  <span class="k">"reason"</span><span class="pun">:</span> <span class="s">"Projeto foi suspenso pela diretoria até o próximo trimestre."</span>  <span class="c">// obrigatório em ACCEPTED+ (min 20 chars)</span>
+<span class="pun">}</span></pre>
+      <div class="blabel">Response 200</div>
+      <pre><span class="pun">{</span>
+  <span class="k">"data"</span><span class="pun">: {</span>
+    <span class="k">"order_id"</span><span class="pun">:</span>               <span class="s">"ord-550e8400-..."</span><span class="pun">,</span>
+    <span class="k">"status"</span><span class="pun">:</span>                 <span class="s">"CANCELLED"</span><span class="pun">,</span>
+    <span class="k">"penalty_applied"</span><span class="pun">:</span>        <span class="b">true</span><span class="pun">,</span>
+    <span class="k">"freelancer_compensation"</span><span class="pun">:</span> <span class="s">"350.00"</span><span class="pun">,</span>       <span class="c">// null se cancelado antes de ACCEPTED</span>
+    <span class="k">"company_refund"</span><span class="pun">:</span>         <span class="s">"3150.00"</span><span class="pun">,</span>
+    <span class="k">"cancelled_at"</span><span class="pun">:</span>           <span class="s">"2025-05-15T10:00:00Z"</span>
+  <span class="pun">}</span>
+<span class="pun">}</span></pre>
+      <div class="blabel">Erros específicos</div>
+      <table class="etable">
+        <tr><th>HTTP</th><th>Código</th><th>Causa</th></tr>
+        <tr><td class="http-code h4xx">409</td><td><span class="ecode">ORDER_CANNOT_BE_CANCELLED</span></td><td>Ordem em COMPLETED ou já CANCELLED</td></tr>
+        <tr><td class="http-code h4xx">409</td><td><span class="ecode">ACTIVE_DISPUTE_EXISTS</span></td><td>Há disputa aberta — cancelar via resolução de disputa</td></tr>
+        <tr><td class="http-code h4xx">422</td><td><span class="ecode">REASON_REQUIRED</span></td><td>Motivo obrigatório para cancelamento após ACCEPTED</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- Status History -->
+  <div class="ep" id="ep-status-history">
+    <div class="ep-hd GET">
+      <span class="method-badge GET">GET</span>
+      <span class="ep-url">/orders/<span class="param-seg">:order_id</span>/status-history</span>
+      <div class="auth-tag"><span class="tag tag-auth">🔒 Autenticado</span></div>
+    </div>
+    <div class="ep-desc">Retorna histórico imutável de transições de status, do mais recente ao mais antigo. Tabela <code>order_status_history</code> — nunca pode ser alterada.</div>
+    <div class="ep-body">
+      <div class="blabel">Response 200</div>
+      <pre><span class="pun">{</span>
+  <span class="k">"data"</span><span class="pun">: [</span>
+    <span class="pun">{</span>
+      <span class="k">"id"</span><span class="pun">:</span>           <span class="s">"hist-uuid-3"</span><span class="pun">,</span>
+      <span class="k">"from_status"</span><span class="pun">:</span> <span class="s">"ACCEPTED"</span><span class="pun">,</span>
+      <span class="k">"to_status"</span><span class="pun">:</span>   <span class="s">"IN_PROGRESS"</span><span class="pun">,</span>
+      <span class="k">"actor"</span><span class="pun">: {</span> <span class="k">"id"</span><span class="pun">:</span> <span class="s">"..."</span><span class="pun">,</span> <span class="k">"full_name"</span><span class="pun">:</span> <span class="s">"Maria Santos"</span><span class="pun">,</span> <span class="k">"role"</span><span class="pun">:</span> <span class="s">"FREELANCER"</span> <span class="pun">},</span>
+      <span class="k">"reason"</span><span class="pun">:</span>      <span class="b">null</span><span class="pun">,</span>
+      <span class="k">"created_at"</span><span class="pun">:</span>  <span class="s">"2025-05-07T09:00:00Z"</span>
+    <span class="pun">},</span>
+    <span class="pun">{</span>
+      <span class="k">"id"</span><span class="pun">:</span>           <span class="s">"hist-uuid-2"</span><span class="pun">,</span>
+      <span class="k">"from_status"</span><span class="pun">:</span> <span class="s">"SELECTED"</span><span class="pun">,</span>
+      <span class="k">"to_status"</span><span class="pun">:</span>   <span class="s">"ACCEPTED"</span><span class="pun">,</span>
+      <span class="k">"actor"</span><span class="pun">: {</span> <span class="k">"full_name"</span><span class="pun">:</span> <span class="s">"Maria Santos"</span><span class="pun">,</span> <span class="k">"role"</span><span class="pun">:</span> <span class="s">"FREELANCER"</span> <span class="pun">},</span>
+      <span class="k">"created_at"</span><span class="pun">:</span>  <span class="s">"2025-05-07T08:30:00Z"</span>
+    <span class="pun">},</span>
+    <span class="pun">{</span>
+      <span class="k">"from_status"</span><span class="pun">:</span> <span class="b">null</span><span class="pun">,</span>
+      <span class="k">"to_status"</span><span class="pun">:</span>   <span class="s">"DRAFT"</span><span class="pun">,</span>              <span class="c">// null = criação da ordem</span>
+      <span class="k">"actor"</span><span class="pun">: {</span> <span class="k">"full_name"</span><span class="pun">:</span> <span class="s">"João Silva"</span><span class="pun">,</span> <span class="k">"role"</span><span class="pun">:</span> <span class="s">"EMPRESA"</span> <span class="pun">},</span>
+      <span class="k">"created_at"</span><span class="pun">:</span>  <span class="s">"2025-05-06T14:30:00Z"</span>
+    <span class="pun">}</span>
+  <span class="pun">]</span>
+<span class="pun">}</span></pre>
+    </div>
+  </div>
+
+  <!-- Presigned URL for order attachment -->
+  <div class="ep" id="ep-order-attachments">
+    <div class="ep-hd POST">
+      <span class="method-badge POST">POST</span>
+      <span class="ep-url">/orders/<span class="param-seg">:order_id</span>/attachments/presigned-url</span>
+      <div class="auth-tag"><span class="tag tag-empresa">Empresa</span></div>
+    </div>
+    <div class="ep-desc">Gera URL presignada para upload direto ao S3 de anexo da descrição da ordem. O cliente faz <code>PUT</code> para a URL retornada, depois confirma com o storage_key.</div>
+    <div class="ep-body">
+      <div class="blabel">Request Body</div>
+      <pre><span class="pun">{</span>
+  <span class="k">"file_name"</span><span class="pun">:</span>       <span class="s">"especificacao-tecnica.pdf"</span><span class="pun">,</span>
+  <span class="k">"file_size_bytes"</span><span class="pun">:</span> <span class="n">2048000</span><span class="pun">,</span>
+  <span class="k">"mime_type"</span><span class="pun">:</span>       <span class="s">"application/pdf"</span>
+<span class="pun">}</span></pre>
+      <div class="blabel">Response 200</div>
+      <pre><span class="pun">{</span>
+  <span class="k">"data"</span><span class="pun">: {</span>
+    <span class="k">"upload_url"</span><span class="pun">:</span>  <span class="s">"https://s3.amazonaws.com/bucket/orders/ord-550/especificacao.pdf?X-Amz-Signature=abc..."</span><span class="pun">,</span>
+    <span class="k">"storage_key"</span><span class="pun">:</span> <span class="s">"orders/ord-550e8400/attachments/especificacao-tecnica.pdf"</span><span class="pun">,</span>
+    <span class="k">"expires_in"</span><span class="pun">:</span>  <span class="n">300</span>   <span class="c">// segundos para completar o upload</span>
+  <span class="pun">}</span>
+<span class="pun">}</span></pre>
+    </div>
+  </div>
+</div>
+
+<!-- ═════════ CANDIDATURAS ═════════ -->
+<div class="section">
+  <div class="section-hd">Candidaturas</div>
+
+  <div class="ep" id="ep-apply">
+    <div class="ep-hd POST">
+      <span class="method-badge POST">POST</span>
+      <span class="ep-url">/orders/<span class="param-seg">:order_id</span>/applications</span>
+      <div class="auth-tag"><span class="tag tag-freelancer">Freelancer</span></div>
+    </div>
+    <div class="ep-desc">Envia candidatura. Um freelancer só pode se candidatar uma vez por ordem. A ordem passa para <code>IN_APPLICATION</code> na primeira candidatura (via evento).</div>
+    <div class="ep-body">
+      <div class="blabel">Request Body</div>
+      <pre><span class="pun">{</span>
+  <span class="k">"proposal"</span><span class="pun">:</span>       <span class="s">"Tenho 5 anos de experiência com Node.js e PostgreSQL. Já entreguei projetos similares para empresas de e-commerce e fintech..."</span><span class="pun">,</span>
+  <span class="k">"proposed_value"</span><span class="pun">:</span> <span class="s">"3500.00"</span><span class="pun">,</span>
+  <span class="k">"estimated_days"</span><span class="pun">:</span> <span class="n">21</span><span class="pun">,</span>
+  <span class="k">"cover_letter"</span><span class="pun">:</span>   <span class="s">"Estou disponível para iniciar imediatamente e posso fazer uma demo ao vivo da minha stack antes do início."</span>
+<span class="pun">}</span></pre>
+      <div class="blabel">Response 201</div>
+      <pre><span class="pun">{</span>
+  <span class="k">"data"</span><span class="pun">: {</span>
+    <span class="k">"id"</span><span class="pun">:</span>              <span class="s">"app-uuid-abc123"</span><span class="pun">,</span>
+    <span class="k">"order_id"</span><span class="pun">:</span>       <span class="s">"ord-550e8400-..."</span><span class="pun">,</span>
+    <span class="k">"freelancer_id"</span><span class="pun">:</span>  <span class="s">"883h1733-..."</span><span class="pun">,</span>
+    <span class="k">"status"</span><span class="pun">:</span>         <span class="s">"PENDING"</span><span class="pun">,</span>
+    <span class="k">"proposed_value"</span><span class="pun">:</span> <span class="s">"3500.00"</span><span class="pun">,</span>
+    <span class="k">"estimated_days"</span><span class="pun">:</span> <span class="n">21</span><span class="pun">,</span>
+    <span class="k">"created_at"</span><span class="pun">:</span>     <span class="s">"2025-05-07T10:00:00Z"</span>
+  <span class="pun">}</span>
+<span class="pun">}</span></pre>
+      <div class="blabel">Erros específicos</div>
+      <table class="etable">
+        <tr><th>HTTP</th><th>Código</th><th>Causa</th></tr>
+        <tr><td class="http-code h4xx">409</td><td><span class="ecode">ALREADY_APPLIED</span></td><td>Freelancer já tem candidatura nesta ordem</td></tr>
+        <tr><td class="http-code h4xx">409</td><td><span class="ecode">ORDER_NOT_ACCEPTING</span></td><td>Ordem não está em PUBLISHED ou IN_APPLICATION</td></tr>
+        <tr><td class="http-code h4xx">422</td><td><span class="ecode">MAX_APPLICATIONS_REACHED</span></td><td>Limite de candidaturas da ordem atingido</td></tr>
+        <tr><td class="http-code h4xx">422</td><td><span class="ecode">APPLICATION_WINDOW_CLOSED</span></td><td>Prazo de candidaturas (<code>applications_open_until</code>) expirado</td></tr>
+        <tr><td class="http-code h4xx">422</td><td><span class="ecode">VALUE_BELOW_MINIMUM</span></td><td>Valor proposto abaixo de <code>budget_min</code> da ordem</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="ep" id="ep-list-apps">
+    <div class="ep-hd GET">
+      <span class="method-badge GET">GET</span>
+      <span class="ep-url">/orders/<span class="param-seg">:order_id</span>/applications</span>
+      <div class="auth-tag"><span class="tag tag-empresa">Empresa</span></div>
+    </div>
+    <div class="ep-desc">Lista candidaturas de uma ordem com perfil resumido do freelancer e seus scores. Somente a empresa dona pode listar.</div>
+    <div class="ep-body">
+      <div class="blabel">Query Parameters</div>
+      <table class="ptable">
+        <tr><th>Parâmetro</th><th>Tipo</th><th>Descrição</th></tr>
+        <tr><td><span class="pname">status</span><span class="popt">opcional</span></td><td><span class="ptype">string</span></td><td><code>PENDING</code> | <code>SELECTED</code> | <code>REJECTED</code> | <code>WITHDRAWN</code></td></tr>
+        <tr><td><span class="pname">sort_by</span><span class="popt">opcional</span></td><td><span class="ptype">string</span></td><td><code>created_at</code> | <code>proposed_value</code> | <code>reputation_score</code></td></tr>
+      </table>
+      <div class="blabel">Response 200</div>
+      <pre><span class="pun">{</span>
+  <span class="k">"data"</span><span class="pun">: [</span>
+    <span class="pun">{</span>
+      <span class="k">"id"</span><span class="pun">:</span>              <span class="s">"app-uuid-abc123"</span><span class="pun">,</span>
+      <span class="k">"status"</span><span class="pun">:</span>          <span class="s">"PENDING"</span><span class="pun">,</span>
+      <span class="k">"proposal"</span><span class="pun">:</span>        <span class="s">"Tenho 5 anos de experiência..."</span><span class="pun">,</span>
+      <span class="k">"proposed_value"</span><span class="pun">:</span>  <span class="s">"3500.00"</span><span class="pun">,</span>
+      <span class="k">"estimated_days"</span><span class="pun">:</span>  <span class="n">21</span><span class="pun">,</span>
+      <span class="k">"created_at"</span><span class="pun">:</span>      <span class="s">"2025-05-07T10:00:00Z"</span><span class="pun">,</span>
+      <span class="k">"freelancer"</span><span class="pun">: {</span>
+        <span class="k">"id"</span><span class="pun">:</span>               <span class="s">"883h1733-..."</span><span class="pun">,</span>
+        <span class="k">"full_name"</span><span class="pun">:</span>        <span class="s">"Maria Santos"</span><span class="pun">,</span>
+        <span class="k">"avatar_url"</span><span class="pun">:</span>       <span class="s">"https://cdn.exemplo.com/avatars/maria.jpg"</span><span class="pun">,</span>
+        <span class="k">"reputation_score"</span><span class="pun">:</span> <span class="s">"4.90"</span><span class="pun">,</span>
+        <span class="k">"completed_orders"</span><span class="pun">:</span> <span class="n">48</span><span class="pun">,</span>
+        <span class="k">"completion_rate"</span><span class="pun">:</span>  <span class="s">"97.92"</span><span class="pun">,</span>
+        <span class="k">"avg_response_hours"</span><span class="pun">:</span> <span class="s">"2.4"</span><span class="pun">,</span>
+        <span class="k">"skills"</span><span class="pun">: [</span>
+          <span class="pun">{</span> <span class="k">"name"</span><span class="pun">:</span> <span class="s">"Node.js"</span><span class="pun">,</span> <span class="k">"proficiency_level"</span><span class="pun">:</span> <span class="n">5</span> <span class="pun">},</span>
+          <span class="pun">{</span> <span class="k">"name"</span><span class="pun">:</span> <span class="s">"PostgreSQL"</span><span class="pun">,</span> <span class="k">"proficiency_level"</span><span class="pun">:</span> <span class="n">4</span> <span class="pun">}</span>
+        <span class="pun">]</span>
+      <span class="pun">}</span>
+    <span class="pun">}</span>
+  <span class="pun">],</span>
+  <span class="k">"meta"</span><span class="pun">: {</span> <span class="k">"page"</span><span class="pun">:</span> <span class="n">1</span><span class="pun">,</span> <span class="k">"per_page"</span><span class="pun">:</span> <span class="n">20</span><span class="pun">,</span> <span class="k">"total"</span><span class="pun">:</span> <span class="n">7</span><span class="pun">,</span> <span class="k">"total_pages"</span><span class="pun">:</span> <span class="n">1</span> <span class="pun">}</span>
+<span class="pun">}</span></pre>
+    </div>
+  </div>
+
+  <div class="ep" id="ep-get-app">
+    <div class="ep-hd GET">
+      <span class="method-badge GET">GET</span>
+      <span class="ep-url">/orders/<span class="param-seg">:order_id</span>/applications/<span class="param-seg">:application_id</span></span>
+      <div class="auth-tag"><span class="tag tag-empresa">Empresa</span> <span class="tag tag-freelancer">Freelancer (própria)</span></div>
+    </div>
+    <div class="ep-desc">Detalhe de uma candidatura específica. Freelancer só acessa a própria. Empresa acessa qualquer candidatura da sua ordem.</div>
+    <div class="ep-body">
+      <div class="blabel">Response 200</div>
+      <pre><span class="pun">{</span>
+  <span class="k">"data"</span><span class="pun">: {</span>
+    <span class="k">"id"</span><span class="pun">:</span>              <span class="s">"app-uuid-abc123"</span><span class="pun">,</span>
+    <span class="k">"status"</span><span class="pun">:</span>          <span class="s">"SELECTED"</span><span class="pun">,</span>
+    <span class="k">"proposal"</span><span class="pun">:</span>        <span class="s">"Tenho 5 anos de experiência..."</span><span class="pun">,</span>
+    <span class="k">"cover_letter"</span><span class="pun">:</span>    <span class="s">"Estou disponível para iniciar..."</span><span class="pun">,</span>
+    <span class="k">"proposed_value"</span><span class="pun">:</span>  <span class="s">"3500.00"</span><span class="pun">,</span>
+    <span class="k">"estimated_days"</span><span class="pun">:</span>  <span class="n">21</span><span class="pun">,</span>
+    <span class="k">"selected_at"</span><span class="pun">:</span>     <span class="s">"2025-05-07T08:00:00Z"</span><span class="pun">,</span>
+    <span class="k">"freelancer"</span><span class="pun">: {</span> <span class="c">/* perfil completo */</span> <span class="pun">}</span>
+  <span class="pun">}</span>
+<span class="pun">}</span></pre>
+    </div>
+  </div>
+
+  <div class="ep" id="ep-select">
+    <div class="ep-hd POST">
+      <span class="method-badge POST">POST</span>
+      <span class="ep-url">/orders/<span class="param-seg">:order_id</span>/applications/<span class="param-seg">:application_id</span>/select</span>
+      <div class="auth-tag"><span class="tag tag-empresa">Empresa</span></div>
+    </div>
+    <div class="ep-desc">Seleciona o freelancer. A ordem muda para <code>SELECTED</code>. O freelancer tem <strong>24 horas</strong> para aceitar ou rejeitar. Demais candidaturas permanecem PENDING até aceite.</div>
+    <div class="ep-body">
+      <div class="blabel">Request Body</div>
+      <pre><span class="pun">{</span>
+  <span class="k">"agreed_value"</span><span class="pun">:</span> <span class="s">"3500.00"</span><span class="pun">,</span>   <span class="c">// valor acordado (pode diferir do proposed_value)</span>
+  <span class="k">"message"</span><span class="pun">:</span>       <span class="s">"Olá Maria! Adoramos sua proposta. Podemos iniciar quando aceitar?"</span>  <span class="c">// opcional</span>
+<span class="pun">}</span></pre>
+      <div class="blabel">Response 200</div>
+      <pre><span class="pun">{</span>
+  <span class="k">"data"</span><span class="pun">: {</span>
+    <span class="k">"order_id"</span><span class="pun">:</span>              <span class="s">"ord-550e8400-..."</span><span class="pun">,</span>
+    <span class="k">"status"</span><span class="pun">:</span>                <span class="s">"SELECTED"</span><span class="pun">,</span>
+    <span class="k">"selected_freelancer_id"</span><span class="pun">:</span> <span class="s">"883h1733-..."</span><span class="pun">,</span>
+    <span class="k">"agreed_value"</span><span class="pun">:</span>          <span class="s">"3500.00"</span><span class="pun">,</span>
+    <span class="k">"acceptance_deadline"</span><span class="pun">:</span>   <span class="s">"2025-05-08T08:00:00Z"</span>   <span class="c">// NOW + 24h</span>
+  <span class="pun">}</span>
+<span class="pun">}</span></pre>
+      <div class="blabel">Erros específicos</div>
+      <table class="etable">
+        <tr><th>HTTP</th><th>Código</th><th>Causa</th></tr>
+        <tr><td class="http-code h4xx">409</td><td><span class="ecode">ORDER_NOT_IN_APPLICATION</span></td><td>Ordem não está em IN_APPLICATION</td></tr>
+        <tr><td class="http-code h4xx">422</td><td><span class="ecode">APPLICATION_WITHDRAWN</span></td><td>Freelancer retirou a candidatura</td></tr>
+        <tr><td class="http-code h4xx">422</td><td><span class="ecode">AGREED_VALUE_REQUIRED</span></td><td>Valor acordado é obrigatório</td></tr>
+        <tr><td class="http-code h4xx">404</td><td><span class="ecode">APPLICATION_NOT_FOUND</span></td><td>Candidatura não existe nesta ordem</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="ep" id="ep-withdraw">
+    <div class="ep-hd DELETE">
+      <span class="method-badge DELETE">DELETE</span>
+      <span class="ep-url">/orders/<span class="param-seg">:order_id</span>/applications/<span class="param-seg">:application_id</span></span>
+      <div class="auth-tag"><span class="tag tag-freelancer">Freelancer (própria)</span></div>
+    </div>
+    <div class="ep-desc">Retira candidatura. Só permitido enquanto status for PENDING. Se já selecionado, use <code>POST /orders/:id/reject</code>.</div>
+    <div class="ep-body">
+      <div class="blabel">Response 204</div>
+      <pre><span class="c">// Sem body</span></pre>
+      <div class="blabel">Erros específicos</div>
+      <table class="etable">
+        <tr><th>HTTP</th><th>Código</th><th>Causa</th></tr>
+        <tr><td class="http-code h4xx">409</td><td><span class="ecode">APPLICATION_ALREADY_SELECTED</span></td><td>Freelancer já foi selecionado — use <code>POST /reject</code></td></tr>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ═════════ ACEITE E EXECUÇÃO ═════════ -->
+<div class="section">
+  <div class="section-hd">Aceite e Execução</div>
+
+  <div class="ep" id="ep-accept">
+    <div class="ep-hd POST">
+      <span class="method-badge POST">POST</span>
+      <span class="ep-url">/orders/<span class="param-seg">:order_id</span>/accept</span>
+      <div class="auth-tag"><span class="tag tag-freelancer">Freelancer selecionado</span></div>
+    </div>
+    <div class="ep-desc">Freelancer aceita a ordem. Pré-requisito: pagamento já pré-autorizado (status <code>AUTHORIZED</code>). O canal de chat é criado automaticamente e o escrow é capturado.</div>
+    <div class="ep-body">
+      <div class="blabel">Response 200</div>
+      <pre><span class="pun">{</span>
+  <span class="k">"data"</span><span class="pun">: {</span>
+    <span class="k">"order_id"</span><span class="pun">:</span>       <span class="s">"ord-550e8400-..."</span><span class="pun">,</span>
+    <span class="k">"status"</span><span class="pun">:</span>         <span class="s">"ACCEPTED"</span><span class="pun">,</span>
+    <span class="k">"chat_channel_id"</span><span class="pun">:</span> <span class="s">"ch-uuid-canal-criado"</span><span class="pun">,</span>
+    <span class="k">"accepted_at"</span><span class="pun">:</span>    <span class="s">"2025-05-07T09:00:00Z"</span>
+  <span class="pun">}</span>
+<span class="pun">}</span></pre>
+      <div class="blabel">Erros específicos</div>
+      <table class="etable">
+        <tr><th>HTTP</th><th>Código</th><th>Causa</th></tr>
+        <tr><td class="http-code h4xx">409</td><td><span class="ecode">ORDER_NOT_SELECTED</span></td><td>Ordem não está em SELECTED</td></tr>
+        <tr><td class="http-code h4xx">403</td><td><span class="ecode">NOT_SELECTED_FREELANCER</span></td><td>Freelancer autenticado não é o selecionado</td></tr>
+        <tr><td class="http-code h4xx">402</td><td><span class="ecode">PAYMENT_NOT_AUTHORIZED</span></td><td>Pagamento não foi pré-autorizado pela empresa</td></tr>
+        <tr><td class="http-code h4xx">409</td><td><span class="ecode">ACCEPTANCE_EXPIRED</span></td><td>Prazo de 24h para aceite expirado</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="ep" id="ep-reject">
+    <div class="ep-hd POST">
+      <span class="method-badge POST">POST</span>
+      <span class="ep-url">/orders/<span class="param-seg">:order_id</span>/reject</span>
+      <div class="auth-tag"><span class="tag tag-freelancer">Freelancer selecionado</span></div>
+    </div>
+    <div class="ep-desc">Freelancer rejeita a seleção. A ordem volta para <code>IN_APPLICATION</code> (ou <code>PUBLISHED</code> se não há outros candidatos). A seleção anterior é marcada como REJECTED.</div>
+    <div class="ep-body">
+      <div class="blabel">Request Body</div>
+      <pre><span class="pun">{</span> <span class="k">"reason"</span><span class="pun">:</span> <span class="s">"Não tenho disponibilidade no prazo solicitado."</span> <span class="pun">}</span></pre>
+      <div class="blabel">Response 200</div>
+      <pre><span class="pun">{</span>
+  <span class="k">"data"</span><span class="pun">: {</span>
+    <span class="k">"order_id"</span><span class="pun">:</span> <span class="s">"ord-550e8400-..."</span><span class="pun">,</span>
+    <span class="k">"status"</span><span class="pun">:</span>   <span class="s">"IN_APPLICATION"</span>
+  <span class="pun">}</span>
+<span class="pun">}</span></pre>
+    </div>
+  </div>
+
+  <div class="ep" id="ep-evidences">
+    <div class="ep-hd POST">
+      <span class="method-badge POST">POST</span>
+      <span class="ep-url">/orders/<span class="param-seg">:order_id</span>/evidences</span>
+      <div class="auth-tag"><span class="tag tag-freelancer">Freelancer da ordem</span></div>
+    </div>
+    <div class="ep-desc">Freelancer finaliza a execução enviando evidências. Muda status para <code>PENDING_REVIEW</code>. Requer ao menos 1 arquivo ou descrição ≥ 100 chars. Arquivos devem ser enviados via presigned URL antes.</div>
+    <div class="ep-body">
+      <div class="blabel">Request Body</div>
+      <pre><span class="pun">{</span>
+  <span class="k">"title"</span><span class="pun">:</span>             <span class="s">"Entrega final — API REST Node.js completa"</span><span class="pun">,</span>
+  <span class="k">"description"</span><span class="pun">:</span>       <span class="s">"API completamente desenvolvida com os seguintes endpoints: /users (CRUD), /auth (JWT + OAuth), /products (paginação). Cobertura de testes: 91%. Deploy em staging realizado conforme acordado. Repositório: github.com/maria/techcorp-api."</span><span class="pun">,</span>
+  <span class="k">"submission_notes"</span><span class="pun">:</span>  <span class="s">"Variáveis de ambiente documentadas no Notion. Pode testar com as credenciais de staging enviadas no chat."</span><span class="pun">,</span>
+  <span class="k">"file_keys"</span><span class="pun">: [</span>          <span class="c">// S3 keys dos arquivos já enviados via presigned URL</span>
+    <span class="s">"evidences/ord-550e8400/screenshot-home.png"</span><span class="pun">,</span>
+    <span class="s">"evidences/ord-550e8400/coverage-report.png"</span><span class="pun">,</span>
+    <span class="s">"evidences/ord-550e8400/staging-deploy.png"</span>
+  <span class="pun">]</span>
+<span class="pun">}</span></pre>
+      <div class="blabel">Response 201</div>
+      <pre><span class="pun">{</span>
+  <span class="k">"data"</span><span class="pun">: {</span>
+    <span class="k">"id"</span><span class="pun">:</span>               <span class="s">"ev-uuid-evidencia"</span><span class="pun">,</span>
+    <span class="k">"order_id"</span><span class="pun">:</span>         <span class="s">"ord-550e8400-..."</span><span class="pun">,</span>
+    <span class="k">"status"</span><span class="pun">:</span>           <span class="s">"SUBMITTED"</span><span class="pun">,</span>
+    <span class="k">"title"</span><span class="pun">:</span>            <span class="s">"Entrega final — API REST Node.js completa"</span><span class="pun">,</span>
+    <span class="k">"files"</span><span class="pun">: [</span>
+      <span class="pun">{</span>
+        <span class="k">"id"</span><span class="pun">:</span>            <span class="s">"file-uuid-1"</span><span class="pun">,</span>
+        <span class="k">"file_name"</span><span class="pun">:</span>     <span class="s">"screenshot-home.png"</span><span class="pun">,</span>
+        <span class="k">"url"</span><span class="pun">:</span>           <span class="s">"https://cdn.exemplo.com/evidences/ord-550/screenshot-home.png"</span><span class="pun">,</span>
+        <span class="k">"thumbnail_url"</span><span class="pun">:</span> <span class="s">"https://cdn.exemplo.com/evidences/ord-550/screenshot-home_thumb.png"</span><span class="pun">,</span>
+        <span class="k">"mime_type"</span><span class="pun">:</span>     <span class="s">"image/png"</span>
+      <span class="pun">}</span>
+    <span class="pun">],</span>
+    <span class="k">"order_status"</span><span class="pun">:</span>     <span class="s">"PENDING_REVIEW"</span><span class="pun">,</span>
+    <span class="k">"submitted_at"</span><span class="pun">:</span>     <span class="s">"2025-05-20T16:00:00Z"</span>
+  <span class="pun">}</span>
+<span class="pun">}</span></pre>
+      <div class="blabel">Erros específicos</div>
+      <table class="etable">
+        <tr><th>HTTP</th><th>Código</th><th>Causa</th></tr>
+        <tr><td class="http-code h4xx">409</td><td><span class="ecode">ORDER_NOT_IN_PROGRESS</span></td><td>Ordem fora de IN_PROGRESS ou ADJUSTMENT_REQUESTED</td></tr>
+        <tr><td class="http-code h4xx">422</td><td><span class="ecode">EVIDENCE_REQUIRED</span></td><td>Nenhum arquivo e descrição com menos de 100 chars</td></tr>
+        <tr><td class="http-code h4xx">422</td><td><span class="ecode">INVALID_FILE_KEYS</span></td><td>Um ou mais S3 keys inválidos ou de outra ordem</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="ep" id="ep-get-evidences">
+    <div class="ep-hd GET">
+      <span class="method-badge GET">GET</span>
+      <span class="ep-url">/orders/<span class="param-seg">:order_id</span>/evidences</span>
+      <div class="auth-tag"><span class="tag tag-auth">🔒 Participante da ordem</span></div>
+    </div>
+    <div class="ep-desc">Lista todas as evidências de entrega da ordem (pode haver múltiplos ciclos de ajuste). Retorna URLs presignadas com expiração de 1h para visualização.</div>
+    <div class="ep-body">
+      <div class="blabel">Response 200</div>
+      <pre><span class="pun">{</span>
+  <span class="k">"data"</span><span class="pun">: [</span>
+    <span class="pun">{</span>
+      <span class="k">"id"</span><span class="pun">:</span>             <span class="s">"ev-uuid-evidencia"</span><span class="pun">,</span>
+      <span class="k">"status"</span><span class="pun">:</span>         <span class="s">"APPROVED"</span><span class="pun">,</span>
+      <span class="k">"title"</span><span class="pun">:</span>          <span class="s">"Entrega final — API REST Node.js completa"</span><span class="pun">,</span>
+      <span class="k">"review_notes"</span><span class="pun">:</span>   <span class="s">"Excelente! Tudo funcionando conforme o esperado."</span><span class="pun">,</span>
+      <span class="k">"reviewed_at"</span><span class="pun">:</span>    <span class="s">"2025-05-21T10:00:00Z"</span><span class="pun">,</span>
+      <span class="k">"files"</span><span class="pun">: [</span> <span class="c">/* array de arquivos com URLs presignadas */</span> <span class="pun">],</span>
+      <span class="k">"submitted_at"</span><span class="pun">:</span>   <span class="s">"2025-05-20T16:00:00Z"</span>
+    <span class="pun">}</span>
+  <span class="pun">]</span>
+<span class="pun">}</span></pre>
+    </div>
+  </div>
+
+  <div class="ep" id="ep-approve">
+    <div class="ep-hd POST">
+      <span class="method-badge POST">POST</span>
+      <span class="ep-url">/orders/<span class="param-seg">:order_id</span>/approve</span>
+      <div class="auth-tag"><span class="tag tag-empresa">Empresa</span></div>
+    </div>
+    <div class="ep-desc">Empresa aprova a entrega. Status muda para <code>APPROVED</code>. O escrow entra em fila de liberação após o período configurado (<code>escrow_release_days</code>). Evento <code>order.approved</code> disparado.</div>
+    <div class="ep-body">
+      <div class="blabel">Request Body</div>
+      <pre><span class="pun">{</span>
+  <span class="k">"review_notes"</span><span class="pun">:</span> <span class="s">"Excelente trabalho! Todos os endpoints funcionando e cobertura de testes acima do esperado."</span>
+<span class="pun">}</span></pre>
+      <div class="blabel">Response 200</div>
+      <pre><span class="pun">{</span>
+  <span class="k">"data"</span><span class="pun">: {</span>
+    <span class="k">"order_id"</span><span class="pun">:</span>          <span class="s">"ord-550e8400-..."</span><span class="pun">,</span>
+    <span class="k">"status"</span><span class="pun">:</span>            <span class="s">"APPROVED"</span><span class="pun">,</span>
+    <span class="k">"payment_release_at"</span><span class="pun">:</span> <span class="s">"2025-05-24T16:00:00Z"</span>   <span class="c">// NOW + escrow_release_days</span>
+  <span class="pun">}</span>
+<span class="pun">}</span></pre>
+      <div class="blabel">Erros específicos</div>
+      <table class="etable">
+        <tr><th>HTTP</th><th>Código</th><th>Causa</th></tr>
+        <tr><td class="http-code h4xx">409</td><td><span class="ecode">ORDER_NOT_PENDING_REVIEW</span></td><td>Ordem não está em PENDING_REVIEW</td></tr>
+        <tr><td class="http-code h4xx">403</td><td><span class="ecode">NOT_ORDER_COMPANY</span></td><td>Somente a empresa dona pode aprovar</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="ep" id="ep-adjustment">
+    <div class="ep-hd POST">
+      <span class="method-badge POST">POST</span>
+      <span class="ep-url">/orders/<span class="param-seg">:order_id</span>/request-adjustment</span>
+      <div class="auth-tag"><span class="tag tag-empresa">Empresa</span></div>
+    </div>
+    <div class="ep-desc">Empresa solicita ajustes. Limite de 3 ciclos. No 4º ciclo o sistema bloqueia esta ação e força aprovação ou disputa. O freelancer é notificado.</div>
+    <div class="ep-body">
+      <div class="blabel">Request Body</div>
+      <pre><span class="pun">{</span>
+  <span class="k">"review_notes"</span><span class="pun">:</span> <span class="s">"O endpoint /users/search não está retornando paginação conforme especificado. Faltam os campos total e total_pages na resposta. Por favor, adicione e reenvie."</span>
+<span class="pun">}</span></pre>
+      <div class="blabel">Response 200</div>
+      <pre><span class="pun">{</span>
+  <span class="k">"data"</span><span class="pun">: {</span>
+    <span class="k">"order_id"</span><span class="pun">:</span>        <span class="s">"ord-550e8400-..."</span><span class="pun">,</span>
+    <span class="k">"status"</span><span class="pun">:</span>          <span class="s">"ADJUSTMENT_REQUESTED"</span><span class="pun">,</span>
+    <span class="k">"adjustment_cycle"</span><span class="pun">:</span> <span class="n">1</span><span class="pun">,</span>          <span class="c">// ciclo atual</span>
+    <span class="k">"max_cycles"</span><span class="pun">:</span>       <span class="n">3</span>           <span class="c">// limite configurado</span>
+  <span class="pun">}</span>
+<span class="pun">}</span></pre>
+      <div class="blabel">Erros específicos</div>
+      <table class="etable">
+        <tr><th>HTTP</th><th>Código</th><th>Causa</th></tr>
+        <tr><td class="http-code h4xx">422</td><td><span class="ecode">MAX_ADJUSTMENT_CYCLES_REACHED</span></td><td>Limite de 3 ciclos atingido — aprovar ou abrir disputa</td></tr>
+        <tr><td class="http-code h4xx">422</td><td><span class="ecode">REVIEW_NOTES_TOO_SHORT</span></td><td>Descrição do ajuste menor que 20 caracteres</td></tr>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ═════════ CHAT ═════════ -->
+<div class="section">
+  <div class="section-hd">Chat</div>
+
+  <div class="ep" id="ep-get-channel">
+    <div class="ep-hd GET">
+      <span class="method-badge GET">GET</span>
+      <span class="ep-url">/orders/<span class="param-seg">:order_id</span>/chat</span>
+      <div class="auth-tag"><span class="tag tag-auth">🔒 Participante da ordem</span></div>
+    </div>
+    <div class="ep-desc">Retorna metadados do canal e um <code>ws_token</code> de curta duração (5 min) para conectar ao WebSocket. Disponível somente após status <code>ACCEPTED</code>.</div>
+    <div class="ep-body">
+      <div class="blabel">Response 200</div>
+      <pre><span class="pun">{</span>
+  <span class="k">"data"</span><span class="pun">: {</span>
+    <span class="k">"channel_id"</span><span class="pun">:</span>    <span class="s">"ch-uuid-canal"</span><span class="pun">,</span>
+    <span class="k">"order_id"</span><span class="pun">:</span>      <span class="s">"ord-550e8400-..."</span><span class="pun">,</span>
+    <span class="k">"status"</span><span class="pun">:</span>        <span class="s">"ACTIVE"</span><span class="pun">,</span>
+    <span class="k">"message_count"</span><span class="pun">:</span> <span class="n">34</span><span class="pun">,</span>
+    <span class="k">"unread_count"</span><span class="pun">:</span>  <span class="n">3</span><span class="pun">,</span>
+    <span class="k">"last_message_at"</span><span class="pun">:</span> <span class="s">"2025-05-10T14:22:00Z"</span><span class="pun">,</span>
+    <span class="k">"opened_at"</span><span class="pun">:</span>    <span class="s">"2025-05-07T09:00:00Z"</span><span class="pun">,</span>
+    <span class="k">"ws_token"</span><span class="pun">:</span>     <span class="s">"eyJ0eXBlIjoiY2hhdCIsImNoYW5uZWxJZCI6ImNoLXV1aWQtY2FuYWwiLCJleHAiOjE3NDY1NDAyMDB9.assinatura"</span><span class="pun">,</span>
+    <span class="k">"ws_url"</span><span class="pun">:</span>       <span class="s">"wss://ws.seudominio.com/chat"</span>
+  <span class="pun">}</span>
+<span class="pun">}</span></pre>
+      <div class="blabel">Erros específicos</div>
+      <table class="etable">
+        <tr><th>HTTP</th><th>Código</th><th>Causa</th></tr>
+        <tr><td class="http-code h4xx">403</td><td><span class="ecode">CHAT_NOT_AVAILABLE</span></td><td>Ordem não atingiu status ACCEPTED</td></tr>
+        <tr><td class="http-code h4xx">403</td><td><span class="ecode">NOT_CHAT_PARTICIPANT</span></td><td>Usuário não é empresa nem freelancer desta ordem</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="ep" id="ep-list-messages">
+    <div class="ep-hd GET">
+      <span class="method-badge GET">GET</span>
+      <span class="ep-url">/orders/<span class="param-seg">:order_id</span>/chat/messages</span>
+      <div class="auth-tag"><span class="tag tag-auth">🔒 Participante da ordem</span></div>
+    </div>
+    <div class="ep-desc">Lista mensagens com cursor-based pagination. Use <code>before_id</code> para carregar mensagens mais antigas (scroll para cima).</div>
+    <div class="ep-body">
+      <div class="blabel">Query Parameters</div>
+      <table class="ptable">
+        <tr><th>Parâmetro</th><th>Tipo</th><th>Descrição</th></tr>
+        <tr><td><span class="pname">limit</span><span class="popt">opcional</span></td><td><span class="ptype">integer</span></td><td>Mensagens por página (padrão: 50, máx: 100)</td></tr>
+        <tr><td><span class="pname">before_id</span><span class="popt">opcional</span></td><td><span class="ptype">uuid</span></td><td>Cursor — retorna mensagens anteriores a este ID</td></tr>
+        <tr><td><span class="pname">after_id</span><span class="popt">opcional</span></td><td><span class="ptype">uuid</span></td><td>Cursor — retorna mensagens posteriores (polling/reconnect)</td></tr>
+      </table>
+      <div class="blabel">Response 200</div>
+      <pre><span class="pun">{</span>
+  <span class="k">"data"</span><span class="pun">: [</span>
+    <span class="pun">{</span>
+      <span class="k">"id"</span><span class="pun">:</span>            <span class="s">"msg-uuid-mais-recente"</span><span class="pun">,</span>
+      <span class="k">"content"</span><span class="pun">:</span>      <span class="s">"Aqui está o diagrama de arquitetura do projeto."</span><span class="pun">,</span>
+      <span class="k">"content_type"</span><span class="pun">:</span> <span class="s">"TEXT"</span><span class="pun">,</span>           <span class="c">// TEXT | IMAGE | FILE | AUDIO | SYSTEM</span>
+      <span class="k">"sender"</span><span class="pun">: {</span>
+        <span class="k">"id"</span><span class="pun">:</span>         <span class="s">"883h1733-..."</span><span class="pun">,</span>
+        <span class="k">"full_name"</span><span class="pun">:</span>  <span class="s">"Maria Santos"</span><span class="pun">,</span>
+        <span class="k">"role"</span><span class="pun">:</span>       <span class="s">"FREELANCER"</span><span class="pun">,</span>
+        <span class="k">"avatar_url"</span><span class="pun">:</span> <span class="s">"https://cdn.exemplo.com/avatars/maria.jpg"</span>
+      <span class="pun">},</span>
+      <span class="k">"reply_to"</span><span class="pun">:</span>     <span class="b">null</span><span class="pun">,</span>
+      <span class="k">"attachments"</span><span class="pun">: [</span>
+        <span class="pun">{</span>
+          <span class="k">"id"</span><span class="pun">:</span>            <span class="s">"att-uuid-1"</span><span class="pun">,</span>
+          <span class="k">"file_name"</span><span class="pun">:</span>     <span class="s">"arquitetura.png"</span><span class="pun">,</span>
+          <span class="k">"url"</span><span class="pun">:</span>           <span class="s">"https://cdn.exemplo.com/chat/ord-550/arquitetura.png"</span><span class="pun">,</span>
+          <span class="k">"thumbnail_url"</span><span class="pun">:</span> <span class="s">"https://cdn.exemplo.com/chat/ord-550/arquitetura_thumb.png"</span><span class="pun">,</span>
+          <span class="k">"mime_type"</span><span class="pun">:</span>     <span class="s">"image/png"</span><span class="pun">,</span>
+          <span class="k">"file_size_bytes"</span><span class="pun">:</span> <span class="n">512000</span>
+        <span class="pun">}</span>
+      <span class="pun">],</span>
+      <span class="k">"is_read_by_me"</span><span class="pun">:</span> <span class="b">true</span><span class="pun">,</span>
+      <span class="k">"edited_at"</span><span class="pun">:</span>    <span class="b">null</span><span class="pun">,</span>
+      <span class="k">"deleted_at"</span><span class="pun">:</span>   <span class="b">null</span><span class="pun">,</span>
+      <span class="k">"created_at"</span><span class="pun">:</span>   <span class="s">"2025-05-10T14:22:00Z"</span>
+    <span class="pun">}</span>
+  <span class="pun">],</span>
+  <span class="k">"meta"</span><span class="pun">: {</span>
+    <span class="k">"has_more"</span><span class="pun">:</span>  <span class="b">true</span><span class="pun">,</span>
+    <span class="k">"oldest_id"</span><span class="pun">:</span> <span class="s">"msg-uuid-mais-antigo"</span><span class="pun">,</span>
+    <span class="k">"newest_id"</span><span class="pun">:</span> <span class="s">"msg-uuid-mais-recente"</span>
+  <span class="pun">}</span>
+<span class="pun">}</span></pre>
+    </div>
+  </div>
+
+  <div class="ep" id="ep-send-msg">
+    <div class="ep-hd POST">
+      <span class="method-badge POST">POST</span>
+      <span class="ep-url">/orders/<span class="param-seg">:order_id</span>/chat/messages</span>
+      <div class="auth-tag"><span class="tag tag-auth">🔒 Participante da ordem</span></div>
+    </div>
+    <div class="ep-desc">Envia uma mensagem. Para arquivos: primeiro gerar presigned URL (<code>POST /chat/attachments/presigned-url</code>), fazer upload, depois enviar mensagem com o storage_key.</div>
+    <div class="ep-body">
+      <div class="blabel">Request Body</div>
+      <pre><span class="pun">{</span>
+  <span class="k">"content"</span><span class="pun">:</span>         <span class="s">"Segue o diagrama de arquitetura conforme pedido."</span><span class="pun">,</span>
+  <span class="k">"content_type"</span><span class="pun">:</span>    <span class="s">"TEXT"</span><span class="pun">,</span>                 <span class="c">// TEXT | IMAGE | FILE</span>
+  <span class="k">"reply_to_id"</span><span class="pun">:</span>    <span class="b">null</span><span class="pun">,</span>                  <span class="c">// UUID de mensagem para responder</span>
+  <span class="k">"attachment_keys"</span><span class="pun">: [</span>
+    <span class="s">"chat/ord-550e8400/attachments/arquitetura.png"</span>
+  <span class="pun">]</span>
+<span class="pun">}</span></pre>
+      <div class="blabel">Response 201</div>
+      <pre><span class="pun">{</span>
+  <span class="k">"data"</span><span class="pun">: {</span>
+    <span class="k">"id"</span><span class="pun">:</span>            <span class="s">"msg-uuid-nova"</span><span class="pun">,</span>
+    <span class="k">"content"</span><span class="pun">:</span>      <span class="s">"Segue o diagrama de arquitetura conforme pedido."</span><span class="pun">,</span>
+    <span class="k">"content_type"</span><span class="pun">:</span> <span class="s">"TEXT"</span><span class="pun">,</span>
+    <span class="k">"sender"</span><span class="pun">: {</span> <span class="k">"id"</span><span class="pun">:</span> <span class="s">"..."</span><span class="pun">,</span> <span class="k">"full_name"</span><span class="pun">:</span> <span class="s">"Maria Santos"</span><span class="pun">,</span> <span class="k">"role"</span><span class="pun">:</span> <span class="s">"FREELANCER"</span> <span class="pun">},</span>
+    <span class="k">"attachments"</span><span class="pun">: [</span> <span class="c">/* arquivos processados */</span> <span class="pun">],</span>
+    <span class="k">"created_at"</span><span class="pun">:</span>   <span class="s">"2025-05-10T14:25:00Z"</span>
+  <span class="pun">}</span>
+<span class="pun">}</span></pre>
+      <div class="blabel">Erros específicos</div>
+      <table class="etable">
+        <tr><th>HTTP</th><th>Código</th><th>Causa</th></tr>
+        <tr><td class="http-code h4xx">403</td><td><span class="ecode">CHANNEL_CLOSED</span></td><td>Canal fechado (ordem concluída ou cancelada)</td></tr>
+        <tr><td class="http-code h4xx">422</td><td><span class="ecode">EMPTY_MESSAGE</span></td><td>Content vazio sem attachments</td></tr>
+        <tr><td class="http-code h4xx">422</td><td><span class="ecode">MESSAGE_TOO_LONG</span></td><td>Content acima de 10.000 caracteres</td></tr>
+        <tr><td class="http-code h4xx">422</td><td><span class="ecode">INVALID_REPLY_ID</span></td><td><code>reply_to_id</code> não pertence a este canal</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="ep" id="ep-edit-msg">
+    <div class="ep-hd PUT">
+      <span class="method-badge PUT">PUT</span>
+      <span class="ep-url">/orders/<span class="param-seg">:order_id</span>/chat/messages/<span class="param-seg">:message_id</span></span>
+      <div class="auth-tag"><span class="tag tag-auth">🔒 Remetente da mensagem</span></div>
+    </div>
+    <div class="ep-desc">Edita o conteúdo de uma mensagem. Disponível por até 15 minutos após o envio. Registra <code>edited_at</code>.</div>
+    <div class="ep-body">
+      <div class="blabel">Request Body</div>
+      <pre><span class="pun">{</span> <span class="k">"content"</span><span class="pun">:</span> <span class="s">"Texto corrigido da mensagem."</span> <span class="pun">}</span></pre>
+      <div class="blabel">Response 200</div>
+      <pre><span class="pun">{</span> <span class="k">"data"</span><span class="pun">: {</span> <span class="k">"id"</span><span class="pun">:</span> <span class="s">"msg-uuid"</span><span class="pun">,</span> <span class="k">"content"</span><span class="pun">:</span> <span class="s">"Texto corrigido da mensagem."</span><span class="pun">,</span> <span class="k">"edited_at"</span><span class="pun">:</span> <span class="s">"2025-05-10T14:30:00Z"</span> <span class="pun">}</span> <span class="pun">}</span></pre>
+      <div class="blabel">Erros específicos</div>
+      <table class="etable">
+        <tr><th>HTTP</th><th>Código</th><th>Causa</th></tr>
+        <tr><td class="http-code h4xx">403</td><td><span class="ecode">NOT_MESSAGE_SENDER</span></td><td>Apenas o remetente pode editar</td></tr>
+        <tr><td class="http-code h4xx">422</td><td><span class="ecode">EDIT_WINDOW_EXPIRED</span></td><td>Passou dos 15 minutos para edição</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="ep" id="ep-delete-msg">
+    <div class="ep-hd DELETE">
+      <span class="method-badge DELETE">DELETE</span>
+      <span class="ep-url">/orders/<span class="param-seg">:order_id</span>/chat/messages/<span class="param-seg">:message_id</span></span>
+      <div class="auth-tag"><span class="tag tag-auth">🔒 Remetente ou Admin</span></div>
+    </div>
+    <div class="ep-desc">Soft delete: o conteúdo é zerado e <code>deleted_at</code> é marcado. O registro permanece no histórico de auditoria. Todos os participantes veem "mensagem apagada".</div>
+    <div class="ep-body">
+      <div class="blabel">Response 200</div>
+      <pre><span class="pun">{</span> <span class="k">"data"</span><span class="pun">: {</span> <span class="k">"id"</span><span class="pun">:</span> <span class="s">"msg-uuid"</span><span class="pun">,</span> <span class="k">"deleted_at"</span><span class="pun">:</span> <span class="s">"2025-05-10T14:35:00Z"</span> <span class="pun">}</span> <span class="pun">}</span></pre>
+    </div>
+  </div>
+
+  <div class="ep" id="ep-read-msg">
+    <div class="ep-hd POST">
+      <span class="method-badge POST">POST</span>
+      <span class="ep-url">/orders/<span class="param-seg">:order_id</span>/chat/messages/<span class="param-seg">:message_id</span>/read</span>
+      <div class="auth-tag"><span class="tag tag-auth">🔒 Participante da ordem</span></div>
+    </div>
+    <div class="ep-desc">Marca a mensagem como lida. Marcar a mais recente marca implicitamente todas as anteriores não lidas do usuário.</div>
+    <div class="ep-body">
+      <div class="blabel">Response 204</div>
+      <pre><span class="c">// Sem body</span></pre>
+    </div>
+  </div>
+
+  <div class="ep" id="ep-chat-presign">
+    <div class="ep-hd POST">
+      <span class="method-badge POST">POST</span>
+      <span class="ep-url">/orders/<span class="param-seg">:order_id</span>/chat/attachments/presigned-url</span>
+      <div class="auth-tag"><span class="tag tag-auth">🔒 Participante da ordem</span></div>
+    </div>
+    <div class="ep-desc">Gera URL presignada para upload direto ao S3. Fluxo: 1) chamar este endpoint, 2) fazer <code>PUT</code> para <code>upload_url</code>, 3) enviar mensagem com o <code>storage_key</code>.</div>
+    <div class="ep-body">
+      <div class="blabel">Request Body</div>
+      <pre><span class="pun">{</span>
+  <span class="k">"file_name"</span><span class="pun">:</span>       <span class="s">"arquitetura-sistema.png"</span><span class="pun">,</span>
+  <span class="k">"file_size_bytes"</span><span class="pun">:</span> <span class="n">512000</span><span class="pun">,</span>
+  <span class="k">"mime_type"</span><span class="pun">:</span>       <span class="s">"image/png"</span>
+<span class="pun">}</span></pre>
+      <div class="blabel">Response 200</div>
+      <pre><span class="pun">{</span>
+  <span class="k">"data"</span><span class="pun">: {</span>
+    <span class="k">"upload_url"</span><span class="pun">:</span>  <span class="s">"https://s3.amazonaws.com/bucket/chat/ord-550/arquitetura.png?X-Amz-Signature=abc..."</span><span class="pun">,</span>
+    <span class="k">"storage_key"</span><span class="pun">:</span> <span class="s">"chat/ord-550e8400/attachments/arquitetura-sistema.png"</span><span class="pun">,</span>
+    <span class="k">"expires_in"</span><span class="pun">:</span>  <span class="n">300</span>    <span class="c">// 5 minutos para completar o upload</span>
+  <span class="pun">}</span>
+<span class="pun">}</span></pre>
+      <div class="blabel">Erros específicos</div>
+      <table class="etable">
+        <tr><th>HTTP</th><th>Código</th><th>Causa</th></tr>
+        <tr><td class="http-code h4xx">422</td><td><span class="ecode">FILE_TOO_LARGE</span></td><td>Arquivo acima de 100 MB</td></tr>
+        <tr><td class="http-code h4xx">422</td><td><span class="ecode">UNSUPPORTED_MIME_TYPE</span></td><td>Tipo de arquivo não permitido no chat</td></tr>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ═════════ PAGAMENTO ═════════ -->
+<div class="section">
+  <div class="section-hd">Pagamento</div>
+
+  <div class="ep" id="ep-pay-authorize">
+    <div class="ep-hd POST">
+      <span class="method-badge POST">POST</span>
+      <span class="ep-url">/orders/<span class="param-seg">:order_id</span>/payment/authorize</span>
+      <div class="auth-tag"><span class="tag tag-empresa">Empresa</span></div>
+    </div>
+    <div class="ep-desc">Pré-autoriza o pagamento (escrow). Deve ocorrer após seleção do freelancer (SELECTED) e antes do aceite. Sem autorização, o freelancer não pode aceitar. Header <code>X-Idempotency-Key</code> obrigatório.</div>
+    <div class="ep-body">
+      <div class="blabel">Request Headers</div>
+      <pre>X-Idempotency-Key: 7f3d4a28-1c9e-4b22-a8f6-0d1e2f3a4b5c   <span class="c">// UUID gerado pelo cliente</span></pre>
+      <div class="blabel">Request Body</div>
+      <pre><span class="pun">{</span>
+  <span class="k">"payment_method"</span><span class="pun">:</span> <span class="s">"CREDIT_CARD"</span><span class="pun">,</span>        <span class="c">// CREDIT_CARD | PIX | BANK_TRANSFER</span>
+  <span class="k">"provider_token"</span><span class="pun">:</span> <span class="s">"tok_1N4AbCdEfGhIjKl..."</span><span class="pun">,</span> <span class="c">// token do Stripe.js ou SDK do provedor</span>
+  <span class="k">"amount"</span><span class="pun">:</span>          <span class="s">"3500.00"</span><span class="pun">,</span>            <span class="c">// deve corresponder ao agreed_value</span>
+  <span class="k">"currency"</span><span class="pun">:</span>        <span class="s">"BRL"</span>
+<span class="pun">}</span></pre>
+      <div class="blabel">Response 201</div>
+      <pre><span class="pun">{</span>
+  <span class="k">"data"</span><span class="pun">: {</span>
+    <span class="k">"payment_id"</span><span class="pun">:</span>          <span class="s">"pay-uuid-pagamento"</span><span class="pun">,</span>
+    <span class="k">"status"</span><span class="pun">:</span>              <span class="s">"AUTHORIZED"</span><span class="pun">,</span>
+    <span class="k">"method"</span><span class="pun">:</span>              <span class="s">"CREDIT_CARD"</span><span class="pun">,</span>
+    <span class="k">"provider"</span><span class="pun">:</span>            <span class="s">"STRIPE"</span><span class="pun">,</span>
+    <span class="k">"gross_amount"</span><span class="pun">:</span>         <span class="s">"3500.00"</span><span class="pun">,</span>
+    <span class="k">"platform_fee_rate"</span><span class="pun">:</span>    <span class="s">"0.1000"</span><span class="pun">,</span>
+    <span class="k">"platform_fee_amount"</span><span class="pun">:</span>  <span class="s">"350.00"</span><span class="pun">,</span>
+    <span class="k">"freelancer_amount"</span><span class="pun">:</span>    <span class="s">"3150.00"</span><span class="pun">,</span>
+    <span class="k">"currency"</span><span class="pun">:</span>             <span class="s">"BRL"</span><span class="pun">,</span>
+    <span class="k">"authorized_at"</span><span class="pun">:</span>        <span class="s">"2025-05-07T08:30:00Z"</span>
+  <span class="pun">}</span>
+<span class="pun">}</span></pre>
+      <div class="blabel">Erros específicos</div>
+      <table class="etable">
+        <tr><th>HTTP</th><th>Código</th><th>Causa</th></tr>
+        <tr><td class="http-code h4xx">409</td><td><span class="ecode">PAYMENT_ALREADY_EXISTS</span></td><td>Pagamento já iniciado para esta ordem</td></tr>
+        <tr><td class="http-code h4xx">402</td><td><span class="ecode">CARD_DECLINED</span></td><td>Cartão recusado pelo emissor</td></tr>
+        <tr><td class="http-code h4xx">402</td><td><span class="ecode">INSUFFICIENT_FUNDS</span></td><td>Saldo insuficiente</td></tr>
+        <tr><td class="http-code h4xx">422</td><td><span class="ecode">AMOUNT_MISMATCH</span></td><td>Valor não corresponde ao <code>agreed_value</code> da ordem</td></tr>
+        <tr><td class="http-code h4xx">422</td><td><span class="ecode">IDEMPOTENCY_KEY_REQUIRED</span></td><td>Header <code>X-Idempotency-Key</code> ausente</td></tr>
+        <tr><td class="http-code h4xx">409</td><td><span class="ecode">ORDER_NOT_SELECTED</span></td><td>Freelancer não foi selecionado ainda</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="ep" id="ep-pay-pix">
+    <div class="ep-hd POST">
+      <span class="method-badge POST">POST</span>
+      <span class="ep-url">/orders/<span class="param-seg">:order_id</span>/payment/pix</span>
+      <div class="auth-tag"><span class="tag tag-empresa">Empresa</span></div>
+    </div>
+    <div class="ep-desc">Gera QR Code PIX. Status muda para <code>AUTHORIZED</code> automaticamente quando o PIX é confirmado via webhook do provedor. Expira em 30 minutos.</div>
+    <div class="ep-body">
+      <div class="blabel">Request Headers</div>
+      <pre>X-Idempotency-Key: 7f3d4a28-1c9e-4b22-a8f6-0d1e2f3a4b5c</pre>
+      <div class="blabel">Request Body</div>
+      <pre><span class="pun">{</span>
+  <span class="k">"amount"</span><span class="pun">:</span>   <span class="s">"3500.00"</span><span class="pun">,</span>
+  <span class="k">"currency"</span><span class="pun">:</span> <span class="s">"BRL"</span>
+<span class="pun">}</span></pre>
+      <div class="blabel">Response 201</div>
+      <pre><span class="pun">{</span>
+  <span class="k">"data"</span><span class="pun">: {</span>
+    <span class="k">"payment_id"</span><span class="pun">:</span>       <span class="s">"pay-uuid-pagamento"</span><span class="pun">,</span>
+    <span class="k">"status"</span><span class="pun">:</span>           <span class="s">"PENDING"</span><span class="pun">,</span>
+    <span class="k">"pix_qr_code"</span><span class="pun">:</span>      <span class="s">"00020126580014br.gov.bcb.pix0136a629f3cc-b4bc-4b38-b6e5-2a..."</span><span class="pun">,</span>
+    <span class="k">"pix_qr_code_url"</span><span class="pun">:</span>  <span class="s">"https://api.gerencianet.com.br/v2/gn/qrcodes/pay/abc123"</span><span class="pun">,</span>
+    <span class="k">"pix_expiration_at"</span><span class="pun">:</span> <span class="s">"2025-05-07T09:00:00Z"</span><span class="pun">,</span>   <span class="c">// NOW + 30 min</span>
+    <span class="k">"amount"</span><span class="pun">:</span>           <span class="s">"3500.00"</span>
+  <span class="pun">}</span>
+<span class="pun">}</span></pre>
+    </div>
+  </div>
+
+  <div class="ep" id="ep-pay-status">
+    <div class="ep-hd GET">
+      <span class="method-badge GET">GET</span>
+      <span class="ep-url">/orders/<span class="param-seg">:order_id</span>/payment</span>
+      <div class="auth-tag"><span class="tag tag-auth">🔒 Participante da ordem</span></div>
+    </div>
+    <div class="ep-desc">Retorna status atual do pagamento e histórico completo de transações. O freelancer só vê <code>freelancer_amount</code> e <code>released_at</code>.</div>
+    <div class="ep-body">
+      <div class="blabel">Response 200</div>
+      <pre><span class="pun">{</span>
+  <span class="k">"data"</span><span class="pun">: {</span>
+    <span class="k">"id"</span><span class="pun">:</span>                  <span class="s">"pay-uuid-pagamento"</span><span class="pun">,</span>
+    <span class="k">"status"</span><span class="pun">:</span>              <span class="s">"CAPTURED"</span><span class="pun">,</span>
+    <span class="k">"method"</span><span class="pun">:</span>              <span class="s">"CREDIT_CARD"</span><span class="pun">,</span>
+    <span class="k">"provider"</span><span class="pun">:</span>            <span class="s">"STRIPE"</span><span class="pun">,</span>
+    <span class="k">"gross_amount"</span><span class="pun">:</span>         <span class="s">"3500.00"</span><span class="pun">,</span>
+    <span class="k">"platform_fee_amount"</span><span class="pun">:</span>  <span class="s">"350.00"</span><span class="pun">,</span>
+    <span class="k">"freelancer_amount"</span><span class="pun">:</span>    <span class="s">"3150.00"</span><span class="pun">,</span>
+    <span class="k">"authorized_at"</span><span class="pun">:</span>        <span class="s">"2025-05-07T08:30:00Z"</span><span class="pun">,</span>
+    <span class="k">"captured_at"</span><span class="pun">:</span>          <span class="s">"2025-05-07T09:00:00Z"</span><span class="pun">,</span>
+    <span class="k">"released_at"</span><span class="pun">:</span>          <span class="b">null</span><span class="pun">,</span>
+    <span class="k">"transactions"</span><span class="pun">: [</span>
+      <span class="pun">{</span> <span class="k">"type"</span><span class="pun">:</span> <span class="s">"AUTHORIZATION"</span><span class="pun">,</span> <span class="k">"status"</span><span class="pun">:</span> <span class="s">"SUCCESS"</span><span class="pun">,</span> <span class="k">"amount"</span><span class="pun">:</span> <span class="s">"3500.00"</span><span class="pun">,</span> <span class="k">"created_at"</span><span class="pun">:</span> <span class="s">"2025-05-07T08:30:00Z"</span> <span class="pun">},</span>
+      <span class="pun">{</span> <span class="k">"type"</span><span class="pun">:</span> <span class="s">"CAPTURE"</span><span class="pun">,</span>        <span class="k">"status"</span><span class="pun">:</span> <span class="s">"SUCCESS"</span><span class="pun">,</span> <span class="k">"amount"</span><span class="pun">:</span> <span class="s">"3500.00"</span><span class="pun">,</span> <span class="k">"created_at"</span><span class="pun">:</span> <span class="s">"2025-05-07T09:00:00Z"</span> <span class="pun">}</span>
+    <span class="pun">]</span>
+  <span class="pun">}</span>
+<span class="pun">}</span></pre>
+    </div>
+  </div>
+
+  <div class="ep" id="ep-webhook">
+    <div class="ep-hd POST">
+      <span class="method-badge POST">POST</span>
+      <span class="ep-url">/webhooks/payment/<span class="param-seg">:provider</span></span>
+      <div class="auth-tag"><span class="tag tag-public">Público (verificado por assinatura HMAC)</span></div>
+    </div>
+    <div class="ep-desc">Recebe eventos dos provedores de pagamento (Stripe, Gerencianet). A assinatura é verificada antes do processamento. O endpoint sempre retorna 200 imediatamente — o processamento é assíncrono (fila).</div>
+    <div class="ep-body">
+      <div class="blabel">Request Headers (Stripe)</div>
+      <pre>Stripe-Signature: t=1620000000,v1=abc123def456...</pre>
+      <div class="blabel">Request Body (Stripe — PIX confirmado)</div>
+      <pre><span class="pun">{</span>
+  <span class="k">"id"</span><span class="pun">:</span>   <span class="s">"evt_1N4AbCdEfGhIjKl"</span><span class="pun">,</span>
+  <span class="k">"type"</span><span class="pun">:</span> <span class="s">"payment_intent.succeeded"</span><span class="pun">,</span>
+  <span class="k">"data"</span><span class="pun">: {</span>
+    <span class="k">"object"</span><span class="pun">: {</span>
+      <span class="k">"id"</span><span class="pun">:</span>       <span class="s">"pi_3N4AbCdEfGhIjKl"</span><span class="pun">,</span>
+      <span class="k">"amount"</span><span class="pun">:</span>  <span class="n">350000</span><span class="pun">,</span>              <span class="c">// em centavos (Stripe)</span>
+      <span class="k">"metadata"</span><span class="pun">: {</span>
+        <span class="k">"order_id"</span><span class="pun">:</span>    <span class="s">"ord-550e8400-..."</span><span class="pun">,</span>
+        <span class="k">"payment_id"</span><span class="pun">:</span>  <span class="s">"pay-uuid-pagamento"</span>
+      <span class="pun">}</span>
+    <span class="pun">}</span>
+  <span class="pun">}</span>
+<span class="pun">}</span></pre>
+      <div class="blabel">Response 200</div>
+      <pre><span class="pun">{</span> <span class="k">"received"</span><span class="pun">:</span> <span class="b">true</span> <span class="pun">}</span></pre>
+      <div class="blabel">Erros específicos</div>
+      <table class="etable">
+        <tr><th>HTTP</th><th>Código</th><th>Causa</th></tr>
+        <tr><td class="http-code h4xx">401</td><td><span class="ecode">INVALID_WEBHOOK_SIGNATURE</span></td><td>Assinatura HMAC inválida — rejeitar silenciosamente sem processar</td></tr>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ═════════ AVALIAÇÕES ═════════ -->
+<div class="section">
+  <div class="section-hd">Avaliações</div>
+
+  <div class="ep" id="ep-submit-rating">
+    <div class="ep-hd POST">
+      <span class="method-badge POST">POST</span>
+      <span class="ep-url">/orders/<span class="param-seg">:order_id</span>/ratings</span>
+      <div class="auth-tag"><span class="tag tag-auth">🔒 Participante da ordem</span></div>
+    </div>
+    <div class="ep-desc">Submete avaliação. Empresa avalia o freelancer; freelancer avalia a empresa. Disponível por 72h após COMPLETED. Cada parte só pode avaliar uma vez.</div>
+    <div class="ep-body">
+      <div class="blabel">Request Body</div>
+      <pre><span class="pun">{</span>
+  <span class="k">"overall_score"</span><span class="pun">:</span>         <span class="n">5.0</span><span class="pun">,</span>     <span class="c">// 1.0 a 5.0 — obrigatório</span>
+  <span class="k">"quality_score"</span><span class="pun">:</span>          <span class="n">5.0</span><span class="pun">,</span>     <span class="c">// opcional</span>
+  <span class="k">"communication_score"</span><span class="pun">:</span>    <span class="n">4.5</span><span class="pun">,</span>
+  <span class="k">"timeliness_score"</span><span class="pun">:</span>       <span class="n">5.0</span><span class="pun">,</span>
+  <span class="k">"professionalism_score"</span><span class="pun">:</span>  <span class="n">5.0</span><span class="pun">,</span>
+  <span class="k">"comment"</span><span class="pun">:</span>                <span class="s">"Maria entregou o projeto antes do prazo, com cobertura de testes acima de 90%. Comunicação impecável durante todo o processo. Recomendo fortemente para qualquer projeto Node.js!"</span>
+<span class="pun">}</span></pre>
+      <div class="blabel">Response 201</div>
+      <pre><span class="pun">{</span>
+  <span class="k">"data"</span><span class="pun">: {</span>
+    <span class="k">"id"</span><span class="pun">:</span>               <span class="s">"rat-uuid-avaliacao"</span><span class="pun">,</span>
+    <span class="k">"rating_type"</span><span class="pun">:</span>     <span class="s">"COMPANY_TO_FREELANCER"</span><span class="pun">,</span>
+    <span class="k">"overall_score"</span><span class="pun">:</span>   <span class="s">"5.0"</span><span class="pun">,</span>
+    <span class="k">"ratee"</span><span class="pun">: {</span>
+      <span class="k">"id"</span><span class="pun">:</span>                  <span class="s">"883h1733-..."</span><span class="pun">,</span>
+      <span class="k">"full_name"</span><span class="pun">:</span>           <span class="s">"Maria Santos"</span><span class="pun">,</span>
+      <span class="k">"new_reputation_score"</span><span class="pun">:</span> <span class="s">"4.92"</span>        <span class="c">// score recalculado após a avaliação</span>
+    <span class="pun">},</span>
+    <span class="k">"submitted_at"</span><span class="pun">:</span>    <span class="s">"2025-05-22T10:00:00Z"</span>
+  <span class="pun">}</span>
+<span class="pun">}</span></pre>
+      <div class="blabel">Erros específicos</div>
+      <table class="etable">
+        <tr><th>HTTP</th><th>Código</th><th>Causa</th></tr>
+        <tr><td class="http-code h4xx">409</td><td><span class="ecode">ALREADY_RATED</span></td><td>Usuário já avaliou esta ordem</td></tr>
+        <tr><td class="http-code h4xx">422</td><td><span class="ecode">RATING_WINDOW_CLOSED</span></td><td>Janela de 72h encerrada</td></tr>
+        <tr><td class="http-code h4xx">409</td><td><span class="ecode">ORDER_NOT_COMPLETED</span></td><td>Ordem ainda não está em COMPLETED</td></tr>
+        <tr><td class="http-code h4xx">422</td><td><span class="ecode">SCORE_OUT_OF_RANGE</span></td><td>Score fora do intervalo 1.0–5.0</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="ep" id="ep-order-ratings">
+    <div class="ep-hd GET">
+      <span class="method-badge GET">GET</span>
+      <span class="ep-url">/orders/<span class="param-seg">:order_id</span>/ratings</span>
+      <div class="auth-tag"><span class="tag tag-auth">🔒 Autenticado</span></div>
+    </div>
+    <div class="ep-desc">Retorna ambas as avaliações da ordem. Avaliações não submetidas aparecem como <code>null</code>.</div>
+    <div class="ep-body">
+      <div class="blabel">Response 200</div>
+      <pre><span class="pun">{</span>
+  <span class="k">"data"</span><span class="pun">: {</span>
+    <span class="k">"company_to_freelancer"</span><span class="pun">: {</span>
+      <span class="k">"overall_score"</span><span class="pun">:</span>        <span class="s">"5.0"</span><span class="pun">,</span>
+      <span class="k">"quality_score"</span><span class="pun">:</span>         <span class="s">"5.0"</span><span class="pun">,</span>
+      <span class="k">"communication_score"</span><span class="pun">:</span>   <span class="s">"4.5"</span><span class="pun">,</span>
+      <span class="k">"timeliness_score"</span><span class="pun">:</span>      <span class="s">"5.0"</span><span class="pun">,</span>
+      <span class="k">"professionalism_score"</span><span class="pun">:</span> <span class="s">"5.0"</span><span class="pun">,</span>
+      <span class="k">"comment"</span><span class="pun">:</span>               <span class="s">"Maria entregou o projeto antes do prazo..."</span><span class="pun">,</span>
+      <span class="k">"submitted_at"</span><span class="pun">:</span>          <span class="s">"2025-05-22T10:00:00Z"</span>
+    <span class="pun">},</span>
+    <span class="k">"freelancer_to_company"</span><span class="pun">: {</span>
+      <span class="k">"overall_score"</span><span class="pun">:</span>       <span class="s">"4.5"</span><span class="pun">,</span>
+      <span class="k">"communication_score"</span><span class="pun">:</span> <span class="s">"4.0"</span><span class="pun">,</span>
+      <span class="k">"comment"</span><span class="pun">:</span>             <span class="s">"Empresa muito organizada, briefing claro. Demorou um pouco para revisar."</span><span class="pun">,</span>
+      <span class="k">"submitted_at"</span><span class="pun">:</span>        <span class="s">"2025-05-22T12:00:00Z"</span>
+    <span class="pun">},</span>
+    <span class="k">"rating_window_closes_at"</span><span class="pun">:</span> <span class="s">"2025-05-24T16:00:00Z"</span>
+  <span class="pun">}</span>
+<span class="pun">}</span></pre>
+    </div>
+  </div>
+
+  <div class="ep" id="ep-user-ratings">
+    <div class="ep-hd GET">
+      <span class="method-badge GET">GET</span>
+      <span class="ep-url">/users/<span class="param-seg">:user_id</span>/ratings</span>
+      <div class="auth-tag"><span class="tag tag-auth">🔒 Autenticado</span></div>
+    </div>
+    <div class="ep-desc">Histórico público de avaliações de um usuário para exibição no perfil. Avaliações removidas por moderação são excluídas.</div>
+    <div class="ep-body">
+      <div class="blabel">Response 200</div>
+      <pre><span class="pun">{</span>
+  <span class="k">"data"</span><span class="pun">: {</span>
+    <span class="k">"summary"</span><span class="pun">: {</span>
+      <span class="k">"overall_score"</span><span class="pun">:</span>     <span class="s">"4.92"</span><span class="pun">,</span>
+      <span class="k">"quality_avg"</span><span class="pun">:</span>       <span class="s">"4.95"</span><span class="pun">,</span>
+      <span class="k">"communication_avg"</span><span class="pun">:</span> <span class="s">"4.88"</span><span class="pun">,</span>
+      <span class="k">"timeliness_avg"</span><span class="pun">:</span>    <span class="s">"4.90"</span><span class="pun">,</span>
+      <span class="k">"total_ratings"</span><span class="pun">:</span>     <span class="n">48</span><span class="pun">,</span>
+      <span class="k">"percentile_rank"</span><span class="pun">:</span>   <span class="s">"96.50"</span>   <span class="c">// top 3.5% dos freelancers</span>
+    <span class="pun">},</span>
+    <span class="k">"reviews"</span><span class="pun">: [</span>
+      <span class="pun">{</span>
+        <span class="k">"overall_score"</span><span class="pun">:</span> <span class="s">"5.0"</span><span class="pun">,</span>
+        <span class="k">"comment"</span><span class="pun">:</span>       <span class="s">"Entrega impecável, recomendo fortemente!"</span><span class="pun">,</span>
+        <span class="k">"rater_name"</span><span class="pun">:</span>    <span class="s">"Tech Corp Ltda"</span><span class="pun">,</span>
+        <span class="k">"submitted_at"</span><span class="pun">:</span>  <span class="s">"2025-05-22T10:00:00Z"</span>
+      <span class="pun">}</span>
+    <span class="pun">]</span>
+  <span class="pun">},</span>
+  <span class="k">"meta"</span><span class="pun">: {</span> <span class="k">"page"</span><span class="pun">:</span> <span class="n">1</span><span class="pun">,</span> <span class="k">"per_page"</span><span class="pun">:</span> <span class="n">10</span><span class="pun">,</span> <span class="k">"total"</span><span class="pun">:</span> <span class="n">48</span> <span class="pun">}</span>
+<span class="pun">}</span></pre>
+    </div>
+  </div>
+</div>
+
+<!-- ═════════ DISPUTAS ═════════ -->
+<div class="section">
+  <div class="section-hd">Disputas</div>
+
+  <div class="ep" id="ep-open-dispute">
+    <div class="ep-hd POST">
+      <span class="method-badge POST">POST</span>
+      <span class="ep-url">/orders/<span class="param-seg">:order_id</span>/dispute</span>
+      <div class="auth-tag"><span class="tag tag-auth">🔒 Participante da ordem</span></div>
+    </div>
+    <div class="ep-desc">Abre disputa. Escrow suspenso imediatamente. Admin atribuído automaticamente. SLA de 48h para resolução. Disponível nos status: <code>IN_PROGRESS</code>, <code>PENDING_REVIEW</code>, <code>ADJUSTMENT_REQUESTED</code>.</div>
+    <div class="ep-body">
+      <div class="blabel">Request Body</div>
+      <pre><span class="pun">{</span>
+  <span class="k">"reason_category"</span><span class="pun">:</span> <span class="s">"QUALITY"</span><span class="pun">,</span>    <span class="c">// QUALITY | DELIVERY | FRAUD | PAYMENT | BEHAVIOR | OTHER</span>
+  <span class="k">"description"</span><span class="pun">:</span>     <span class="s">"O código entregue não funciona no ambiente de produção. Testamos em 3 servidores diferentes e em todos o endpoint /users/search retorna erro 500 com stack trace de null pointer. O freelancer não conseguiu reproduzir o problema nem corrigir após duas tentativas."</span>
+<span class="pun">}</span></pre>
+      <div class="blabel">Response 201</div>
+      <pre><span class="pun">{</span>
+  <span class="k">"data"</span><span class="pun">: {</span>
+    <span class="k">"id"</span><span class="pun">:</span>                      <span class="s">"disp-uuid-disputa"</span><span class="pun">,</span>
+    <span class="k">"code"</span><span class="pun">:</span>                    <span class="s">"DSP-2025-000001"</span><span class="pun">,</span>
+    <span class="k">"order_id"</span><span class="pun">:</span>                <span class="s">"ord-550e8400-..."</span><span class="pun">,</span>
+    <span class="k">"status"</span><span class="pun">:</span>                  <span class="s">"OPEN"</span><span class="pun">,</span>
+    <span class="k">"reason_category"</span><span class="pun">:</span>         <span class="s">"QUALITY"</span><span class="pun">,</span>
+    <span class="k">"opened_by_role"</span><span class="pun">:</span>          <span class="s">"EMPRESA"</span><span class="pun">,</span>
+    <span class="k">"payment_status"</span><span class="pun">:</span>          <span class="s">"CAPTURED"</span><span class="pun">,</span>          <span class="c">// escrow congelado</span>
+    <span class="k">"expected_resolution_at"</span><span class="pun">:</span>  <span class="s">"2025-05-22T16:00:00Z"</span><span class="pun">,</span>  <span class="c">// NOW + 48h SLA</span>
+    <span class="k">"created_at"</span><span class="pun">:</span>              <span class="s">"2025-05-20T16:00:00Z"</span>
+  <span class="pun">}</span>
+<span class="pun">}</span></pre>
+      <div class="blabel">Erros específicos</div>
+      <table class="etable">
+        <tr><th>HTTP</th><th>Código</th><th>Causa</th></tr>
+        <tr><td class="http-code h4xx">409</td><td><span class="ecode">DISPUTE_ALREADY_EXISTS</span></td><td>Já existe disputa aberta ou ativa para esta ordem</td></tr>
+        <tr><td class="http-code h4xx">409</td><td><span class="ecode">ORDER_STATUS_NOT_DISPUTABLE</span></td><td>Ordem em estado que não permite disputa (DRAFT, PUBLISHED, COMPLETED, CANCELLED)</td></tr>
+        <tr><td class="http-code h4xx">422</td><td><span class="ecode">DESCRIPTION_TOO_SHORT</span></td><td>Descrição menor que 50 caracteres</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="ep" id="ep-get-dispute">
+    <div class="ep-hd GET">
+      <span class="method-badge GET">GET</span>
+      <span class="ep-url">/orders/<span class="param-seg">:order_id</span>/dispute</span>
+      <div class="auth-tag"><span class="tag tag-auth">🔒 Participante da ordem</span></div>
+    </div>
+    <div class="ep-desc">Retorna detalhes da disputa incluindo mensagens e evidências. Mensagens <code>is_internal: true</code> são filtradas para usuários não-admin.</div>
+    <div class="ep-body">
+      <div class="blabel">Response 200</div>
+      <pre><span class="pun">{</span>
+  <span class="k">"data"</span><span class="pun">: {</span>
+    <span class="k">"id"</span><span class="pun">:</span>                     <span class="s">"disp-uuid-disputa"</span><span class="pun">,</span>
+    <span class="k">"code"</span><span class="pun">:</span>                   <span class="s">"DSP-2025-000001"</span><span class="pun">,</span>
+    <span class="k">"status"</span><span class="pun">:</span>                 <span class="s">"UNDER_REVIEW"</span><span class="pun">,</span>
+    <span class="k">"reason_category"</span><span class="pun">:</span>        <span class="s">"QUALITY"</span><span class="pun">,</span>
+    <span class="k">"description"</span><span class="pun">:</span>            <span class="s">"O código entregue não funciona..."</span><span class="pun">,</span>
+    <span class="k">"assigned_to"</span><span class="pun">: {</span>
+      <span class="k">"id"</span><span class="pun">:</span>         <span class="s">"admin-uuid"</span><span class="pun">,</span>
+      <span class="k">"full_name"</span><span class="pun">:</span>  <span class="s">"Carlos Admin"</span>
+    <span class="pun">},</span>
+    <span class="k">"expected_resolution_at"</span><span class="pun">:</span> <span class="s">"2025-05-22T16:00:00Z"</span><span class="pun">,</span>
+    <span class="k">"messages"</span><span class="pun">: [</span>
+      <span class="pun">{</span>
+        <span class="k">"id"</span><span class="pun">:</span>          <span class="s">"dmsg-uuid-1"</span><span class="pun">,</span>
+        <span class="k">"sender"</span><span class="pun">: {</span> <span class="k">"full_name"</span><span class="pun">:</span> <span class="s">"Carlos Admin"</span><span class="pun">,</span> <span class="k">"role"</span><span class="pun">:</span> <span class="s">"ADMIN"</span> <span class="pun">},</span>
+        <span class="k">"content"</span><span class="pun">:</span>    <span class="s">"Recebemos sua disputa e estamos analisando as evidências de ambas as partes. Retornaremos em até 24h."</span><span class="pun">,</span>
+        <span class="k">"is_internal"</span><span class="pun">:</span> <span class="b">false</span><span class="pun">,</span>
+        <span class="k">"created_at"</span><span class="pun">:</span> <span class="s">"2025-05-20T18:00:00Z"</span>
+      <span class="pun">}</span>
+    <span class="pun">],</span>
+    <span class="k">"evidences_count"</span><span class="pun">:</span>         <span class="n">3</span><span class="pun">,</span>
+    <span class="k">"created_at"</span><span class="pun">:</span>              <span class="s">"2025-05-20T16:00:00Z"</span>
+  <span class="pun">}</span>
+<span class="pun">}</span></pre>
+    </div>
+  </div>
+
+  <div class="ep" id="ep-dispute-msg">
+    <div class="ep-hd POST">
+      <span class="method-badge POST">POST</span>
+      <span class="ep-url">/orders/<span class="param-seg">:order_id</span>/dispute/messages</span>
+      <div class="auth-tag"><span class="tag tag-auth">🔒 Participante ou Admin</span></div>
+    </div>
+    <div class="ep-desc">Adiciona mensagem à disputa. Admins podem enviar mensagens internas (is_internal: true) visíveis somente entre admins.</div>
+    <div class="ep-body">
+      <div class="blabel">Request Body</div>
+      <pre><span class="pun">{</span>
+  <span class="k">"content"</span><span class="pun">:</span>     <span class="s">"Estou enviando o log de erro completo do servidor de produção para comprovar o problema."</span><span class="pun">,</span>
+  <span class="k">"is_internal"</span><span class="pun">:</span> <span class="b">false</span>   <span class="c">// true apenas para ADMIN — notas internas do time de suporte</span>
+<span class="pun">}</span></pre>
+      <div class="blabel">Response 201</div>
+      <pre><span class="pun">{</span>
+  <span class="k">"data"</span><span class="pun">: {</span>
+    <span class="k">"id"</span><span class="pun">:</span>          <span class="s">"dmsg-uuid-novo"</span><span class="pun">,</span>
+    <span class="k">"content"</span><span class="pun">:</span>    <span class="s">"Estou enviando o log de erro..."</span><span class="pun">,</span>
+    <span class="k">"is_internal"</span><span class="pun">:</span> <span class="b">false</span><span class="pun">,</span>
+    <span class="k">"created_at"</span><span class="pun">:</span> <span class="s">"2025-05-20T19:00:00Z"</span>
+  <span class="pun">}</span>
+<span class="pun">}</span></pre>
+    </div>
+  </div>
+
+  <div class="ep" id="ep-dispute-evidence">
+    <div class="ep-hd POST">
+      <span class="method-badge POST">POST</span>
+      <span class="ep-url">/orders/<span class="param-seg">:order_id</span>/dispute/evidences</span>
+      <div class="auth-tag"><span class="tag tag-auth">🔒 Participante da ordem</span></div>
+    </div>
+    <div class="ep-desc">Adiciona evidência (arquivo) à disputa. Usar presigned URL S3 previamente para upload.</div>
+    <div class="ep-body">
+      <div class="blabel">Request Body</div>
+      <pre><span class="pun">{</span>
+  <span class="k">"description"</span><span class="pun">:</span> <span class="s">"Log de erro do servidor de produção mostrando null pointer exception"</span><span class="pun">,</span>
+  <span class="k">"storage_key"</span><span class="pun">:</span> <span class="s">"disputes/disp-uuid/log-producao.txt"</span>
+<span class="pun">}</span></pre>
+      <div class="blabel">Response 201</div>
+      <pre><span class="pun">{</span>
+  <span class="k">"data"</span><span class="pun">: {</span>
+    <span class="k">"id"</span><span class="pun">:</span>           <span class="s">"dev-uuid-evidencia"</span><span class="pun">,</span>
+    <span class="k">"description"</span><span class="pun">:</span> <span class="s">"Log de erro do servidor..."</span><span class="pun">,</span>
+    <span class="k">"file_name"</span><span class="pun">:</span>   <span class="s">"log-producao.txt"</span><span class="pun">,</span>
+    <span class="k">"url"</span><span class="pun">:</span>         <span class="s">"https://cdn.exemplo.com/disputes/disp-uuid/log-producao.txt"</span><span class="pun">,</span>
+    <span class="k">"created_at"</span><span class="pun">:</span>  <span class="s">"2025-05-20T20:00:00Z"</span>
+  <span class="pun">}</span>
+<span class="pun">}</span></pre>
+    </div>
+  </div>
+
+  <div class="ep" id="ep-assign-dispute">
+    <div class="ep-hd POST">
+      <span class="method-badge POST">POST</span>
+      <span class="ep-url">/disputes/<span class="param-seg">:dispute_id</span>/assign</span>
+      <div class="auth-tag"><span class="tag tag-admin">Admin</span></div>
+    </div>
+    <div class="ep-desc">Admin se auto-atribui ou atribui a outro admin. Muda status para <code>UNDER_REVIEW</code>.</div>
+    <div class="ep-body">
+      <div class="blabel">Request Body</div>
+      <pre><span class="pun">{</span> <span class="k">"admin_id"</span><span class="pun">:</span> <span class="s">"admin-uuid"</span> <span class="pun">}</span></pre>
+      <div class="blabel">Response 200</div>
+      <pre><span class="pun">{</span> <span class="k">"data"</span><span class="pun">: {</span> <span class="k">"dispute_id"</span><span class="pun">:</span> <span class="s">"disp-uuid"</span><span class="pun">,</span> <span class="k">"status"</span><span class="pun">:</span> <span class="s">"UNDER_REVIEW"</span><span class="pun">,</span> <span class="k">"assigned_to"</span><span class="pun">:</span> <span class="s">"admin-uuid"</span> <span class="pun">}</span> <span class="pun">}</span></pre>
+    </div>
+  </div>
+
+  <div class="ep" id="ep-resolve">
+    <div class="ep-hd POST">
+      <span class="method-badge POST">POST</span>
+      <span class="ep-url">/disputes/<span class="param-seg">:dispute_id</span>/resolve</span>
+      <div class="auth-tag"><span class="tag tag-admin">Admin</span></div>
+    </div>
+    <div class="ep-desc">Admin resolve a disputa. A decisão determina o destino do escrow. Todas as transações financeiras são processadas atomicamente dentro de uma única transação de banco.</div>
+    <div class="ep-body">
+      <div class="blabel">Request Body</div>
+      <pre><span class="pun">{</span>
+  <span class="k">"resolution"</span><span class="pun">:</span>         <span class="s">"REFUND_PARTIAL"</span><span class="pun">,</span>   <span class="c">// REFUND_FULL | REFUND_PARTIAL | PAYMENT_RELEASED | SPLIT | NO_ACTION</span>
+  <span class="k">"resolution_amount"</span><span class="pun">:</span>  <span class="s">"1750.00"</span><span class="pun">,</span>          <span class="c">// obrigatório para REFUND_PARTIAL e SPLIT</span>
+  <span class="k">"resolution_notes"</span><span class="pun">:</span>   <span class="s">"Após análise das evidências de ambas as partes, fica claro que o freelancer entregou aproximadamente 50% do escopo acordado com qualidade adequada. Decisão: reembolso de 50% para a empresa, liberação de 50% para o freelancer descontada a taxa da plataforma."</span>
+<span class="pun">}</span></pre>
+      <div class="blabel">Response 200</div>
+      <pre><span class="pun">{</span>
+  <span class="k">"data"</span><span class="pun">: {</span>
+    <span class="k">"dispute_id"</span><span class="pun">:</span>          <span class="s">"disp-uuid-disputa"</span><span class="pun">,</span>
+    <span class="k">"status"</span><span class="pun">:</span>              <span class="s">"CLOSED"</span><span class="pun">,</span>
+    <span class="k">"resolution"</span><span class="pun">:</span>          <span class="s">"REFUND_PARTIAL"</span><span class="pun">,</span>
+    <span class="k">"company_refund"</span><span class="pun">:</span>       <span class="s">"1750.00"</span><span class="pun">,</span>
+    <span class="k">"freelancer_payment"</span><span class="pun">:</span>  <span class="s">"1400.00"</span><span class="pun">,</span>           <span class="c">// 1750 - 20% plataforma (após disputa)</span>
+    <span class="k">"platform_fee"</span><span class="pun">:</span>        <span class="s">"350.00"</span><span class="pun">,</span>
+    <span class="k">"order_final_status"</span><span class="pun">:</span>  <span class="s">"CANCELLED"</span><span class="pun">,</span>         <span class="c">// CANCELLED | COMPLETED | IN_PROGRESS</span>
+    <span class="k">"resolved_at"</span><span class="pun">:</span>         <span class="s">"2025-05-22T10:00:00Z"</span>
+  <span class="pun">}</span>
+<span class="pun">}</span></pre>
+      <div class="blabel">Erros específicos</div>
+      <table class="etable">
+        <tr><th>HTTP</th><th>Código</th><th>Causa</th></tr>
+        <tr><td class="http-code h4xx">422</td><td><span class="ecode">RESOLUTION_AMOUNT_REQUIRED</span></td><td>Valor obrigatório para resolução parcial ou split</td></tr>
+        <tr><td class="http-code h4xx">422</td><td><span class="ecode">AMOUNT_EXCEEDS_PAYMENT</span></td><td>Valor de reembolso supera o total pago</td></tr>
+        <tr><td class="http-code h4xx">422</td><td><span class="ecode">RESOLUTION_NOTES_REQUIRED</span></td><td>Justificativa obrigatória (min 50 chars)</td></tr>
+        <tr><td class="http-code h4xx">409</td><td><span class="ecode">DISPUTE_ALREADY_RESOLVED</span></td><td>Disputa já foi encerrada</td></tr>
+        <tr><td class="http-code h4xx">403</td><td><span class="ecode">NOT_ASSIGNED_ADMIN</span></td><td>Admin autenticado não é o responsável pela disputa</td></tr>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ═════════ UTILITÁRIOS ═════════ -->
+<div class="section">
+  <div class="section-hd">Busca e Utilitários</div>
+
+  <div class="ep" id="ep-search-services">
+    <div class="ep-hd GET">
+      <span class="method-badge GET">GET</span>
+      <span class="ep-url">/search/services</span>
+      <div class="auth-tag"><span class="tag tag-freelancer">Freelancer</span></div>
+    </div>
+    <div class="ep-desc">Busca full-text em ordens PUBLISHED e IN_APPLICATION via Elasticsearch. Suporta filtros avançados, geolocalização e ordenação por relevância.</div>
+    <div class="ep-body">
+      <div class="blabel">Query Parameters</div>
+      <table class="ptable">
+        <tr><th>Parâmetro</th><th>Tipo</th><th>Descrição</th></tr>
+        <tr><td><span class="pname">q</span><span class="popt">opcional</span></td><td><span class="ptype">string</span></td><td>Texto de busca (min 2 chars)</td></tr>
+        <tr><td><span class="pname">category_ids</span><span class="popt">opcional</span></td><td><span class="ptype">string</span></td><td>UUIDs separados por vírgula</td></tr>
+        <tr><td><span class="pname">skill_ids</span><span class="popt">opcional</span></td><td><span class="ptype">string</span></td><td>Skills requeridas (match ANY)</td></tr>
+        <tr><td><span class="pname">budget_min / budget_max</span><span class="popt">opcional</span></td><td><span class="ptype">decimal</span></td><td>Faixa de orçamento</td></tr>
+        <tr><td><span class="pname">location_type</span><span class="popt">opcional</span></td><td><span class="ptype">string</span></td><td>REMOTE | ON_SITE | HYBRID</td></tr>
+        <tr><td><span class="pname">lat / lng / radius_km</span><span class="popt">opcional</span></td><td><span class="ptype">decimal / integer</span></td><td>Busca geoespacial para ON_SITE (padrão: 50km)</td></tr>
+        <tr><td><span class="pname">sort_by</span><span class="popt">opcional</span></td><td><span class="ptype">string</span></td><td><code>relevance</code> (padrão) | <code>created_at</code> | <code>budget_max</code> | <code>deadline_at</code></td></tr>
+        <tr><td><span class="pname">page / per_page</span><span class="popt">opcional</span></td><td><span class="ptype">integer</span></td><td>Paginação — padrão 1 / 20</td></tr>
+      </table>
+      <div class="blabel">Response 200</div>
+      <pre><span class="pun">{</span>
+  <span class="k">"data"</span><span class="pun">: [</span> <span class="c">/* array de ordens no mesmo formato de GET /orders */</span> <span class="pun">],</span>
+  <span class="k">"meta"</span><span class="pun">: {</span>
+    <span class="k">"page"</span><span class="pun">:</span> <span class="n">1</span><span class="pun">,</span> <span class="k">"per_page"</span><span class="pun">:</span> <span class="n">20</span><span class="pun">,</span> <span class="k">"total"</span><span class="pun">:</span> <span class="n">203</span><span class="pun">,</span>
+    <span class="k">"query_time_ms"</span><span class="pun">:</span> <span class="n">18</span>
+  <span class="pun">}</span>
+<span class="pun">}</span></pre>
+    </div>
+  </div>
+
+  <div class="ep" id="ep-search-freelancers">
+    <div class="ep-hd GET">
+      <span class="method-badge GET">GET</span>
+      <span class="ep-url">/search/freelancers</span>
+      <div class="auth-tag"><span class="tag tag-empresa">Empresa</span></div>
+    </div>
+    <div class="ep-desc">Busca freelancers disponíveis para convite direto (<code>INVITE_ONLY</code> orders). Filtra por skills, reputação e disponibilidade.</div>
+    <div class="ep-body">
+      <div class="blabel">Query Parameters</div>
+      <table class="ptable">
+        <tr><th>Parâmetro</th><th>Tipo</th><th>Descrição</th></tr>
+        <tr><td><span class="pname">q</span><span class="popt">opcional</span></td><td><span class="ptype">string</span></td><td>Busca em nome e bio</td></tr>
+        <tr><td><span class="pname">skill_ids</span><span class="popt">opcional</span></td><td><span class="ptype">string</span></td><td>Skills — match ALL (AND)</td></tr>
+        <tr><td><span class="pname">min_reputation</span><span class="popt">opcional</span></td><td><span class="ptype">decimal</span></td><td>Score mínimo (ex: 4.0)</td></tr>
+        <tr><td><span class="pname">availability</span><span class="popt">opcional</span></td><td><span class="ptype">string</span></td><td><code>AVAILABLE</code> (padrão quando omitido)</td></tr>
+        <tr><td><span class="pname">max_hourly_rate</span><span class="popt">opcional</span></td><td><span class="ptype">decimal</span></td><td>Filtro por taxa horária máxima</td></tr>
+      </table>
+      <div class="blabel">Response 200</div>
+      <pre><span class="pun">{</span>
+  <span class="k">"data"</span><span class="pun">: [</span>
+    <span class="pun">{</span>
+      <span class="k">"id"</span><span class="pun">:</span>                  <span class="s">"883h1733-..."</span><span class="pun">,</span>
+      <span class="k">"full_name"</span><span class="pun">:</span>           <span class="s">"Maria Santos"</span><span class="pun">,</span>
+      <span class="k">"avatar_url"</span><span class="pun">:</span>          <span class="s">"https://cdn.exemplo.com/avatars/maria.jpg"</span><span class="pun">,</span>
+      <span class="k">"bio_excerpt"</span><span class="pun">:</span>         <span class="s">"Desenvolvedora Full-Stack com 5 anos de experiência..."</span><span class="pun">,</span>
+      <span class="k">"hourly_rate"</span><span class="pun">:</span>         <span class="s">"150.00"</span><span class="pun">,</span>
+      <span class="k">"reputation_score"</span><span class="pun">:</span>   <span class="s">"4.92"</span><span class="pun">,</span>
+      <span class="k">"completed_orders"</span><span class="pun">:</span>  <span class="n">48</span><span class="pun">,</span>
+      <span class="k">"availability_status"</span><span class="pun">:</span> <span class="s">"AVAILABLE"</span><span class="pun">,</span>
+      <span class="k">"skills"</span><span class="pun">: [</span>
+        <span class="pun">{</span> <span class="k">"name"</span><span class="pun">:</span> <span class="s">"Node.js"</span><span class="pun">,</span> <span class="k">"proficiency_level"</span><span class="pun">:</span> <span class="n">5</span> <span class="pun">},</span>
+        <span class="pun">{</span> <span class="k">"name"</span><span class="pun">:</span> <span class="s">"PostgreSQL"</span><span class="pun">,</span> <span class="k">"proficiency_level"</span><span class="pun">:</span> <span class="n">4</span> <span class="pun">}</span>
+      <span class="pun">]</span>
+    <span class="pun">}</span>
+  <span class="pun">],</span>
+  <span class="k">"meta"</span><span class="pun">: {</span> <span class="k">"page"</span><span class="pun">:</span> <span class="n">1</span><span class="pun">,</span> <span class="k">"per_page"</span><span class="pun">:</span> <span class="n">20</span><span class="pun">,</span> <span class="k">"total"</span><span class="pun">:</span> <span class="n">412</span> <span class="pun">}</span>
+<span class="pun">}</span></pre>
+    </div>
+  </div>
+
+  <div class="ep" id="ep-notifs">
+    <div class="ep-hd GET">
+      <span class="method-badge GET">GET</span>
+      <span class="ep-url">/notifications</span>
+      <div class="auth-tag"><span class="tag tag-auth">🔒 Autenticado</span></div>
+    </div>
+    <div class="ep-desc">Lista notificações do usuário autenticado do mais recente ao mais antigo.</div>
+    <div class="ep-body">
+      <div class="blabel">Query Parameters</div>
+      <table class="ptable">
+        <tr><th>Parâmetro</th><th>Tipo</th><th>Descrição</th></tr>
+        <tr><td><span class="pname">unread_only</span><span class="popt">opcional</span></td><td><span class="ptype">boolean</span></td><td>Retorna apenas não lidas</td></tr>
+        <tr><td><span class="pname">page / per_page</span><span class="popt">opcional</span></td><td><span class="ptype">integer</span></td><td>Paginação padrão</td></tr>
+      </table>
+      <div class="blabel">Response 200</div>
+      <pre><span class="pun">{</span>
+  <span class="k">"data"</span><span class="pun">: [</span>
+    <span class="pun">{</span>
+      <span class="k">"id"</span><span class="pun">:</span>                  <span class="s">"notif-uuid"</span><span class="pun">,</span>
+      <span class="k">"type"</span><span class="pun">:</span>                <span class="s">"ORDER_ACCEPTED"</span><span class="pun">,</span>
+      <span class="k">"title"</span><span class="pun">:</span>               <span class="s">"Ordem aceita!"</span><span class="pun">,</span>
+      <span class="k">"body"</span><span class="pun">:</span>                <span class="s">"Maria Santos aceitou a ordem ORD-2025-000001. O chat foi liberado."</span><span class="pun">,</span>
+      <span class="k">"action_url"</span><span class="pun">:</span>          <span class="s">"/orders/ord-550e8400-..."</span><span class="pun">,</span>
+      <span class="k">"related_entity_type"</span><span class="pun">:</span> <span class="s">"order"</span><span class="pun">,</span>
+      <span class="k">"related_entity_id"</span><span class="pun">:</span>   <span class="s">"ord-550e8400-..."</span><span class="pun">,</span>
+      <span class="k">"is_read"</span><span class="pun">:</span>             <span class="b">false</span><span class="pun">,</span>
+      <span class="k">"channels_sent"</span><span class="pun">: {</span> <span class="k">"push"</span><span class="pun">:</span> <span class="b">true</span><span class="pun">,</span> <span class="k">"email"</span><span class="pun">:</span> <span class="b">true</span> <span class="pun">},</span>
+      <span class="k">"created_at"</span><span class="pun">:</span>          <span class="s">"2025-05-07T09:00:00Z"</span>
+    <span class="pun">}</span>
+  <span class="pun">],</span>
+  <span class="k">"meta"</span><span class="pun">: {</span>
+    <span class="k">"unread_count"</span><span class="pun">:</span> <span class="n">5</span><span class="pun">,</span>
+    <span class="k">"page"</span><span class="pun">:</span> <span class="n">1</span><span class="pun">,</span> <span class="k">"per_page"</span><span class="pun">:</span> <span class="n">20</span><span class="pun">,</span> <span class="k">"total"</span><span class="pun">:</span> <span class="n">87</span>
+  <span class="pun">}</span>
+<span class="pun">}</span></pre>
+    </div>
+  </div>
+
+  <div class="ep" id="ep-read-notif">
+    <div class="ep-hd POST">
+      <span class="method-badge POST">POST</span>
+      <span class="ep-url">/notifications/read</span>
+      <div class="auth-tag"><span class="tag tag-auth">🔒 Autenticado</span></div>
+    </div>
+    <div class="ep-desc">Marca notificações como lidas. Pode marcar uma específica ou todas de uma vez.</div>
+    <div class="ep-body">
+      <div class="blabel">Request Body</div>
+      <pre><span class="pun">{</span>
+  <span class="k">"notification_ids"</span><span class="pun">: [</span><span class="s">"notif-uuid-1"</span><span class="pun">,</span> <span class="s">"notif-uuid-2"</span><span class="pun">],</span>  <span class="c">// ids específicos</span>
+  <span class="k">"all"</span><span class="pun">:</span> <span class="b">false</span>                                           <span class="c">// true = marca todas</span>
+<span class="pun">}</span></pre>
+      <div class="blabel">Response 200</div>
+      <pre><span class="pun">{</span> <span class="k">"data"</span><span class="pun">: {</span> <span class="k">"marked_count"</span><span class="pun">:</span> <span class="n">2</span><span class="pun">,</span> <span class="k">"remaining_unread"</span><span class="pun">:</span> <span class="n">3</span> <span class="pun">}</span> <span class="pun">}</span></pre>
+    </div>
+  </div>
+
+  <div class="ep" id="ep-categories">
+    <div class="ep-hd GET">
+      <span class="method-badge GET">GET</span>
+      <span class="ep-url">/categories</span>
+      <div class="auth-tag"><span class="tag tag-public">Público</span></div>
+    </div>
+    <div class="ep-desc">Lista categorias em árvore hierárquica. Resultado cacheado por 1h no CDN.</div>
+    <div class="ep-body">
+      <div class="blabel">Response 200</div>
+      <pre><span class="pun">{</span>
+  <span class="k">"data"</span><span class="pun">: [</span>
+    <span class="pun">{</span>
+      <span class="k">"id"</span><span class="pun">:</span>          <span class="s">"cat-uuid-tech"</span><span class="pun">,</span>
+      <span class="k">"name"</span><span class="pun">:</span>        <span class="s">"Tecnologia"</span><span class="pun">,</span>
+      <span class="k">"slug"</span><span class="pun">:</span>        <span class="s">"tecnologia"</span><span class="pun">,</span>
+      <span class="k">"icon_url"</span><span class="pun">:</span>    <span class="s">"https://cdn.exemplo.com/icons/tech.svg"</span><span class="pun">,</span>
+      <span class="k">"children"</span><span class="pun">: [</span>
+        <span class="pun">{</span>
+          <span class="k">"id"</span><span class="pun">:</span>    <span class="s">"cat-uuid-desenvolvimento"</span><span class="pun">,</span>
+          <span class="k">"name"</span><span class="pun">:</span>  <span class="s">"Desenvolvimento"</span><span class="pun">,</span>
+          <span class="k">"slug"</span><span class="pun">:</span>  <span class="s">"desenvolvimento"</span>
+        <span class="pun">}</span>
+      <span class="pun">]</span>
+    <span class="pun">}</span>
+  <span class="pun">]</span>
+<span class="pun">}</span></pre>
+    </div>
+  </div>
+</div>
+
+</main>
+</div>
+</body>
+</html>

@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Painel Administrativo — Design Completo</title>
+<style>
+:root{
+  --blue:#185FA5;--blue-bg:#E6F1FB;--blue-b:#B5D4F4;
+  --purple:#534AB7;--purple-bg:#EEEDFE;--purple-b:#AFA9EC;
+  --teal:#0F6E56;--teal-bg:#E1F5EE;--teal-b:#9FE1CB;
+  --amber:#854F0B;--amber-bg:#FAEEDA;--amber-b:#FAC775;
+  --red:#A32D2D;--red-bg:#FCEBEB;--red-b:#F7C1C1;
+  --gray:#5F5E5A;--gray-bg:#F1EFE8;--gray-b:#D3D1C7;
+  --code-bg:#18181a;--code-fg:#d4d4d4;
+  --key:#9cdcfe;--str:#ce9178;--num:#b5cea8;--bool:#569cd6;
+  --cmt:#6a9955;--fn:#dcdcaa;--kw:#c586c0;--cls:#4ec9b0;--pun:#d4d4d4;
+  --border:rgba(0,0,0,0.1);--surface:#f5f4f0;
+  --text:#1a1a18;--muted:#73726c;--bg:#fff;
+  --font:system-ui,-apple-system,sans-serif;
+  --mono:'SF Mono','Fira Code',Consolas,monospace;
+  --r:8px;
+}
+@media(prefers-color-scheme:dark){:root{
+  --code-bg:#0d1117;--border:rgba(255,255,255,0.1);--surface:#242422;
+  --text:#e8e6de;--muted:#9c9a92;--bg:#1c1c1a;
+  --blue-bg:#042C53;--purple-bg:#26215C;--teal-bg:#04342C;
+  --amber-bg:#412402;--red-bg:#501313;--gray-bg:#2C2C2A;
+}}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--font);color:var(--text);background:var(--bg);padding:40px 24px 80px;line-height:1.65;}
+.wrap{max-width:900px;margin:0 auto;}
+h1{font-size:26px;font-weight:600;margin-bottom:6px;}
+.lead{color:var(--muted);font-size:14px;margin-bottom:48px;max-width:640px;}
+h2{font-size:19px;font-weight:600;margin:52px 0 18px;padding-bottom:10px;border-bottom:2px solid var(--border);}
+h3{font-size:14px;font-weight:600;margin:22px 0 8px;}
+p{font-size:14px;color:var(--muted);margin-bottom:12px;line-height:1.7;}
+p strong{color:var(--text);}
+ul{font-size:14px;color:var(--muted);padding-left:20px;margin-bottom:14px;}
+li{margin-bottom:5px;line-height:1.6;}li strong{color:var(--text);}
+pre{background:var(--code-bg);color:var(--code-fg);padding:18px 20px;border-radius:var(--r);font-family:var(--mono);font-size:11.5px;overflow-x:auto;line-height:1.7;margin:10px 0 22px;border:1px solid rgba(255,255,255,.04);}
+.ftag{display:inline-block;background:rgba(255,255,255,.06);color:var(--muted);font-family:var(--mono);font-size:10px;padding:3px 10px;border-radius:4px 4px 0 0;margin-bottom:-2px;border:1px solid rgba(255,255,255,.08);border-bottom:none;}
+code{font-family:var(--mono);font-size:11.5px;background:var(--surface);border:1px solid var(--border);padding:1px 6px;border-radius:4px;}
+.k{color:var(--key);}.s{color:var(--str);}.n{color:var(--num);}.b{color:var(--bool);}
+.c{color:var(--cmt);font-style:italic;}.fn{color:var(--fn);}.kw{color:var(--kw);}.cls{color:var(--cls);}.pun{color:var(--pun);}
+.info{border-left:3px solid var(--blue);background:var(--blue-bg);padding:12px 16px;border-radius:0 var(--r) var(--r) 0;margin:16px 0;}
+.warn{border-left:3px solid var(--amber);background:var(--amber-bg);padding:12px 16px;border-radius:0 var(--r) var(--r) 0;margin:16px 0;}
+.danger{border-left:3px solid var(--red);background:var(--red-bg);padding:12px 16px;border-radius:0 var(--r) var(--r) 0;margin:16px 0;}
+.info p,.warn p,.danger p{margin:0;font-size:13px;}
+.table{width:100%;border-collapse:collapse;font-size:13px;margin:10px 0 22px;}
+.table th{text-align:left;padding:8px 12px;background:var(--surface);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);}
+.table td{padding:8px 12px;border-bottom:1px solid var(--border);vertical-align:top;line-height:1.5;}
+.table tr:last-child td{border-bottom:none;}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px 18px;margin:12px 0;}
+.card-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:8px;}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:12px 0;}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin:12px 0;}
+@media(max-width:600px){.grid2,.grid3{grid-template-columns:1fr;}}
+.badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;margin:1px;}
+.b-blue{background:var(--blue-bg);color:var(--blue);}
+.b-teal{background:var(--teal-bg);color:var(--teal);}
+.b-amber{background:var(--amber-bg);color:var(--amber);}
+.b-red{background:var(--red-bg);color:var(--red);}
+.b-gray{background:var(--gray-bg);color:var(--gray);}
+.b-purple{background:var(--purple-bg);color:var(--purple);}
+.check{color:var(--teal);font-weight:700;}
+.cross{color:var(--muted);}
+</style>
+</head>
+<body><div class="wrap">
+
+<h1>Painel Administrativo</h1>
+<p class="lead">Back-office completo para gestão operacional da plataforma. RBAC com 6 papéis, auditoria imutável em toda ação, intervenções manuais com justificativa obrigatória e dashboards em tempo real.</p>
+
+<!-- ══ ARQUITETURA GERAL ══ -->
+<h2>1. Arquitetura do Painel</h2>
+
+<p>O painel admin é uma <strong>aplicação separada</strong> da plataforma principal — domínio diferente (<code>admin.plataforma.com</code>), autenticação própria com MFA obrigatório, e deploy independente. Nenhuma rota de admin fica exposta na API pública.</p>
+
+<!-- MÓDULOS SVG -->
+<svg width="100%" viewBox="0 0 680 310" xmlns="http://www.w3.org/2000/svg" style="display:block;margin:20px 0;">
+<defs>
+  <filter id="sh"><feDropShadow dx="0" dy="1" stdDeviation="2" flood-opacity="0.08"/></filter>
+</defs>
+
+<!-- Left nav simulation -->
+<rect x="0" y="0" width="140" height="310" rx="8" fill="var(--surface,#f5f4f0)" stroke="var(--border,rgba(0,0,0,0.1))" stroke-width="1"/>
+<text x="12" y="22" font-size="10" font-weight="700" fill="var(--muted,#73726c)" font-family="system-ui" letter-spacing=".05em">MÓDULOS</text>
+
+<!-- Nav items -->
+<rect x="8" y="32" width="124" height="26" rx="4" fill="#185FA5"/>
+<text x="28" y="49" font-size="11" font-weight="600" fill="#fff" font-family="system-ui">● Dashboard</text>
+
+<text x="28" y="76" font-size="11" fill="var(--muted,#73726c)" font-family="system-ui">○ Usuários</text>
+<text x="28" y="98" font-size="11" fill="var(--muted,#73726c)" font-family="system-ui">○ Ordens</text>
+<text x="28" y="120" font-size="11" fill="var(--muted,#73726c)" font-family="system-ui">○ Pagamentos</text>
+<text x="28" y="142" font-size="11" fill="var(--muted,#73726c)" font-family="system-ui">○ Disputas</text>
+<text x="28" y="164" font-size="11" fill="var(--muted,#73726c)" font-family="system-ui">○ Avaliações</text>
+<text x="28" y="186" font-size="11" fill="var(--muted,#73726c)" font-family="system-ui">○ Categorias</text>
+<text x="28" y="208" font-size="11" fill="var(--muted,#73726c)" font-family="system-ui">○ Configurações</text>
+<text x="28" y="230" font-size="11" fill="var(--muted,#73726c)" font-family="system-ui">○ Relatórios</text>
+<text x="28" y="252" font-size="11" fill="var(--muted,#73726c)" font-family="system-ui">○ Audit Logs</text>
+<text x="28" y="274" font-size="11" fill="var(--muted,#73726c)" font-family="system-ui">○ Admins</text>
+
+<!-- KPI Cards -->
+<rect x="152" y="0" width="124" height="66" rx="6" fill="#E6F1FB" stroke="#B5D4F4" stroke-width="1" filter="url(#sh)"/>
+<text x="162" y="20" font-size="9" font-weight="700" fill="#185FA5" font-family="system-ui" letter-spacing=".06em">GMV (30d)</text>
+<text x="162" y="46" font-size="22" font-weight="700" fill="#185FA5" font-family="system-ui">R$487k</text>
+<text x="162" y="60" font-size="9" fill="#185FA5" font-family="system-ui">↑ 12.4% vs mês anterior</text>
+
+<rect x="284" y="0" width="124" height="66" rx="6" fill="#E1F5EE" stroke="#9FE1CB" stroke-width="1" filter="url(#sh)"/>
+<text x="294" y="20" font-size="9" font-weight="700" fill="#0F6E56" font-family="system-ui" letter-spacing=".06em">RECEITA (30d)</text>
+<text x="294" y="46" font-size="22" font-weight="700" fill="#0F6E56" font-family="system-ui">R$48.7k</text>
+<text x="294" y="60" font-size="9" fill="#0F6E56" font-family="system-ui">10% do GMV (taxa média)</text>
+
+<rect x="416" y="0" width="124" height="66" rx="6" fill="#FAEEDA" stroke="#FAC775" stroke-width="1" filter="url(#sh)"/>
+<text x="426" y="20" font-size="9" font-weight="700" fill="#854F0B" font-family="system-ui" letter-spacing=".06em">ORDENS ATIVAS</text>
+<text x="426" y="46" font-size="22" font-weight="700" fill="#854F0B" font-family="system-ui">1.243</text>
+<text x="426" y="60" font-size="9" fill="#854F0B" font-family="system-ui">+87 nas últimas 24h</text>
+
+<rect x="548" y="0" width="124" height="66" rx="6" fill="#FCEBEB" stroke="#F7C1C1" stroke-width="1" filter="url(#sh)"/>
+<text x="558" y="20" font-size="9" font-weight="700" fill="#A32D2D" font-family="system-ui" letter-spacing=".06em">DISPUTA RATE</text>
+<text x="558" y="46" font-size="22" font-weight="700" fill="#A32D2D" font-family="system-ui">2.1%</text>
+<text x="558" y="60" font-size="9" fill="#A32D2D" font-family="system-ui">↓ 0.3pp vs mês anterior</text>
+
+<!-- Orders by status chart -->
+<rect x="152" y="82" width="294" height="220" rx="6" fill="var(--surface,#f5f4f0)" stroke="var(--border,rgba(0,0,0,0.1))" stroke-width="1"/>
+<text x="162" y="102" font-size="10" font-weight="700" fill="var(--muted,#73726c)" font-family="system-ui" letter-spacing=".06em">ORDENS POR STATUS</text>
+
+<!-- Status bars -->
+<!-- IN_PROGRESS: 487 -->
+<text x="162" y="124" font-size="10" fill="var(--text,#1a1a18)" font-family="system-ui">IN_PROGRESS</text>
+<rect x="260" y="112" width="166" height="14" rx="3" fill="#185FA5"/>
+<text x="432" y="124" font-size="10" fill="var(--muted,#73726c)" font-family="system-ui">487</text>
+
+<!-- PENDING_REVIEW: 201 -->
+<text x="162" y="146" font-size="10" fill="var(--text,#1a1a18)" font-family="system-ui">PENDING_REVIEW</text>
+<rect x="260" y="134" width="68" height="14" rx="3" fill="#854F0B"/>
+<text x="332" y="146" font-size="10" fill="var(--muted,#73726c)" font-family="system-ui">201</text>
+
+<!-- ACCEPTED: 312 -->
+<text x="162" y="168" font-size="10" fill="var(--text,#1a1a18)" font-family="system-ui">ACCEPTED</text>
+<rect x="260" y="156" width="106" height="14" rx="3" fill="#534AB7"/>
+<text x="370" y="168" font-size="10" fill="var(--muted,#73726c)" font-family="system-ui">312</text>
+
+<!-- DISPUTED: 26 -->
+<text x="162" y="190" font-size="10" fill="var(--text,#1a1a18)" font-family="system-ui">DISPUTED</text>
+<rect x="260" y="178" width="9" height="14" rx="3" fill="#A32D2D"/>
+<text x="272" y="190" font-size="10" fill="var(--muted,#73726c)" font-family="system-ui">26</text>
+
+<!-- SELECTED: 217 -->
+<text x="162" y="212" font-size="10" fill="var(--text,#1a1a18)" font-family="system-ui">SELECTED</text>
+<rect x="260" y="200" width="74" height="14" rx="3" fill="#0F6E56"/>
+<text x="338" y="212" font-size="10" fill="var(--muted,#73726c)" font-family="system-ui">217</text>
+
+<!-- SLA Breach Alert -->
+<rect x="152" y="258" width="294" height="44" rx="5" fill="#FCEBEB" stroke="#F7C1C1" stroke-width="1"/>
+<text x="162" y="275" font-size="10" font-weight="700" fill="#A32D2D" font-family="system-ui">⚠ Disputas aguardando atribuição &gt; 24h</text>
+<text x="162" y="292" font-size="10" fill="#A32D2D" font-family="system-ui">3 disputas em SLA breach — ação necessária</text>
+
+<!-- Revenue trend (right panel) -->
+<rect x="454" y="82" width="218" height="220" rx="6" fill="var(--surface,#f5f4f0)" stroke="var(--border,rgba(0,0,0,0.1))" stroke-width="1"/>
+<text x="464" y="102" font-size="10" font-weight="700" fill="var(--muted,#73726c)" font-family="system-ui" letter-spacing=".06em">RECEITA — ÚLTIMOS 7 DIAS</text>
+
+<!-- Line chart axes -->
+<line x1="470" y1="115" x2="470" y2="265" stroke="rgba(0,0,0,0.1)" stroke-width="1"/>
+<line x1="470" y1="265" x2="660" y2="265" stroke="rgba(0,0,0,0.1)" stroke-width="1"/>
+
+<!-- Revenue line -->
+<polyline points="470,230 497,215 524,220 551,195 578,205 605,178 632,168 659,155"
+  fill="none" stroke="#0F6E56" stroke-width="2" stroke-linejoin="round"/>
+<polygon points="470,230 497,215 524,220 551,195 578,205 605,178 632,168 659,155 659,265 470,265"
+  fill="#0F6E56" opacity="0.08"/>
+
+<!-- Data points -->
+<circle cx="470" cy="230" r="3" fill="#0F6E56"/>
+<circle cx="497" cy="215" r="3" fill="#0F6E56"/>
+<circle cx="524" cy="220" r="3" fill="#0F6E56"/>
+<circle cx="551" cy="195" r="3" fill="#0F6E56"/>
+<circle cx="578" cy="205" r="3" fill="#0F6E56"/>
+<circle cx="605" cy="178" r="3" fill="#0F6E56"/>
+<circle cx="632" cy="168" r="3" fill="#0F6E56"/>
+<circle cx="659" cy="155" r="4" fill="#0F6E56" stroke="#fff" stroke-width="1.5"/>
+
+<!-- Day labels -->
+<text x="470" y="278" text-anchor="middle" font-size="8" fill="var(--muted,#73726c)" font-family="system-ui">D1</text>
+<text x="524" y="278" text-anchor="middle" font-size="8" fill="var(--muted,#73726c)" font-family="system-ui">D3</text>
+<text x="578" y="278" text-anchor="middle" font-size="8" fill="var(--muted,#73726c)" font-family="system-ui">D5</text>
+<text x="632" y="278" text-anchor="middle" font-size="8" fill="var(--muted,#73726c)" font-family="system-ui">D7</text>
+
+<!-- Metric labels -->
+<text x="664" y="158" font-size="8" fill="#0F6E56" font-family="system-ui" font-weight="600">R$8.3k</text>
+<text x="664" y="233" font-size="8" fill="var(--muted,#73726c)" font-family="system-ui">R$5.1k</text>
+
+</svg>
+
+<!-- ══ 2. RBAC ══ -->
+<h2>2. Papéis e Permissões (RBAC)</h2>
+
+<p>Seis papéis com permissões granulares por recurso e ação. Nenhuma rota de admin aceita token de usuário comum — o JWT de admin usa uma chave de assinatura separada e inclui o claim <code>role</code>.</p>
+
+<table class="table">
+<thead>
+<tr>
+  <th>Permissão</th>
+  <th>SUPER</th>
+  <th>FINANCIAL</th>
+  <th>SUPPORT</th>
+  <th>CONTENT</th>
+  <th>ANALYST</th>
+  <th>COMPLIANCE</th>
+</tr>
+</thead>
+<tbody>
+<tr><td colspan="7" style="background:var(--surface);font-size:10px;font-weight:700;color:var(--muted);letter-spacing:.06em;">USUÁRIOS</td></tr>
+<tr><td><code>users:read</code></td><td class="check">✓</td><td class="check">✓</td><td class="check">✓</td><td class="cross">—</td><td class="check">✓</td><td class="check">✓</td></tr>
+<tr><td><code>users:suspend / unsuspend</code></td><td class="check">✓</td><td class="cross">—</td><td class="check">✓</td><td class="cross">—</td><td class="cross">—</td><td class="check">✓</td></tr>
+<tr><td><code>users:verify_identity</code></td><td class="check">✓</td><td class="cross">—</td><td class="check">✓</td><td class="cross">—</td><td class="cross">—</td><td class="cross">—</td></tr>
+<tr><td><code>users:impersonate</code></td><td class="check">✓</td><td class="cross">—</td><td class="cross">—</td><td class="cross">—</td><td class="cross">—</td><td class="cross">—</td></tr>
+<tr><td colspan="7" style="background:var(--surface);font-size:10px;font-weight:700;color:var(--muted);letter-spacing:.06em;">ORDENS</td></tr>
+<tr><td><code>orders:read</code></td><td class="check">✓</td><td class="check">✓</td><td class="check">✓</td><td class="cross">—</td><td class="check">✓</td><td class="check">✓</td></tr>
+<tr><td><code>orders:cancel / force_complete</code></td><td class="check">✓</td><td class="cross">—</td><td class="check">✓</td><td class="cross">—</td><td class="cross">—</td><td class="cross">—</td></tr>
+<tr><td><code>orders:extend_deadline</code></td><td class="check">✓</td><td class="cross">—</td><td class="check">✓</td><td class="cross">—</td><td class="cross">—</td><td class="cross">—</td></tr>
+<tr><td colspan="7" style="background:var(--surface);font-size:10px;font-weight:700;color:var(--muted);letter-spacing:.06em;">PAGAMENTOS</td></tr>
+<tr><td><code>payments:read</code></td><td class="check">✓</td><td class="check">✓</td><td class="cross">—</td><td class="cross">—</td><td class="check">✓</td><td class="check">✓</td></tr>
+<tr><td><code>payments:manual_release</code></td><td class="check">✓</td><td class="check">✓</td><td class="cross">—</td><td class="cross">—</td><td class="cross">—</td><td class="cross">—</td></tr>
+<tr><td><code>payments:refund</code></td><td class="check">✓</td><td class="check">✓</td><td class="cross">—</td><td class="cross">—</td><td class="cross">—</td><td class="cross">—</td></tr>
+<tr><td><code>payments:reconcile</code></td><td class="check">✓</td><td class="check">✓</td><td class="cross">—</td><td class="cross">—</td><td class="cross">—</td><td class="cross">—</td></tr>
+<tr><td colspan="7" style="background:var(--surface);font-size:10px;font-weight:700;color:var(--muted);letter-spacing:.06em;">DISPUTAS / REPUTAÇÃO / CONFIGURAÇÕES</td></tr>
+<tr><td><code>disputes:assign / resolve</code></td><td class="check">✓</td><td class="cross">—</td><td class="check">✓</td><td class="cross">—</td><td class="cross">—</td><td class="cross">—</td></tr>
+<tr><td><code>ratings:remove</code></td><td class="check">✓</td><td class="cross">—</td><td class="check">✓</td><td class="cross">—</td><td class="cross">—</td><td class="cross">—</td></tr>
+<tr><td><code>categories:write</code></td><td class="check">✓</td><td class="cross">—</td><td class="cross">—</td><td class="check">✓</td><td class="cross">—</td><td class="cross">—</td></tr>
+<tr><td><code>settings:write</code></td><td class="check">✓</td><td class="cross">—</td><td class="cross">—</td><td class="cross">—</td><td class="cross">—</td><td class="cross">—</td></tr>
+<tr><td><code>audit:read</code></td><td class="check">✓</td><td class="check">✓</td><td class="cross">—</td><td class="cross">—</td><td class="check">✓</td><td class="check">✓</td></tr>
+<tr><td><code>admins:manage</code></td><td class="check">✓</td><td class="cross">—</td><td class="cross">—</td><td class="cross">—</td><td class="cross">—</td><td class="cross">—</td></tr>
+</tbody>
+</table>
+
+<div class="ftag">src/admin/rbac/admin-guard.middleware.ts</div>
+<pre><span class="kw">export const</span> <span class="fn">adminGuard</span> <span class="pun">= (</span>permission<span class="pun">:</span> <span class="kw">string</span><span class="pun">) =></span>
+  <span class="kw">async</span> <span class="pun">(</span>req<span class="pun">:</span> <span class="cls">Request</span><span class="pun">,</span> res<span class="pun">:</span> <span class="cls">Response</span><span class="pun">,</span> next<span class="pun">:</span> <span class="cls">NextFunction</span><span class="pun">) => {</span>
+    <span class="c">// JWT assinado com chave exclusiva do admin (RS256_ADMIN_KEY)</span>
+    <span class="kw">const</span> token  <span class="pun">=</span> <span class="fn">extractBearer</span><span class="pun">(</span>req<span class="pun">);</span>
+    <span class="kw">const</span> claims <span class="pun">=</span> <span class="fn">verifyAdminJwt</span><span class="pun">(</span>token<span class="pun">);</span>  <span class="c">// lança se inválido</span>
+
+    <span class="c">// Verifica se o role possui a permissão</span>
+    <span class="kw">if</span> <span class="pun">(!</span><span class="fn">hasPermission</span><span class="pun">(</span>claims<span class="pun">.</span>role<span class="pun">,</span> permission<span class="pun">))</span>
+      <span class="kw">return</span> res<span class="pun">.</span><span class="fn">status</span><span class="pun">(</span><span class="n">403</span><span class="pun">).</span><span class="fn">json</span><span class="pun">({</span> error<span class="pun">:</span> <span class="s">'INSUFFICIENT_PERMISSIONS'</span><span class="pun">,</span> required<span class="pun">:</span> permission <span class="pun">});</span>
+
+    <span class="c">// Verifica que o admin não está suspenso (verificação no Redis, TTL 5min)</span>
+    <span class="kw">const</span> adminStatus <span class="pun">=</span> <span class="kw">await</span> <span class="fn">getCachedAdminStatus</span><span class="pun">(</span>claims<span class="pun">.</span>sub<span class="pun">);</span>
+    <span class="kw">if</span> <span class="pun">(</span>adminStatus <span class="pun">!==</span> <span class="s">'ACTIVE'</span><span class="pun">)</span>
+      <span class="kw">return</span> res<span class="pun">.</span><span class="fn">status</span><span class="pun">(</span><span class="n">401</span><span class="pun">).</span><span class="fn">json</span><span class="pun">({</span> error<span class="pun">:</span> <span class="s">'ADMIN_ACCOUNT_INACTIVE'</span> <span class="pun">});</span>
+
+    req<span class="pun">.</span>admin <span class="pun">= {</span> id<span class="pun">:</span> claims<span class="pun">.</span>sub<span class="pun">,</span> role<span class="pun">:</span> claims<span class="pun">.</span>role<span class="pun">,</span> email<span class="pun">:</span> claims<span class="pun">.</span>email <span class="pun">};</span>
+    <span class="fn">next</span><span class="pun">();</span>
+  <span class="pun">};</span>
+
+<span class="c">// Tabela de permissões por role</span>
+<span class="kw">const</span> ROLE_PERMISSIONS<span class="pun">: Record&lt;</span><span class="kw">string</span><span class="pun">,</span> <span class="kw">string</span><span class="pun">[]&gt; = {</span>
+  SUPER_ADMIN<span class="pun">: [</span><span class="s">'*'</span><span class="pun">],</span>  <span class="c">// wildcard: acesso total</span>
+  FINANCIAL_ADMIN<span class="pun">: [</span>
+    <span class="s">'users:read'</span><span class="pun">,</span> <span class="s">'orders:read'</span><span class="pun">,</span>
+    <span class="s">'payments:read'</span><span class="pun">,</span> <span class="s">'payments:manual_release'</span><span class="pun">,</span> <span class="s">'payments:refund'</span><span class="pun">,</span> <span class="s">'payments:reconcile'</span><span class="pun">,</span>
+    <span class="s">'audit:read'</span><span class="pun">,</span>
+  <span class="pun">],</span>
+  SUPPORT_ADMIN<span class="pun">: [</span>
+    <span class="s">'users:read'</span><span class="pun">,</span> <span class="s">'users:suspend'</span><span class="pun">,</span> <span class="s">'users:verify_identity'</span><span class="pun">,</span>
+    <span class="s">'orders:read'</span><span class="pun">,</span> <span class="s">'orders:cancel'</span><span class="pun">,</span> <span class="s">'orders:extend_deadline'</span><span class="pun">,</span>
+    <span class="s">'disputes:assign'</span><span class="pun">,</span> <span class="s">'disputes:resolve'</span><span class="pun">,</span>
+    <span class="s">'ratings:remove'</span><span class="pun">,</span>
+  <span class="pun">],</span>
+  CONTENT_ADMIN<span class="pun">: [</span><span class="s">'categories:read'</span><span class="pun">,</span> <span class="s">'categories:write'</span><span class="pun">],</span>
+  ANALYST<span class="pun">:       [</span><span class="s">'users:read'</span><span class="pun">,</span> <span class="s">'orders:read'</span><span class="pun">,</span> <span class="s">'payments:read'</span><span class="pun">,</span> <span class="s">'audit:read'</span><span class="pun">],</span>
+  COMPLIANCE<span class="pun">:    [</span><span class="s">'users:read'</span><span class="pun">,</span> <span class="s">'users:suspend'</span><span class="pun">,</span> <span class="s">'orders:read'</span><span class="pun">,</span> <span class="s">'payments:read'</span><span class="pun">,</span> <span class="s">'audit:read'</span><span class="pun">],</span>
+<span class="pun">};</span>
+
+<span class="kw">function</span> <span class="fn">hasPermission</span><span class="pun">(</span>role<span class="pun">:</span> <span class="kw">string</span><span class="pun">,</span> permission<span class="pun">:</span> <span class="kw">string</span><span class="pun">):</span> <span class="b">boolean</span> <span class="pun">{</span>
+  <span class="kw">const</span> perms <span class="pun">=</span> ROLE_PERMISSIONS<span class="pun">[</span>role<span class="pun">] ??</span> <span class="pun">[];</span>
+  <span class="kw">return</span> perms<span class="pun">.</span><span class="fn">includes</span><span class="pun">(</span><span class="s">'*'</span><span class="pun">) ||</span> perms<span class="pun">.</span><span class="fn">includes</span><span class="pun">(</span>permission<span class="pun">);</span>
+<span class="pun">}</span></pre>
+
+<!-- ══ 3. MÓDULO USUÁRIOS ══ -->
+<h2>3. Módulo de Usuários</h2>
+
+<p>Toda ação mutante exige <strong>justificativa obrigatória</strong> que vai para o audit_log. Impersonation gera sessão auditada separada — o admin vê a plataforma como o usuário sem saber a senha dele.</p>
+
+<div class="ftag">src/admin/modules/admin-user.service.ts</div>
+<pre><span class="kw">export class</span> <span class="cls">AdminUserService</span> <span class="pun">{</span>
+
+  <span class="c">// ── Busca com filtros avançados ────────────────────────────────────────</span>
+  <span class="kw">static async</span> <span class="fn">search</span><span class="pun">(</span>filters<span class="pun">: {</span>
+    query<span class="pun">?:</span>       <span class="kw">string</span><span class="pun">;</span>    <span class="c">// busca em nome, email, CPF, CNPJ</span>
+    role<span class="pun">?:</span>        <span class="s">'EMPRESA'</span> <span class="pun">|</span> <span class="s">'FREELANCER'</span><span class="pun">;</span>
+    status<span class="pun">?:</span>      <span class="s">'ACTIVE'</span> <span class="pun">|</span> <span class="s">'SUSPENDED'</span> <span class="pun">|</span> <span class="s">'PENDING_VERIFICATION'</span><span class="pun">;</span>
+    hasDisputes<span class="pun">?:</span> <span class="b">boolean</span><span class="pun">;</span>
+    createdFrom<span class="pun">?:</span> <span class="kw">string</span><span class="pun">;</span>
+    createdTo<span class="pun">?:</span>   <span class="kw">string</span><span class="pun">;</span>
+    cursor<span class="pun">?:</span>      <span class="kw">string</span><span class="pun">;</span>    <span class="c">// paginação por cursor</span>
+    limit<span class="pun">?:</span>       <span class="kw">number</span><span class="pun">;</span>
+  <span class="pun">}) {</span>
+    <span class="kw">return</span> db<span class="pun">.</span><span class="fn">query</span><span class="pun">(</span><span class="s">`
+      SELECT u.*, f.reputation_score, f.completion_rate,
+        (SELECT COUNT(*) FROM disputes d JOIN orders o ON o.id=d.order_id
+         WHERE o.selected_freelancer_id=f.id OR o.company_id=c.id) AS dispute_count
+      FROM users u
+      LEFT JOIN freelancers f ON f.user_id=u.id
+      LEFT JOIN companies  c ON c.user_id=u.id
+      WHERE ($1 IS NULL OR u.search_vector @@ plainto_tsquery('portuguese',$1))
+        AND ($2 IS NULL OR u.role=$2)
+        AND ($3 IS NULL OR u.status=$3)
+        AND ($4 IS NULL OR u.created_at >= $4)
+        AND ($5 IS NULL OR u.created_at <= $5)
+        AND ($6 IS NULL OR u.id > $6)
+      ORDER BY u.id LIMIT $7
+    `</span><span class="pun">, [</span>filters<span class="pun">.</span>query<span class="pun">,</span> filters<span class="pun">.</span>role<span class="pun">,</span> filters<span class="pun">.</span>status<span class="pun">,</span>
+       filters<span class="pun">.</span>createdFrom<span class="pun">,</span> filters<span class="pun">.</span>createdTo<span class="pun">,</span>
+       filters<span class="pun">.</span>cursor<span class="pun">,</span> filters<span class="pun">.</span>limit <span class="pun">??</span> <span class="n">50</span><span class="pun">]);</span>
+  <span class="pun">}</span>
+
+  <span class="c">// ── Suspender usuário ─────────────────────────────────────────────────</span>
+  <span class="kw">static async</span> <span class="fn">suspend</span><span class="pun">(</span>targetUserId<span class="pun">:</span> <span class="kw">string</span><span class="pun">,</span> reason<span class="pun">:</span> <span class="kw">string</span><span class="pun">,</span> admin<span class="pun">:</span> <span class="cls">AdminContext</span><span class="pun">) {</span>
+    <span class="kw">const</span> before <span class="pun">=</span> <span class="kw">await</span> <span class="cls">UserRepo</span><span class="pun">.</span><span class="fn">findById</span><span class="pun">(</span>targetUserId<span class="pun">);</span>
+
+    <span class="kw">await</span> db<span class="pun">.</span><span class="fn">transaction</span><span class="pun">(</span><span class="kw">async</span> <span class="pun">(</span>trx<span class="pun">) => {</span>
+      <span class="kw">await</span> trx<span class="pun">.</span><span class="fn">query</span><span class="pun">(</span><span class="s">`
+        UPDATE users SET status='SUSPENDED', suspended_at=NOW(), suspension_reason=$1
+        WHERE id=$2
+      `</span><span class="pun">, [</span>reason<span class="pun">,</span> targetUserId<span class="pun">]);</span>
+
+      <span class="c">// Invalida todos os tokens de sessão do usuário imediatamente</span>
+      <span class="kw">await</span> trx<span class="pun">.</span><span class="fn">query</span><span class="pun">(</span><span class="s">`UPDATE refresh_tokens SET revoked_at=NOW() WHERE user_id=$1`</span><span class="pun">, [</span>targetUserId<span class="pun">]);</span>
+      <span class="kw">await</span> redis<span class="pun">.</span><span class="fn">del</span><span class="pun">(</span><span class="s">`session:<span class="pun">${</span>targetUserId<span class="pun">}</span>:*`</span><span class="pun">);</span>  <span class="c">// Redis SCAN + DEL por padrão</span>
+
+      <span class="kw">await</span> <span class="cls">AuditLog</span><span class="pun">.</span><span class="fn">write</span><span class="pun">(</span>trx<span class="pun">, {</span>
+        adminId<span class="pun">:</span>    admin<span class="pun">.</span>id<span class="pun">,</span>
+        action<span class="pun">:</span>     <span class="s">'user.suspend'</span><span class="pun">,</span>
+        entityType<span class="pun">:</span> <span class="s">'user'</span><span class="pun">,</span>  entityId<span class="pun">:</span> targetUserId<span class="pun">,</span>
+        reason<span class="pun">,</span>
+        beforeData<span class="pun">: {</span> status<span class="pun">:</span> before<span class="pun">.</span>status <span class="pun">},</span>
+        afterData<span class="pun">:  {</span> status<span class="pun">:</span> <span class="s">'SUSPENDED'</span> <span class="pun">},</span>
+      <span class="pun">});</span>
+    <span class="pun">});</span>
+  <span class="pun">}</span>
+
+  <span class="c">// ── Impersonação (session auditada) ───────────────────────────────────</span>
+  <span class="kw">static async</span> <span class="fn">impersonate</span><span class="pun">(</span>targetUserId<span class="pun">:</span> <span class="kw">string</span><span class="pun">,</span> admin<span class="pun">:</span> <span class="cls">AdminContext</span><span class="pun">) {</span>
+    <span class="c">// Gera token de curta duração (15min, não renovável) com claim de impersonação</span>
+    <span class="kw">const</span> impersonateToken <span class="pun">=</span> <span class="fn">signJwt</span><span class="pun">({</span>
+      sub<span class="pun">:</span>          targetUserId<span class="pun">,</span>
+      impersonatedBy<span class="pun">:</span> admin<span class="pun">.</span>id<span class="pun">,</span>
+      exp<span class="pun">:</span>          <span class="cls">Math</span><span class="pun">.</span><span class="fn">floor</span><span class="pun">(</span><span class="cls">Date</span><span class="pun">.</span><span class="fn">now</span><span class="pun">() /</span> <span class="n">1000</span><span class="pun">) +</span> <span class="n">900</span><span class="pun">,</span>
+    <span class="pun">});</span>
+    <span class="kw">await</span> <span class="cls">AuditLog</span><span class="pun">.</span><span class="fn">write</span><span class="pun">(</span><span class="b">null</span><span class="pun">, {</span>
+      adminId<span class="pun">:</span> admin<span class="pun">.</span>id<span class="pun">,</span> action<span class="pun">:</span> <span class="s">'user.impersonate'</span><span class="pun">,</span>
+      entityType<span class="pun">:</span> <span class="s">'user'</span><span class="pun">,</span> entityId<span class="pun">:</span> targetUserId<span class="pun">,</span>
+    <span class="pun">});</span>
+    <span class="kw">return</span> <span class="pun">{</span> token<span class="pun">:</span> impersonateToken<span class="pun">,</span> redirectTo<span class="pun">:</span> process<span class="pun">.</span>env<span class="pun">.</span>APP_URL <span class="pun">};</span>
+  <span class="pun">}</span>
+<span class="pun">}</span></pre>
+
+<!-- ══ 4. MÓDULO ORDENS ══ -->
+<h2>4. Módulo de Ordens — Intervenção Manual</h2>
+
+<div class="ftag">src/admin/modules/admin-order.service.ts</div>
+<pre><span class="kw">export class</span> <span class="cls">AdminOrderService</span> <span class="pun">{</span>
+
+  <span class="c">// ── Força cancelamento com motivo admin ────────────────────────────────</span>
+  <span class="kw">static async</span> <span class="fn">forceCancel</span><span class="pun">(</span>orderId<span class="pun">:</span> <span class="kw">string</span><span class="pun">,</span> reason<span class="pun">:</span> <span class="kw">string</span><span class="pun">,</span> admin<span class="pun">:</span> <span class="cls">AdminContext</span><span class="pun">) {</span>
+    <span class="kw">const</span> order   <span class="pun">=</span> <span class="kw">await</span> <span class="cls">OrderRepo</span><span class="pun">.</span><span class="fn">findById</span><span class="pun">(</span>orderId<span class="pun">);</span>
+    <span class="kw">const</span> TERMINAL <span class="pun">= [</span><span class="s">'COMPLETED'</span><span class="pun">,</span> <span class="s">'CANCELLED'</span><span class="pun">];</span>
+    <span class="kw">if</span> <span class="pun">(</span>TERMINAL<span class="pun">.</span><span class="fn">includes</span><span class="pun">(</span>order<span class="pun">.</span>status<span class="pun">))</span>
+      <span class="kw">throw</span> <span class="kw">new</span> <span class="cls">BusinessError</span><span class="pun">(</span><span class="s">'ORDER_ALREADY_TERMINAL'</span><span class="pun">);</span>
+
+    <span class="kw">await</span> db<span class="pun">.</span><span class="fn">transaction</span><span class="pun">(</span><span class="kw">async</span> <span class="pun">(</span>trx<span class="pun">) => {</span>
+      <span class="kw">await</span> trx<span class="pun">.</span><span class="fn">query</span><span class="pun">(</span><span class="s">`
+        UPDATE orders SET status='CANCELLED', cancelled_at=NOW(),
+          cancel_reason=$1, cancelled_by_admin=$2
+        WHERE id=$3
+      `</span><span class="pun">, [</span>reason<span class="pun">,</span> admin<span class="pun">.</span>id<span class="pun">,</span> orderId<span class="pun">]);</span>
+
+      <span class="c">// Se havia pagamento capturado, devolve à empresa automaticamente</span>
+      <span class="kw">const</span> payment <span class="pun">=</span> <span class="kw">await</span> <span class="cls">PaymentRepo</span><span class="pun">.</span><span class="fn">findByOrder</span><span class="pun">(</span>orderId<span class="pun">);</span>
+      <span class="kw">if</span> <span class="pun">(</span>payment <span class="pun">&&</span> <span class="pun">[</span><span class="s">'AUTHORIZED'</span><span class="pun">,</span><span class="s">'CAPTURED'</span><span class="pun">,</span><span class="s">'DISPUTED'</span><span class="pun">].</span><span class="fn">includes</span><span class="pun">(</span>payment<span class="pun">.</span>status<span class="pun">))</span>
+        <span class="kw">await</span> queue<span class="pun">.</span><span class="fn">publish</span><span class="pun">(</span><span class="s">'payment.admin_refund'</span><span class="pun">, {</span>
+          paymentId<span class="pun">:</span> payment<span class="pun">.</span>id<span class="pun">,</span> adminId<span class="pun">:</span> admin<span class="pun">.</span>id<span class="pun">,</span> reason<span class="pun">,</span>
+        <span class="pun">});</span>
+
+      <span class="kw">await</span> <span class="cls">AuditLog</span><span class="pun">.</span><span class="fn">write</span><span class="pun">(</span>trx<span class="pun">, {</span>
+        adminId<span class="pun">:</span> admin<span class="pun">.</span>id<span class="pun">,</span> action<span class="pun">:</span> <span class="s">'order.force_cancel'</span><span class="pun">,</span>
+        entityType<span class="pun">:</span> <span class="s">'order'</span><span class="pun">,</span> entityId<span class="pun">:</span> orderId<span class="pun">,</span> reason<span class="pun">,</span>
+        beforeData<span class="pun">: {</span> status<span class="pun">:</span> order<span class="pun">.</span>status <span class="pun">},</span>
+        afterData<span class="pun">:  {</span> status<span class="pun">:</span> <span class="s">'CANCELLED'</span> <span class="pun">},</span>
+      <span class="pun">});</span>
+    <span class="pun">});</span>
+  <span class="pun">}</span>
+
+  <span class="c">// ── Estende prazo com notificação às partes ────────────────────────────</span>
+  <span class="kw">static async</span> <span class="fn">extendDeadline</span><span class="pun">(</span>orderId<span class="pun">:</span> <span class="kw">string</span><span class="pun">,</span> newDeadline<span class="pun">:</span> <span class="cls">Date</span><span class="pun">,</span> reason<span class="pun">:</span> <span class="kw">string</span><span class="pun">,</span> admin<span class="pun">:</span> <span class="cls">AdminContext</span><span class="pun">) {</span>
+    <span class="kw">const</span> before <span class="pun">=</span> <span class="kw">await</span> <span class="cls">OrderRepo</span><span class="pun">.</span><span class="fn">findById</span><span class="pun">(</span>orderId<span class="pun">);</span>
+    <span class="kw">await</span> db<span class="pun">.</span><span class="fn">query</span><span class="pun">(</span><span class="s">`UPDATE orders SET deadline_at=$1 WHERE id=$2`</span><span class="pun">, [</span>newDeadline<span class="pun">,</span> orderId<span class="pun">]);</span>
+    <span class="kw">await</span> queue<span class="pun">.</span><span class="fn">publish</span><span class="pun">(</span><span class="s">'order.deadline_extended'</span><span class="pun">, {</span> orderId<span class="pun">,</span> newDeadline<span class="pun">,</span> reason <span class="pun">});</span>
+    <span class="kw">await</span> <span class="cls">AuditLog</span><span class="pun">.</span><span class="fn">write</span><span class="pun">(</span><span class="b">null</span><span class="pun">, {</span>
+      adminId<span class="pun">:</span> admin<span class="pun">.</span>id<span class="pun">,</span> action<span class="pun">:</span> <span class="s">'order.extend_deadline'</span><span class="pun">,</span>
+      entityType<span class="pun">:</span> <span class="s">'order'</span><span class="pun">,</span> entityId<span class="pun">:</span> orderId<span class="pun">,</span> reason<span class="pun">,</span>
+      beforeData<span class="pun">: {</span> deadline_at<span class="pun">:</span> before<span class="pun">.</span>deadline_at <span class="pun">},</span>
+      afterData<span class="pun">:  {</span> deadline_at<span class="pun">:</span> newDeadline <span class="pun">},</span>
+    <span class="pun">});</span>
+  <span class="pun">}</span>
+<span class="pun">}</span></pre>
+
+<!-- ══ 5. MÓDULO PAGAMENTOS ══ -->
+<h2>5. Módulo de Pagamentos</h2>
+
+<div class="ftag">src/admin/modules/admin-payment.service.ts</div>
+<pre><span class="kw">export class</span> <span class="cls">AdminPaymentService</span> <span class="pun">{</span>
+
+  <span class="c">// ── Liberar escrow manualmente (ex: bug no job automático) ─────────────</span>
+  <span class="kw">static async</span> <span class="fn">manualRelease</span><span class="pun">(</span>paymentId<span class="pun">:</span> <span class="kw">string</span><span class="pun">,</span> reason<span class="pun">:</span> <span class="kw">string</span><span class="pun">,</span> admin<span class="pun">:</span> <span class="cls">AdminContext</span><span class="pun">) {</span>
+    <span class="kw">const</span> payment <span class="pun">=</span> <span class="kw">await</span> <span class="cls">PaymentRepo</span><span class="pun">.</span><span class="fn">findById</span><span class="pun">(</span>paymentId<span class="pun">);</span>
+
+    <span class="kw">if</span> <span class="pun">(</span>payment<span class="pun">.</span>status <span class="pun">!==</span> <span class="s">'CAPTURED'</span><span class="pun">)</span>
+      <span class="kw">throw</span> <span class="kw">new</span> <span class="cls">BusinessError</span><span class="pun">(</span><span class="s">'PAYMENT_NOT_CAPTURED'</span><span class="pun">);</span>
+
+    <span class="c">// Valores acima de R$50k exigem segundo admin (four-eyes)</span>
+    <span class="kw">if</span> <span class="pun">(</span><span class="cls">Number</span><span class="pun">(</span>payment<span class="pun">.</span>gross_amount<span class="pun">) ></span> <span class="n">50000</span> <span class="pun">&&</span> <span class="pun">!</span>admin<span class="pun">.</span>secondApprovalId<span class="pun">)</span>
+      <span class="kw">throw</span> <span class="kw">new</span> <span class="cls">BusinessError</span><span class="pun">(</span><span class="s">'SECOND_APPROVAL_REQUIRED'</span><span class="pun">);</span>
+
+    <span class="kw">await</span> <span class="cls">PaymentService</span><span class="pun">.</span><span class="fn">release</span><span class="pun">(</span>paymentId<span class="pun">);</span>
+    <span class="kw">await</span> <span class="cls">AuditLog</span><span class="pun">.</span><span class="fn">write</span><span class="pun">(</span><span class="b">null</span><span class="pun">, {</span>
+      adminId<span class="pun">:</span> admin<span class="pun">.</span>id<span class="pun">,</span> action<span class="pun">:</span> <span class="s">'payment.manual_release'</span><span class="pun">,</span>
+      entityType<span class="pun">:</span> <span class="s">'payment'</span><span class="pun">,</span> entityId<span class="pun">:</span> paymentId<span class="pun">,</span> reason<span class="pun">,</span>
+      afterData<span class="pun">: {</span> amount<span class="pun">:</span> payment<span class="pun">.</span>freelancer_amount<span class="pun">,</span> secondApproval<span class="pun">:</span> admin<span class="pun">.</span>secondApprovalId <span class="pun">},</span>
+    <span class="pun">});</span>
+  <span class="pun">}</span>
+
+  <span class="c">// ── Estorno administrativo (fora do fluxo de disputa) ─────────────────</span>
+  <span class="kw">static async</span> <span class="fn">adminRefund</span><span class="pun">(</span>input<span class="pun">: {</span> paymentId<span class="pun">:</span> <span class="kw">string</span><span class="pun">;</span> amount<span class="pun">?:</span> <span class="kw">string</span><span class="pun">;</span> reason<span class="pun">:</span> <span class="kw">string</span><span class="pun"> },</span> admin<span class="pun">:</span> <span class="cls">AdminContext</span><span class="pun">) {</span>
+    <span class="kw">await</span> <span class="cls">PaymentService</span><span class="pun">.</span><span class="fn">refund</span><span class="pun">({</span>
+      paymentId<span class="pun">:</span>        input<span class="pun">.</span>paymentId<span class="pun">,</span>
+      companyAmount<span class="pun">:</span>    input<span class="pun">.</span>amount <span class="pun">??</span> <span class="s">'FULL'</span><span class="pun">,</span>
+      freelancerAmount<span class="pun">:</span> <span class="s">'0'</span><span class="pun">,</span>
+      reason<span class="pun">:</span>           <span class="s">`ADMIN_REFUND:<span class="pun">${</span>admin<span class="pun">.</span>id<span class="pun">}</span>:<span class="pun">${</span>input<span class="pun">.</span>reason<span class="pun">}</span>`</span><span class="pun">,</span>
+      adminId<span class="pun">:</span>          admin<span class="pun">.</span>id<span class="pun">,</span>
+    <span class="pun">});</span>
+    <span class="kw">await</span> <span class="cls">AuditLog</span><span class="pun">.</span><span class="fn">write</span><span class="pun">(</span><span class="b">null</span><span class="pun">, {</span>
+      adminId<span class="pun">:</span> admin<span class="pun">.</span>id<span class="pun">,</span> action<span class="pun">:</span> <span class="s">'payment.admin_refund'</span><span class="pun">,</span>
+      entityType<span class="pun">:</span> <span class="s">'payment'</span><span class="pun">,</span> entityId<span class="pun">:</span> input<span class="pun">.</span>paymentId<span class="pun">,</span>
+      reason<span class="pun">:</span> input<span class="pun">.</span>reason<span class="pun">,</span>
+    <span class="pun">});</span>
+  <span class="pun">}</span>
+
+  <span class="c">// ── Visão do ledger (receita contábil da plataforma) ───────────────────</span>
+  <span class="kw">static async</span> <span class="fn">getLedgerSummary</span><span class="pun">(</span>from<span class="pun">:</span> <span class="cls">Date</span><span class="pun">,</span> to<span class="pun">:</span> <span class="cls">Date</span><span class="pun">) {</span>
+    <span class="kw">return</span> db<span class="pun">.</span><span class="fn">query</span><span class="pun">(</span><span class="s">`
+      SELECT
+        entry_type,
+        SUM(amount)   AS total,
+        COUNT(*)      AS count,
+        currency
+      FROM platform_ledger
+      WHERE created_at BETWEEN $1 AND $2
+      GROUP BY entry_type, currency
+      ORDER BY entry_type
+    `</span><span class="pun">, [</span>from<span class="pun">,</span> to<span class="pun">]);</span>
+  <span class="pun">}</span>
+<span class="pun">}</span></pre>
+
+<!-- ══ 6. AUDIT LOG ══ -->
+<h2>6. Auditoria — Log Imutável</h2>
+
+<p>Toda ação administrativa grava no <code>audit_logs</code>. A tabela tem <code>REVOKE UPDATE, DELETE ON audit_logs FROM app_role</code> no DDL — nem a própria aplicação pode apagar registros. Apenas o role <code>audit_reader</code> (readonly, sem acesso à aplicação) pode ler.</p>
+
+<div class="ftag">src/admin/audit/audit-log.service.ts</div>
+<pre><span class="kw">export class</span> <span class="cls">AuditLog</span> <span class="pun">{</span>
+  <span class="kw">static async</span> <span class="fn">write</span><span class="pun">(</span>
+    trx<span class="pun">:</span> <span class="cls">Transaction</span> <span class="pun">|</span> <span class="b">null</span><span class="pun">,</span>
+    entry<span class="pun">: {</span>
+      adminId<span class="pun">:</span>    <span class="kw">string</span><span class="pun">;</span>
+      action<span class="pun">:</span>     <span class="kw">string</span><span class="pun">;</span>       <span class="c">// ex: 'user.suspend', 'payment.manual_release'</span>
+      entityType<span class="pun">:</span> <span class="kw">string</span><span class="pun">;</span>
+      entityId<span class="pun">:</span>   <span class="kw">string</span><span class="pun">;</span>
+      reason<span class="pun">?:</span>    <span class="kw">string</span><span class="pun">;</span>
+      beforeData<span class="pun">?:</span> <span class="kw">unknown</span><span class="pun">;</span>
+      afterData<span class="pun">?:</span>  <span class="kw">unknown</span><span class="pun">;</span>
+    <span class="pun">}</span>
+  <span class="pun">) {</span>
+    <span class="kw">const</span> conn <span class="pun">=</span> trx <span class="pun">??</span> db<span class="pun">;</span>
+    <span class="kw">await</span> conn<span class="pun">.</span><span class="fn">query</span><span class="pun">(</span><span class="s">`
+      INSERT INTO audit_logs
+        (admin_id, action, entity_type, entity_id, reason,
+         before_data, after_data, ip_address, user_agent, created_at)
+      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,NOW())
+    `</span><span class="pun">, [</span>
+      entry<span class="pun">.</span>adminId<span class="pun">,</span>  entry<span class="pun">.</span>action<span class="pun">,</span>
+      entry<span class="pun">.</span>entityType<span class="pun">,</span> entry<span class="pun">.</span>entityId<span class="pun">,</span>
+      entry<span class="pun">.</span>reason <span class="pun">??</span> <span class="b">null</span><span class="pun">,</span>
+      entry<span class="pun">.</span>beforeData <span class="pun">?</span> <span class="cls">JSON</span><span class="pun">.</span><span class="fn">stringify</span><span class="pun">(</span>entry<span class="pun">.</span>beforeData<span class="pun">) :</span> <span class="b">null</span><span class="pun">,</span>
+      entry<span class="pun">.</span>afterData  <span class="pun">?</span> <span class="cls">JSON</span><span class="pun">.</span><span class="fn">stringify</span><span class="pun">(</span>entry<span class="pun">.</span>afterData<span class="pun">) :</span> <span class="b">null</span><span class="pun">,</span>
+      <span class="fn">getRequestIP</span><span class="pun">(),</span>  <span class="fn">getRequestUA</span><span class="pun">(),</span>
+    <span class="pun">]);</span>
+  <span class="pun">}</span>
+
+  <span class="c">// Busca com filtros — usada pelo módulo Audit Logs do painel</span>
+  <span class="kw">static async</span> <span class="fn">query</span><span class="pun">(</span>filters<span class="pun">: {</span>
+    adminId<span class="pun">?:</span>    <span class="kw">string</span><span class="pun">;</span>
+    action<span class="pun">?:</span>     <span class="kw">string</span><span class="pun">;</span>
+    entityType<span class="pun">?:</span> <span class="kw">string</span><span class="pun">;</span>
+    entityId<span class="pun">?:</span>   <span class="kw">string</span><span class="pun">;</span>
+    from<span class="pun">?:</span>       <span class="kw">string</span><span class="pun">;</span>
+    to<span class="pun">?:</span>         <span class="kw">string</span><span class="pun">;</span>
+    cursor<span class="pun">?:</span>     <span class="kw">string</span><span class="pun">;</span>
+  <span class="pun">}) {</span>
+    <span class="kw">return</span> db<span class="pun">.</span><span class="fn">query</span><span class="pun">(</span><span class="s">`
+      SELECT a.*, adm.email AS admin_email, adm.role AS admin_role
+      FROM audit_logs a
+      JOIN admins adm ON adm.id = a.admin_id
+      WHERE ($1 IS NULL OR a.admin_id = $1)
+        AND ($2 IS NULL OR a.action LIKE $2 || '%')
+        AND ($3 IS NULL OR a.entity_type = $3)
+        AND ($4 IS NULL OR a.entity_id = $4)
+        AND ($5 IS NULL OR a.created_at >= $5)
+        AND ($6 IS NULL OR a.created_at <= $6)
+        AND ($7 IS NULL OR a.id > $7)
+      ORDER BY a.created_at DESC LIMIT 100
+    `</span><span class="pun">, [</span>filters<span class="pun">.</span>adminId<span class="pun">,</span> filters<span class="pun">.</span>action<span class="pun">,</span> filters<span class="pun">.</span>entityType<span class="pun">,</span>
+       filters<span class="pun">.</span>entityId<span class="pun">,</span> filters<span class="pun">.</span>from<span class="pun">,</span> filters<span class="pun">.</span>to<span class="pun">,</span> filters<span class="pun">.</span>cursor<span class="pun">]);</span>
+  <span class="pun">}</span>
+<span class="pun">}</span></pre>
+
+<!-- ══ 7. CATEGORIAS E TAXAS ══ -->
+<h2>7. Gestão de Categorias, Skills e Taxas</h2>
+
+<div class="ftag">src/admin/modules/admin-settings.service.ts</div>
+<pre><span class="kw">export class</span> <span class="cls">AdminSettingsService</span> <span class="pun">{</span>
+
+  <span class="c">// ── Cria/edita categoria (hierarquia em árvore) ────────────────────────</span>
+  <span class="kw">static async</span> <span class="fn">upsertCategory</span><span class="pun">(</span>input<span class="pun">: {</span>
+    id<span class="pun">?:</span>         <span class="kw">string</span><span class="pun">;</span>
+    name<span class="pun">:</span>        <span class="kw">string</span><span class="pun">;</span>
+    parentId<span class="pun">?:</span>   <span class="kw">string</span><span class="pun">;</span>   <span class="c">// null = categoria raiz</span>
+    description<span class="pun">?:</span> <span class="kw">string</span><span class="pun">;</span>
+    iconUrl<span class="pun">?:</span>    <span class="kw">string</span><span class="pun">;</span>
+    isActive<span class="pun">:</span>    <span class="b">boolean</span><span class="pun">;</span>
+  <span class="pun">},</span> admin<span class="pun">:</span> <span class="cls">AdminContext</span><span class="pun">) {</span>
+    <span class="c">// Valida que parentId não cria ciclo na árvore</span>
+    <span class="kw">if</span> <span class="pun">(</span>input<span class="pun">.</span>parentId <span class="pun">&&</span> input<span class="pun">.</span>id<span class="pun">)</span>
+      <span class="kw">await</span> <span class="fn">assertNoCycle</span><span class="pun">(</span>input<span class="pun">.</span>id<span class="pun">,</span> input<span class="pun">.</span>parentId<span class="pun">);</span>
+
+    <span class="kw">const</span> result <span class="pun">=</span> <span class="kw">await</span> db<span class="pun">.</span><span class="fn">query</span><span class="pun">(</span><span class="s">`
+      INSERT INTO categories (id, name, parent_id, description, icon_url, is_active, slug)
+      VALUES (COALESCE($1, gen_random_uuid()), $2, $3, $4, $5, $6,
+              slugify($2))
+      ON CONFLICT (id) DO UPDATE
+        SET name=$2, parent_id=$3, description=$4, icon_url=$5,
+            is_active=$6, updated_at=NOW()
+      RETURNING *
+    `</span><span class="pun">, [</span>input<span class="pun">.</span>id<span class="pun">,</span> input<span class="pun">.</span>name<span class="pun">,</span> input<span class="pun">.</span>parentId<span class="pun">,</span>
+       input<span class="pun">.</span>description<span class="pun">,</span> input<span class="pun">.</span>iconUrl<span class="pun">,</span> input<span class="pun">.</span>isActive<span class="pun">]);</span>
+
+    <span class="kw">await</span> <span class="cls">AuditLog</span><span class="pun">.</span><span class="fn">write</span><span class="pun">(</span><span class="b">null</span><span class="pun">, {</span>
+      adminId<span class="pun">:</span> admin<span class="pun">.</span>id<span class="pun">,</span> action<span class="pun">:</span> <span class="s">'category.upsert'</span><span class="pun">,</span>
+      entityType<span class="pun">:</span> <span class="s">'category'</span><span class="pun">,</span> entityId<span class="pun">:</span> result<span class="pun">.</span>rows<span class="pun">[</span><span class="n">0</span><span class="pun">].</span>id<span class="pun">,</span>
+      afterData<span class="pun">:</span> input<span class="pun">,</span>
+    <span class="pun">});</span>
+    <span class="kw">await</span> redis<span class="pun">.</span><span class="fn">del</span><span class="pun">(</span><span class="s">'categories:tree'</span><span class="pun">);</span>   <span class="c">// invalida cache da árvore de categorias</span>
+    <span class="kw">return</span> result<span class="pun">.</span>rows<span class="pun">[</span><span class="n">0</span><span class="pun">];</span>
+  <span class="pun">}</span>
+
+  <span class="c">// ── Atualiza configuração de plataforma ────────────────────────────────</span>
+  <span class="kw">static async</span> <span class="fn">updateSetting</span><span class="pun">(</span>key<span class="pun">:</span> <span class="kw">string</span><span class="pun">,</span> value<span class="pun">:</span> <span class="kw">string</span><span class="pun">,</span> admin<span class="pun">:</span> <span class="cls">AdminContext</span><span class="pun">) {</span>
+    <span class="kw">const</span> ALLOWED_KEYS <span class="pun">= [</span>
+      <span class="s">'platform_fee_rate'</span><span class="pun">,</span>      <span class="c">// taxa padrão (ex: '0.10')</span>
+      <span class="s">'escrow_release_days'</span><span class="pun">,</span>     <span class="c">// dias para liberar após aprovação</span>
+      <span class="s">'rating_window_hours'</span><span class="pun">,</span>     <span class="c">// janela de avaliação (ex: '72')</span>
+      <span class="s">'dispute_sla_hours'</span><span class="pun">,</span>       <span class="c">// SLA de resolução de disputas</span>
+      <span class="s">'max_adjustment_cycles'</span><span class="pun">,</span>   <span class="c">// máx ciclos de revisão</span>
+      <span class="s">'pix_expiration_seconds'</span><span class="pun">,</span>  <span class="c">// expiração do QR code PIX</span>
+    <span class="pun">];</span>
+    <span class="kw">if</span> <span class="pun">(!</span>ALLOWED_KEYS<span class="pun">.</span><span class="fn">includes</span><span class="pun">(</span>key<span class="pun">))</span>
+      <span class="kw">throw</span> <span class="kw">new</span> <span class="cls">ValidationError</span><span class="pun">(</span><span class="s">'SETTING_KEY_NOT_ALLOWED'</span><span class="pun">);</span>
+
+    <span class="kw">const</span> before <span class="pun">=</span> <span class="kw">await</span> <span class="cls">PlatformSettings</span><span class="pun">.</span><span class="fn">get</span><span class="pun">(</span>key<span class="pun">);</span>
+    <span class="kw">await</span> db<span class="pun">.</span><span class="fn">query</span><span class="pun">(</span><span class="s">`
+      INSERT INTO platform_settings (key, value, updated_by)
+      VALUES ($1, $2, $3)
+      ON CONFLICT (key) DO UPDATE SET value=$2, updated_by=$3, updated_at=NOW()
+    `</span><span class="pun">, [</span>key<span class="pun">,</span> value<span class="pun">,</span> admin<span class="pun">.</span>id<span class="pun">]);</span>
+    <span class="kw">await</span> redis<span class="pun">.</span><span class="fn">del</span><span class="pun">(</span><span class="s">`setting:<span class="pun">${</span>key<span class="pun">}</span>`</span><span class="pun">);</span>   <span class="c">// invalida cache imediatamente</span>
+    <span class="kw">await</span> <span class="cls">AuditLog</span><span class="pun">.</span><span class="fn">write</span><span class="pun">(</span><span class="b">null</span><span class="pun">, {</span>
+      adminId<span class="pun">:</span> admin<span class="pun">.</span>id<span class="pun">,</span> action<span class="pun">:</span> <span class="s">`setting.update`</span><span class="pun">,</span>
+      entityType<span class="pun">:</span> <span class="s">'setting'</span><span class="pun">,</span> entityId<span class="pun">:</span> key<span class="pun">,</span>
+      beforeData<span class="pun">: {</span> value<span class="pun">:</span> before <span class="pun">},</span>  afterData<span class="pun">: {</span> value <span class="pun">},</span>
+    <span class="pun">});</span>
+  <span class="pun">}</span>
+
+  <span class="c">// ── Taxa customizada por empresa (enterprise) ──────────────────────────</span>
+  <span class="kw">static async</span> <span class="fn">setCompanyFeeRate</span><span class="pun">(</span>companyId<span class="pun">:</span> <span class="kw">string</span><span class="pun">,</span> rate<span class="pun">:</span> <span class="kw">string</span><span class="pun">,</span> admin<span class="pun">:</span> <span class="cls">AdminContext</span><span class="pun">) {</span>
+    <span class="kw">const</span> rateNum <span class="pun">=</span> <span class="cls">Number</span><span class="pun">(</span>rate<span class="pun">);</span>
+    <span class="kw">if</span> <span class="pun">(</span>rateNum <span class="pun">&lt;</span> <span class="n">0</span> <span class="pun">||</span> rateNum <span class="pun">&gt;</span> <span class="n">1</span><span class="pun">)</span>  <span class="kw">throw</span> <span class="kw">new</span> <span class="cls">ValidationError</span><span class="pun">(</span><span class="s">'RATE_OUT_OF_RANGE'</span><span class="pun">);</span>
+    <span class="kw">await</span> db<span class="pun">.</span><span class="fn">query</span><span class="pun">(</span><span class="s">`UPDATE companies SET custom_fee_rate=$1 WHERE id=$2`</span><span class="pun">, [</span>rate<span class="pun">,</span> companyId<span class="pun">]);</span>
+    <span class="kw">await</span> <span class="cls">AuditLog</span><span class="pun">.</span><span class="fn">write</span><span class="pun">(</span><span class="b">null</span><span class="pun">, {</span>
+      adminId<span class="pun">:</span> admin<span class="pun">.</span>id<span class="pun">,</span> action<span class="pun">:</span> <span class="s">'company.set_fee_rate'</span><span class="pun">,</span>
+      entityType<span class="pun">:</span> <span class="s">'company'</span><span class="pun">,</span> entityId<span class="pun">:</span> companyId<span class="pun">,</span>
+      afterData<span class="pun">: {</span> custom_fee_rate<span class="pun">:</span> rate <span class="pun">},</span>
+    <span class="pun">});</span>
+  <span class="pun">}</span>
+<span class="pun">}</span></pre>
+
+<!-- ══ 8. DASHBOARD METRICS ══ -->
+<h2>8. Dashboard — Métricas e KPIs</h2>
+
+<div class="ftag">src/admin/modules/admin-dashboard.service.ts</div>
+<pre><span class="kw">export class</span> <span class="cls">AdminDashboardService</span> <span class="pun">{</span>
+  <span class="kw">static async</span> <span class="fn">getOverview</span><span class="pun">(</span>period<span class="pun">:</span> <span class="s">'7d'</span> <span class="pun">|</span> <span class="s">'30d'</span> <span class="pun">|</span> <span class="s">'90d'</span><span class="pun">) {</span>
+    <span class="kw">const</span> cacheKey <span class="pun">=</span> <span class="s">`admin:dashboard:<span class="pun">${</span>period<span class="pun">}</span>`</span><span class="pun">;</span>
+    <span class="kw">const</span> cached   <span class="pun">=</span> <span class="kw">await</span> redis<span class="pun">.</span><span class="fn">get</span><span class="pun">(</span>cacheKey<span class="pun">);</span>
+    <span class="kw">if</span> <span class="pun">(</span>cached<span class="pun">)</span> <span class="kw">return</span> <span class="cls">JSON</span><span class="pun">.</span><span class="fn">parse</span><span class="pun">(</span>cached<span class="pun">);</span>
+
+    <span class="kw">const</span> days <span class="pun">=</span> <span class="pun">{</span> <span class="s">'7d'</span><span class="pun">:</span><span class="n">7</span><span class="pun">,</span> <span class="s">'30d'</span><span class="pun">:</span><span class="n">30</span><span class="pun">,</span> <span class="s">'90d'</span><span class="pun">:</span><span class="n">90</span> <span class="pun">}[</span>period<span class="pun">];</span>
+
+    <span class="kw">const</span> <span class="pun">[</span>financial<span class="pun">,</span> orders<span class="pun">,</span> users<span class="pun">,</span> disputes<span class="pun">,</span> sla<span class="pun">] =</span> <span class="kw">await</span> <span class="cls">Promise</span><span class="pun">.</span><span class="fn">all</span><span class="pun">([</span>
+
+      <span class="c">// GMV + Receita</span>
+      db<span class="pun">.</span><span class="fn">query</span><span class="pun">(</span><span class="s">`
+        SELECT
+          SUM(gross_amount)         AS gmv,
+          SUM(platform_fee_amount)  AS revenue,
+          AVG(gross_amount)         AS avg_order_value,
+          SUM(CASE WHEN status='REFUNDED' THEN gross_amount ELSE 0 END) AS refunded
+        FROM payments
+        WHERE created_at >= NOW() - ($1 || ' days')::INTERVAL
+      `</span><span class="pun">, [</span>days<span class="pun">]),</span>
+
+      <span class="c">// Ordens por status + taxa de conclusão</span>
+      db<span class="pun">.</span><span class="fn">query</span><span class="pun">(</span><span class="s">`
+        SELECT status, COUNT(*) AS n FROM orders
+        WHERE created_at >= NOW() - ($1 || ' days')::INTERVAL
+        GROUP BY status
+      `</span><span class="pun">, [</span>days<span class="pun">]),</span>
+
+      <span class="c">// Novos usuários</span>
+      db<span class="pun">.</span><span class="fn">query</span><span class="pun">(</span><span class="s">`
+        SELECT role, COUNT(*) AS n FROM users
+        WHERE created_at >= NOW() - ($1 || ' days')::INTERVAL
+        GROUP BY role
+      `</span><span class="pun">, [</span>days<span class="pun">]),</span>
+
+      <span class="c">// Taxa e tempos de disputa</span>
+      db<span class="pun">.</span><span class="fn">query</span><span class="pun">(</span><span class="s">`
+        SELECT
+          COUNT(*)                                          AS total,
+          COUNT(*) FILTER (WHERE status='CLOSED')          AS resolved,
+          AVG(EXTRACT(EPOCH FROM (resolved_at-created_at))/3600)
+            FILTER (WHERE resolved_at IS NOT NULL)         AS avg_resolution_hours,
+          COUNT(*) FILTER (WHERE status='ESCALATED')       AS escalated
+        FROM disputes
+        WHERE created_at >= NOW() - ($1 || ' days')::INTERVAL
+      `</span><span class="pun">, [</span>days<span class="pun">]),</span>
+
+      <span class="c">// Disputas em SLA breach agora</span>
+      db<span class="pun">.</span><span class="fn">query</span><span class="pun">(</span><span class="s">`
+        SELECT COUNT(*) AS breach_count FROM disputes
+        WHERE status IN ('OPEN','UNDER_REVIEW')
+          AND expected_resolution_at < NOW()
+      `</span><span class="pun">),</span>
+    <span class="pun">]);</span>
+
+    <span class="kw">const</span> result <span class="pun">= {</span>
+      financial<span class="pun">:</span> financial<span class="pun">.</span>rows<span class="pun">[</span><span class="n">0</span><span class="pun">],</span>
+      orders<span class="pun">:</span>    orders<span class="pun">.</span>rows<span class="pun">,</span>
+      users<span class="pun">:</span>     users<span class="pun">.</span>rows<span class="pun">,</span>
+      disputes<span class="pun">:</span>  disputes<span class="pun">.</span>rows<span class="pun">[</span><span class="n">0</span><span class="pun">],</span>
+      slaBreaches<span class="pun">:</span> <span class="cls">Number</span><span class="pun">(</span>sla<span class="pun">.</span>rows<span class="pun">[</span><span class="n">0</span><span class="pun">].</span>breach_count<span class="pun">),</span>
+      generatedAt<span class="pun">:</span> <span class="kw">new</span> <span class="cls">Date</span><span class="pun">().</span><span class="fn">toISOString</span><span class="pun">(),</span>
+    <span class="pun">};</span>
+
+    <span class="c">// Cache por 2 minutos — dados quase em tempo real</span>
+    <span class="kw">await</span> redis<span class="pun">.</span><span class="fn">setEx</span><span class="pun">(</span>cacheKey<span class="pun">,</span> <span class="n">120</span><span class="pun">,</span> <span class="cls">JSON</span><span class="pun">.</span><span class="fn">stringify</span><span class="pun">(</span>result<span class="pun">));</span>
+    <span class="kw">return</span> result<span class="pun">;</span>
+  <span class="pun">}</span>
+<span class="pun">}</span></pre>
+
+<!-- ══ 9. ENDPOINTS ══ -->
+<h2>9. Endpoints do Painel Admin</h2>
+
+<table class="table">
+<thead><tr><th>Método</th><th>Rota</th><th>Permissão</th><th>Ação</th></tr></thead>
+<tbody>
+<tr><td colspan="4" style="background:var(--surface);font-size:10px;font-weight:700;color:var(--muted);">DASHBOARD</td></tr>
+<tr><td><code>GET</code></td><td><code>/admin/dashboard</code></td><td>Qualquer admin</td><td>KPIs, ordens por status, receita trend</td></tr>
+<tr><td><code>GET</code></td><td><code>/admin/reports/revenue</code></td><td>ANALYST+</td><td>Relatório detalhado de receita por período</td></tr>
+<tr><td><code>GET</code></td><td><code>/admin/reports/cohort</code></td><td>ANALYST+</td><td>Cohort de retenção de usuários</td></tr>
+<tr><td colspan="4" style="background:var(--surface);font-size:10px;font-weight:700;color:var(--muted);">USUÁRIOS</td></tr>
+<tr><td><code>GET</code></td><td><code>/admin/users</code></td><td>users:read</td><td>Listagem com filtros avançados</td></tr>
+<tr><td><code>GET</code></td><td><code>/admin/users/:id</code></td><td>users:read</td><td>Perfil completo + histórico</td></tr>
+<tr><td><code>POST</code></td><td><code>/admin/users/:id/suspend</code></td><td>users:suspend</td><td>Suspender com motivo</td></tr>
+<tr><td><code>POST</code></td><td><code>/admin/users/:id/unsuspend</code></td><td>users:suspend</td><td>Reativar com motivo</td></tr>
+<tr><td><code>POST</code></td><td><code>/admin/users/:id/verify-identity</code></td><td>users:verify_identity</td><td>Marcar identidade como verificada</td></tr>
+<tr><td><code>POST</code></td><td><code>/admin/users/:id/impersonate</code></td><td>users:impersonate</td><td>Gera token de impersonação (15min)</td></tr>
+<tr><td colspan="4" style="background:var(--surface);font-size:10px;font-weight:700;color:var(--muted);">ORDENS / PAGAMENTOS / DISPUTAS</td></tr>
+<tr><td><code>POST</code></td><td><code>/admin/orders/:id/cancel</code></td><td>orders:cancel</td><td>Cancelamento forçado + refund automático</td></tr>
+<tr><td><code>POST</code></td><td><code>/admin/orders/:id/extend-deadline</code></td><td>orders:extend_deadline</td><td>Estender prazo</td></tr>
+<tr><td><code>POST</code></td><td><code>/admin/payments/:id/manual-release</code></td><td>payments:manual_release</td><td>Liberar escrow manualmente</td></tr>
+<tr><td><code>POST</code></td><td><code>/admin/payments/:id/refund</code></td><td>payments:refund</td><td>Estorno administrativo</td></tr>
+<tr><td><code>GET</code></td><td><code>/admin/payments/ledger</code></td><td>payments:read</td><td>Extrato do ledger da plataforma</td></tr>
+<tr><td><code>GET</code></td><td><code>/admin/disputes?status=OPEN</code></td><td>disputes:read</td><td>Fila de disputas</td></tr>
+<tr><td><code>POST</code></td><td><code>/admin/ratings/:id/remove</code></td><td>ratings:remove</td><td>Remover avaliação fraudulenta</td></tr>
+<tr><td colspan="4" style="background:var(--surface);font-size:10px;font-weight:700;color:var(--muted);">CONFIGURAÇÕES / AUDIT</td></tr>
+<tr><td><code>GET/PUT</code></td><td><code>/admin/settings/:key</code></td><td>settings:write</td><td>Lê/atualiza configuração de plataforma</td></tr>
+<tr><td><code>POST</code></td><td><code>/admin/categories</code></td><td>categories:write</td><td>Cria/edita categoria</td></tr>
+<tr><td><code>PUT</code></td><td><code>/admin/companies/:id/fee-rate</code></td><td>settings:write</td><td>Taxa customizada por empresa</td></tr>
+<tr><td><code>GET</code></td><td><code>/admin/audit-logs</code></td><td>audit:read</td><td>Log imutável com filtros</td></tr>
+<tr><td><code>GET/POST</code></td><td><code>/admin/admins</code></td><td>admins:manage</td><td>Gerenciar contas de admin + roles</td></tr>
+</tbody>
+</table>
+
+<!-- ══ 10. SEGURANÇA ══ -->
+<h2>10. Segurança do Painel</h2>
+
+<ul>
+  <li><strong>MFA obrigatório:</strong> TOTP (Google Authenticator / Authy) exigido em todos os logins de admin. Sem MFA, conta não é ativada.</li>
+  <li><strong>IP allowlist:</strong> logins de admin só aceitos de IPs cadastrados. Novo IP exige aprovação por email.</li>
+  <li><strong>JWT de admin separado:</strong> assinado com <code>RS256_ADMIN_PRIVATE_KEY</code> diferente da chave pública. Token de usuário não funciona em rotas <code>/admin/*</code>.</li>
+  <li><strong>Session timeout:</strong> sessão de admin expira em 4 horas. Não é renovável — requer novo login com MFA.</li>
+  <li><strong>Four-eyes para operações críticas:</strong> liberações manuais acima de R$ 50k e mudanças em <code>platform_fee_rate</code> exigem aprovação de segundo admin com log separado.</li>
+  <li><strong>Rate limiting agressivo:</strong> máximo 100 requests/min por admin. Login: máximo 5 tentativas, depois bloqueio de 30min + alerta.</li>
+  <li><strong>Audit de tudo:</strong> leitura de dados sensíveis (impersonation, visualizar CPF) também é logada, não apenas mutações.</li>
+  <li><strong>Separação de deploy:</strong> painel admin em subdomínio separado com CSP restritiva, sem assets compartilhados com a plataforma pública.</li>
+</ul>
+
+<div class="warn"><p>⚠️ <strong>Impersonation é a ação de maior risco.</strong> Gera token de 15 minutos não renovável, exige justificativa obrigatória, e toda ação feita durante a sessão é registrada com flag <code>impersonated_by: admin_id</code>. O usuário impersonado recebe notificação por email após o término da sessão.</p></div>
+
+</div></body></html>

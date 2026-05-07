@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>MVP — Definição e Roadmap</title>
+<style>
+:root{
+  --blue:#185FA5;--blue-bg:#E6F1FB;--blue-b:#B5D4F4;
+  --purple:#534AB7;--purple-bg:#EEEDFE;--purple-b:#AFA9EC;
+  --teal:#0F6E56;--teal-bg:#E1F5EE;--teal-b:#9FE1CB;
+  --amber:#854F0B;--amber-bg:#FAEEDA;--amber-b:#FAC775;
+  --red:#A32D2D;--red-bg:#FCEBEB;--red-b:#F7C1C1;
+  --gray:#5F5E5A;--gray-bg:#F1EFE8;--gray-b:#D3D1C7;
+  --border:rgba(0,0,0,0.1);--surface:#f5f4f0;
+  --text:#1a1a18;--muted:#73726c;--bg:#fff;
+  --font:system-ui,-apple-system,sans-serif;
+  --mono:'SF Mono','Fira Code',Consolas,monospace;
+  --r:8px;
+  --code-bg:#18181a;--code-fg:#d4d4d4;
+  --key:#9cdcfe;--str:#ce9178;--num:#b5cea8;--bool:#569cd6;
+  --cmt:#6a9955;--fn:#dcdcaa;--kw:#c586c0;--cls:#4ec9b0;--pun:#d4d4d4;
+}
+@media(prefers-color-scheme:dark){:root{
+  --border:rgba(255,255,255,0.1);--surface:#242422;
+  --text:#e8e6de;--muted:#9c9a92;--bg:#1c1c1a;
+  --blue-bg:#042C53;--purple-bg:#26215C;--teal-bg:#04342C;
+  --amber-bg:#412402;--red-bg:#501313;--gray-bg:#2C2C2A;
+  --code-bg:#0d1117;
+}}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--font);color:var(--text);background:var(--bg);padding:40px 24px 80px;line-height:1.65;}
+.wrap{max-width:900px;margin:0 auto;}
+h1{font-size:26px;font-weight:600;margin-bottom:6px;}
+.lead{color:var(--muted);font-size:14px;margin-bottom:48px;max-width:680px;line-height:1.7;}
+h2{font-size:19px;font-weight:600;margin:52px 0 18px;padding-bottom:10px;border-bottom:2px solid var(--border);}
+h3{font-size:14px;font-weight:600;margin:22px 0 8px;color:var(--text);}
+p{font-size:14px;color:var(--muted);margin-bottom:12px;line-height:1.7;}
+p strong{color:var(--text);}
+ul{font-size:14px;color:var(--muted);padding-left:20px;margin-bottom:14px;}
+li{margin-bottom:5px;line-height:1.6;}li strong{color:var(--text);}
+pre{background:var(--code-bg);color:var(--code-fg);padding:18px 20px;border-radius:var(--r);font-family:var(--mono);font-size:11.5px;overflow-x:auto;line-height:1.7;margin:10px 0 22px;border:1px solid rgba(255,255,255,.04);}
+.ftag{display:inline-block;background:rgba(255,255,255,.06);color:var(--muted);font-family:var(--mono);font-size:10px;padding:3px 10px;border-radius:4px 4px 0 0;margin-bottom:-2px;border:1px solid rgba(255,255,255,.08);border-bottom:none;}
+code{font-family:var(--mono);font-size:11.5px;background:var(--surface);border:1px solid var(--border);padding:1px 6px;border-radius:4px;}
+.k{color:var(--key);}.s{color:var(--str);}.n{color:var(--num);}.b{color:var(--bool);}
+.c{color:var(--cmt);font-style:italic;}.fn{color:var(--fn);}.kw{color:var(--kw);}.cls{color:var(--cls);}.pun{color:var(--pun);}
+.info{border-left:3px solid var(--blue);background:var(--blue-bg);padding:12px 16px;border-radius:0 var(--r) var(--r) 0;margin:16px 0;}
+.warn{border-left:3px solid var(--amber);background:var(--amber-bg);padding:12px 16px;border-radius:0 var(--r) var(--r) 0;margin:16px 0;}
+.danger{border-left:3px solid var(--red);background:var(--red-bg);padding:12px 16px;border-radius:0 var(--r) var(--r) 0;margin:16px 0;}
+.teal-box{border-left:3px solid var(--teal);background:var(--teal-bg);padding:12px 16px;border-radius:0 var(--r) var(--r) 0;margin:16px 0;}
+.info p,.warn p,.danger p,.teal-box p{margin:0;font-size:13px;}
+.table{width:100%;border-collapse:collapse;font-size:13px;margin:10px 0 22px;}
+.table th{text-align:left;padding:8px 12px;background:var(--surface);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);}
+.table td{padding:8px 12px;border-bottom:1px solid var(--border);vertical-align:top;line-height:1.5;}
+.table tr:last-child td{border-bottom:none;}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px 18px;margin:12px 0;}
+.card-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:8px;}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:12px 0;}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin:12px 0;}
+@media(max-width:600px){.grid2,.grid3{grid-template-columns:1fr;}}
+.badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;margin:1px;}
+.b-blue{background:var(--blue-bg);color:var(--blue);}
+.b-teal{background:var(--teal-bg);color:var(--teal);}
+.b-amber{background:var(--amber-bg);color:var(--amber);}
+.b-red{background:var(--red-bg);color:var(--red);}
+.b-gray{background:var(--gray-bg);color:var(--gray);}
+.b-purple{background:var(--purple-bg);color:var(--purple);}
+
+.sprint{border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin:10px 0;}
+.sprint-header{display:flex;align-items:center;gap:12px;padding:10px 14px;background:var(--surface);}
+.sprint-num{background:var(--blue);color:#fff;font-size:10px;font-weight:700;padding:2px 8px;border-radius:3px;white-space:nowrap;}
+.sprint-title{font-size:13px;font-weight:600;flex:1;}
+.sprint-weeks{font-size:11px;color:var(--muted);}
+.sprint-body{padding:12px 14px;font-size:13px;color:var(--muted);line-height:1.65;}
+.sprint-body strong{color:var(--text);}
+</style>
+</head>
+<body><div class="wrap">
+
+<h1>MVP — Definição Enxuta</h1>
+<p class="lead">O sistema completo projetado tem profundidade suficiente para escalar a centenas de milhares de usuários. O MVP precisa validar o <strong>loop de valor central</strong> — empresa contrata, freelancer executa, pagamento acontece — com o mínimo de complexidade técnica que ainda entregue confiança real ao usuário.</p>
+
+<!-- ══ LOOP DE VALOR ══ -->
+<svg width="100%" viewBox="0 0 680 120" xmlns="http://www.w3.org/2000/svg" style="display:block;margin:8px 0 32px;">
+<defs>
+  <marker id="a" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+    <path d="M2 1L8 5L2 9" fill="none" stroke="#185FA5" stroke-width="1.5" stroke-linecap="round"/>
+  </marker>
+</defs>
+
+<!-- Steps -->
+<rect x="0"   y="30" width="88" height="54" rx="6" fill="#E6F1FB" stroke="#B5D4F4" stroke-width="1.2"/>
+<text x="44"  y="52" text-anchor="middle" fill="#185FA5" font-size="10" font-weight="700" font-family="system-ui">Empresa</text>
+<text x="44"  y="66" text-anchor="middle" fill="#185FA5" font-size="9" font-family="system-ui">publica ordem</text>
+<text x="44"  y="78" text-anchor="middle" fill="#185FA5" font-size="8" font-family="system-ui">+ paga escrow</text>
+
+<line x1="89" y1="57" x2="102" y2="57" stroke="#185FA5" stroke-width="1.2" marker-end="url(#a)"/>
+
+<rect x="103" y="30" width="88" height="54" rx="6" fill="#EEEDFE" stroke="#AFA9EC" stroke-width="1.2"/>
+<text x="147" y="52" text-anchor="middle" fill="#534AB7" font-size="10" font-weight="700" font-family="system-ui">Freelancer</text>
+<text x="147" y="66" text-anchor="middle" fill="#534AB7" font-size="9" font-family="system-ui">se candidata</text>
+<text x="147" y="78" text-anchor="middle" fill="#534AB7" font-size="8" font-family="system-ui">e é selecionado</text>
+
+<line x1="192" y1="57" x2="205" y2="57" stroke="#185FA5" stroke-width="1.2" marker-end="url(#a)"/>
+
+<rect x="206" y="30" width="88" height="54" rx="6" fill="#EEEDFE" stroke="#AFA9EC" stroke-width="1.2"/>
+<text x="250" y="52" text-anchor="middle" fill="#534AB7" font-size="10" font-weight="700" font-family="system-ui">Aceite</text>
+<text x="250" y="66" text-anchor="middle" fill="#534AB7" font-size="9" font-family="system-ui">+ chat abre</text>
+<text x="250" y="78" text-anchor="middle" fill="#534AB7" font-size="8" font-family="system-ui">trabalho inicia</text>
+
+<line x1="295" y1="57" x2="308" y2="57" stroke="#185FA5" stroke-width="1.2" marker-end="url(#a)"/>
+
+<rect x="309" y="30" width="88" height="54" rx="6" fill="#FAEEDA" stroke="#FAC775" stroke-width="1.2"/>
+<text x="353" y="52" text-anchor="middle" fill="#854F0B" font-size="10" font-weight="700" font-family="system-ui">Entrega</text>
+<text x="353" y="66" text-anchor="middle" fill="#854F0B" font-size="9" font-family="system-ui">fotos + descrição</text>
+<text x="353" y="78" text-anchor="middle" fill="#854F0B" font-size="8" font-family="system-ui">empresa aprova</text>
+
+<line x1="398" y1="57" x2="411" y2="57" stroke="#185FA5" stroke-width="1.2" marker-end="url(#a)"/>
+
+<rect x="412" y="30" width="88" height="54" rx="6" fill="#E1F5EE" stroke="#9FE1CB" stroke-width="1.2"/>
+<text x="456" y="52" text-anchor="middle" fill="#0F6E56" font-size="10" font-weight="700" font-family="system-ui">Pagamento</text>
+<text x="456" y="66" text-anchor="middle" fill="#0F6E56" font-size="9" font-family="system-ui">escrow liberado</text>
+<text x="456" y="78" text-anchor="middle" fill="#0F6E56" font-size="8" font-family="system-ui">freelancer recebe</text>
+
+<line x1="501" y1="57" x2="514" y2="57" stroke="#185FA5" stroke-width="1.2" marker-end="url(#a)"/>
+
+<rect x="515" y="30" width="88" height="54" rx="6" fill="#E1F5EE" stroke="#9FE1CB" stroke-width="1.2"/>
+<text x="559" y="52" text-anchor="middle" fill="#0F6E56" font-size="10" font-weight="700" font-family="system-ui">Avaliação</text>
+<text x="559" y="66" text-anchor="middle" fill="#0F6E56" font-size="9" font-family="system-ui">dupla e simples</text>
+<text x="559" y="78" text-anchor="middle" fill="#0F6E56" font-size="8" font-family="system-ui">loop reinicia</text>
+
+<text x="620" y="62" text-anchor="middle" fill="#9c9a92" font-size="9" font-family="system-ui">← Este loop</text>
+<text x="620" y="74" text-anchor="middle" fill="#9c9a92" font-size="9" font-family="system-ui">é o MVP</text>
+
+<text x="340" y="104" text-anchor="middle" fill="#9c9a92" font-size="9" font-family="system-ui">Loop de valor central — tudo mais é otimização ou proteção deste fluxo</text>
+</svg>
+
+<!-- ══ 1. O QUE ENTRA NO MVP ══ -->
+<h2>1. O que Entra no MVP</h2>
+
+<div class="grid2">
+<div>
+<h3>✅ Funcionalidades Essenciais</h3>
+<ul>
+  <li><strong>Auth:</strong> email + senha, JWT, refresh token. Sem OAuth no lançamento.</li>
+  <li><strong>Cadastro:</strong> empresa (CNPJ + dados) e freelancer (CPF + skills). Verificação por email.</li>
+  <li><strong>Ordens:</strong> criar, publicar, listar com busca por texto simples (PostgreSQL <code>tsvector</code>). Filtros básicos: categoria, valor, status.</li>
+  <li><strong>Candidaturas:</strong> aplicar com mensagem, empresa seleciona, freelancer aceita ou rejeita.</li>
+  <li><strong>FSM simplificado:</strong> 8 estados (sem ADJUSTMENT_REQUESTED, sem DISPUTED).</li>
+  <li><strong>Chat por ordem:</strong> Socket.io com Redis adapter desde o início (custo zero, evita reescrita).</li>
+  <li><strong>Evidências:</strong> freelancer envia fotos (S3) + descrição. Empresa aprova.</li>
+  <li><strong>Pagamento:</strong> escrow com Stripe cartão. Um único gateway. PIX fica para depois.</li>
+  <li><strong>Liberação automática:</strong> job cron 3 dias após aprovação.</li>
+  <li><strong>Avaliação básica:</strong> overall_score (1-5) + comentário. Sem critérios detalhados.</li>
+  <li><strong>Email transacional:</strong> aprovação, seleção, pagamento recebido. Sem push.</li>
+  <li><strong>Admin mínimo:</strong> listar usuários, ver ordem, suspender conta, liberar pagamento manual.</li>
+</ul>
+</div>
+<div>
+<h3>🔴 Fora do MVP</h3>
+<ul>
+  <li><strong>PIX:</strong> adiciona gateway, webhook async e mTLS. Cartão resolve o problema.</li>
+  <li><strong>Disputas:</strong> admin resolve manualmente por email/WhatsApp nas primeiras semanas.</li>
+  <li><strong>Reputação Bayesiana:</strong> média simples é suficiente para validação.</li>
+  <li><strong>Ranking avançado:</strong> ordenação por nota + número de avaliações resolve.</li>
+  <li><strong>Elasticsearch:</strong> PostgreSQL full-text aguenta bem até 100k ordens.</li>
+  <li><strong>App mobile:</strong> web responsivo primeiro.</li>
+  <li><strong>Push notifications:</strong> email cobre tudo no lançamento.</li>
+  <li><strong>ADJUSTMENT_REQUESTED:</strong> empresa aprova ou não. Negociação via chat.</li>
+  <li><strong>Stripe Connect:</strong> transferência para freelancers via PIX manual no início.</li>
+  <li><strong>Badges e achievements.</strong></li>
+  <li><strong>Fraud detection avançado:</strong> regras básicas apenas (nova conta + muitas avaliações).</li>
+  <li><strong>Relatórios financeiros complexos:</strong> planilha manual serve.</li>
+  <li><strong>Categorias hierárquicas:</strong> lista plana de 10-15 categorias.</li>
+</ul>
+</div>
+</div>
+
+<div class="teal-box"><p>💡 <strong>Princípio central do MVP:</strong> toda funcionalidade que não está no loop de valor (publicar → contratar → executar → pagar) fica fora. Disputas? Admin resolve no Slack. PIX? Empresa paga no cartão. Reputação sofisticada? Estrelinhas simples. O objetivo é <em>provar que as partes se encontram e transacionam</em>, não que o sistema é perfeito.</p></div>
+
+<!-- ══ 2. FSM SIMPLIFICADO ══ -->
+<h2>2. FSM Simplificado para o MVP</h2>
+
+<svg width="100%" viewBox="0 0 680 90" xmlns="http://www.w3.org/2000/svg" style="display:block;margin:16px 0;">
+<defs>
+  <marker id="ar2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+    <path d="M2 1L8 5L2 9" fill="none" stroke="#9c9a92" stroke-width="1.5" stroke-linecap="round"/>
+  </marker>
+</defs>
+
+<!-- 8 states -->
+<!-- DRAFT -->
+<rect x="0" y="22" width="68" height="40" rx="5" fill="var(--surface,#f5f4f0)" stroke="var(--border,rgba(0,0,0,0.15))" stroke-width="1"/>
+<text x="34" y="38" text-anchor="middle" fill="var(--muted,#73726c)" font-size="9" font-weight="700" font-family="system-ui">DRAFT</text>
+<text x="34" y="52" text-anchor="middle" fill="var(--muted,#73726c)" font-size="7.5" font-family="system-ui">rascunho</text>
+
+<line x1="68" y1="42" x2="78" y2="42" stroke="#9c9a92" stroke-width="1" marker-end="url(#ar2)"/>
+
+<!-- OPEN -->
+<rect x="78" y="22" width="68" height="40" rx="5" fill="#E6F1FB" stroke="#B5D4F4" stroke-width="1"/>
+<text x="112" y="38" text-anchor="middle" fill="#185FA5" font-size="9" font-weight="700" font-family="system-ui">OPEN</text>
+<text x="112" y="52" text-anchor="middle" fill="#185FA5" font-size="7.5" font-family="system-ui">candidaturas</text>
+
+<line x1="146" y1="42" x2="156" y2="42" stroke="#9c9a92" stroke-width="1" marker-end="url(#ar2)"/>
+
+<!-- IN_SELECTION -->
+<rect x="156" y="22" width="80" height="40" rx="5" fill="#E6F1FB" stroke="#B5D4F4" stroke-width="1"/>
+<text x="196" y="38" text-anchor="middle" fill="#185FA5" font-size="9" font-weight="700" font-family="system-ui">IN_SELECTION</text>
+<text x="196" y="52" text-anchor="middle" fill="#185FA5" font-size="7.5" font-family="system-ui">empresa escolhe</text>
+
+<line x1="236" y1="42" x2="246" y2="42" stroke="#9c9a92" stroke-width="1" marker-end="url(#ar2)"/>
+
+<!-- ACCEPTED -->
+<rect x="246" y="22" width="72" height="40" rx="5" fill="#EEEDFE" stroke="#AFA9EC" stroke-width="1"/>
+<text x="282" y="38" text-anchor="middle" fill="#534AB7" font-size="9" font-weight="700" font-family="system-ui">ACCEPTED</text>
+<text x="282" y="52" text-anchor="middle" fill="#534AB7" font-size="7.5" font-family="system-ui">chat + escrow</text>
+
+<line x1="318" y1="42" x2="328" y2="42" stroke="#9c9a92" stroke-width="1" marker-end="url(#ar2)"/>
+
+<!-- IN_PROGRESS -->
+<rect x="328" y="22" width="78" height="40" rx="5" fill="#EEEDFE" stroke="#AFA9EC" stroke-width="1"/>
+<text x="367" y="38" text-anchor="middle" fill="#534AB7" font-size="9" font-weight="700" font-family="system-ui">IN_PROGRESS</text>
+<text x="367" y="52" text-anchor="middle" fill="#534AB7" font-size="7.5" font-family="system-ui">execução</text>
+
+<line x1="406" y1="42" x2="416" y2="42" stroke="#9c9a92" stroke-width="1" marker-end="url(#ar2)"/>
+
+<!-- IN_REVIEW -->
+<rect x="416" y="22" width="72" height="40" rx="5" fill="#FAEEDA" stroke="#FAC775" stroke-width="1"/>
+<text x="452" y="38" text-anchor="middle" fill="#854F0B" font-size="9" font-weight="700" font-family="system-ui">IN_REVIEW</text>
+<text x="452" y="52" text-anchor="middle" fill="#854F0B" font-size="7.5" font-family="system-ui">empresa avalia</text>
+
+<line x1="488" y1="42" x2="498" y2="42" stroke="#9c9a92" stroke-width="1" marker-end="url(#ar2)"/>
+
+<!-- APPROVED -->
+<rect x="498" y="22" width="72" height="40" rx="5" fill="#E1F5EE" stroke="#9FE1CB" stroke-width="1"/>
+<text x="534" y="38" text-anchor="middle" fill="#0F6E56" font-size="9" font-weight="700" font-family="system-ui">APPROVED</text>
+<text x="534" y="52" text-anchor="middle" fill="#0F6E56" font-size="7.5" font-family="system-ui">timer 3 dias</text>
+
+<line x1="570" y1="42" x2="580" y2="42" stroke="#9c9a92" stroke-width="1" marker-end="url(#ar2)"/>
+
+<!-- COMPLETED -->
+<rect x="580" y="22" width="80" height="40" rx="5" fill="#0F6E56" stroke="#085041" stroke-width="1"/>
+<text x="620" y="38" text-anchor="middle" fill="#fff" font-size="9" font-weight="700" font-family="system-ui">COMPLETED</text>
+<text x="620" y="52" text-anchor="middle" fill="rgba(255,255,255,0.7)" font-size="7.5" font-family="system-ui">pago + avaliação</text>
+
+<!-- CANCELLED below (from any non-terminal) -->
+<text x="340" y="82" text-anchor="middle" fill="var(--muted,#73726c)" font-size="8" font-family="system-ui">CANCELLED pode ocorrer de qualquer estado não-terminal · disputas: admin resolve manualmente via email</text>
+</svg>
+
+<p><strong>Redução de 12 para 8 estados.</strong> O que foi cortado: <code>IN_APPLICATION</code> (unificado em OPEN), <code>SELECTED</code> (unificado em IN_SELECTION), <code>ADJUSTMENT_REQUESTED</code> (não existe no MVP), <code>DISPUTED</code> (não existe). Isso elimina ~30% da complexidade da FSM e dos guards de transição.</p>
+
+<!-- ══ 3. SIMPLIFICAÇÕES TÉCNICAS ══ -->
+<h2>3. Simplificações Técnicas do MVP</h2>
+
+<table class="table">
+<thead><tr><th>Componente</th><th>Sistema Completo</th><th>MVP</th><th>Impacto</th></tr></thead>
+<tbody>
+<tr>
+  <td><strong>Pagamento</strong></td>
+  <td>Stripe + Gerencianet (PIX) + Manual. Stripe Connect para transferências automáticas.</td>
+  <td>Stripe cartão apenas. Transferência para freelancer via PIX manual pelo admin.</td>
+  <td>Elimina 2 gateways e Stripe Connect. 1 webhook simples.</td>
+</tr>
+<tr>
+  <td><strong>Disputas</strong></td>
+  <td>Sistema completo com 7 estados, SLA, pacote de investigação, resolução financeira automatizada.</td>
+  <td>Empresa abre ticket por email. Admin resolve manualmente e faz refund ou release pelo painel.</td>
+  <td>Zero código de disputa. Admin tem ação manual no painel mínimo.</td>
+</tr>
+<tr>
+  <td><strong>Reputação</strong></td>
+  <td>Bayesiano + decaimento exponencial + penalidades + fraud detection.</td>
+  <td>Média simples de <code>overall_score</code>. Mínimo 3 avaliações para aparecer no ranking.</td>
+  <td>Uma query SQL, sem job de recálculo.</td>
+</tr>
+<tr>
+  <td><strong>Busca</strong></td>
+  <td>Elasticsearch com geolocalização, full-text avançado, facets.</td>
+  <td>PostgreSQL <code>tsvector</code> + filtros de categoria e valor. Índice GIN.</td>
+  <td>Zero infra adicional. Aguenta até ~100k registros sem degradar.</td>
+</tr>
+<tr>
+  <td><strong>Chat</strong></td>
+  <td>Socket.io + Redis adapter (multi-instância), protocolo completo de mensagens.</td>
+  <td>Socket.io + Redis adapter já implementado (custo zero de infra). Sem edit/delete de mensagem.</td>
+  <td>Implementar certo desde o início evita reescrita.</td>
+</tr>
+<tr>
+  <td><strong>Notificações</strong></td>
+  <td>FCM (Android/iOS) + email + in-app + SMS.</td>
+  <td>Email transacional apenas (AWS SES ou Resend).</td>
+  <td>Sem SDK mobile, sem device tokens, sem complexidade multi-canal.</td>
+</tr>
+<tr>
+  <td><strong>Admin</strong></td>
+  <td>6 roles, RBAC completo, dashboard com KPIs, audit log imutável, impersonation.</td>
+  <td>2 roles (SUPER_ADMIN, SUPPORT). Listagem de usuários + ordens + ação de suspensão + release manual.</td>
+  <td>~20% do trabalho do admin completo.</td>
+</tr>
+<tr>
+  <td><strong>Infraestrutura</strong></td>
+  <td>ECS Fargate, EKS, múltiplas AZs, PgBouncer, ElastiCache Redis cluster.</td>
+  <td>Render.com ou Railway: 1 instância de app, 1 PostgreSQL gerenciado, 1 Redis gerenciado.</td>
+  <td>Custo ~$50-100/mês. Zero DevOps no início. Migra quando necessário.</td>
+</tr>
+</tbody>
+</table>
+
+<!-- ══ 4. PRIORIDADE DE DESENVOLVIMENTO ══ -->
+<h2>4. Prioridade de Desenvolvimento — Sprints</h2>
+
+<p>Time de 2-3 desenvolvedores. Sprints de 2 semanas. MVP em <strong>12 semanas (3 meses)</strong>.</p>
+
+<div class="sprint">
+  <div class="sprint-header">
+    <div class="sprint-num">SPRINT 1-2</div>
+    <div class="sprint-title">Fundação — Auth, usuários, banco de dados</div>
+    <div class="sprint-weeks">Semanas 1–4</div>
+  </div>
+  <div class="sprint-body">
+    <strong>Entregar:</strong> cadastro de empresa e freelancer, login/logout, JWT + refresh, verificação de email, estrutura completa do banco de dados (DDL), CI/CD básico (GitHub Actions → deploy automático), ambiente de staging.<br><br>
+    <strong>Decisão crítica:</strong> implementar o banco de dados já com o modelo completo (UUIDs, enums, audit_logs, soft delete) — essa base não muda. Mudar o schema depois custa caro.
+  </div>
+</div>
+
+<div class="sprint">
+  <div class="sprint-header">
+    <div class="sprint-num">SPRINT 3-4</div>
+    <div class="sprint-title">Ordens e candidaturas</div>
+    <div class="sprint-weeks">Semanas 5–8</div>
+  </div>
+  <div class="sprint-body">
+    <strong>Entregar:</strong> CRUD de ordens, publicação, listagem com busca (PostgreSQL full-text), candidatura do freelancer, seleção pela empresa, aceite pelo freelancer, FSM de 8 estados com guards corretos, histórico de status.<br><br>
+    <strong>Decisão crítica:</strong> implementar a FSM na camada de serviço desde o início (não deixar lógica de transição no controller). Adicionar estados depois fica trivial.
+  </div>
+</div>
+
+<div class="sprint">
+  <div class="sprint-header">
+    <div class="sprint-num">SPRINT 5-6</div>
+    <div class="sprint-title">Chat, evidências e aprovação</div>
+    <div class="sprint-weeks">Semanas 9–12</div>
+  </div>
+  <div class="sprint-body">
+    <strong>Entregar:</strong> canal de chat por ordem (Socket.io + Redis), envio de evidências (upload para S3 via presigned URL), tela de revisão para empresa, fluxo de aprovação (→ APPROVED), avaliação simples após conclusão, email transacional para eventos críticos (seleção, aprovação, pagamento).<br><br>
+    <strong>Decisão crítica:</strong> presigned URL para upload direto ao S3 — nunca passar arquivos pelo servidor da aplicação.
+  </div>
+</div>
+
+<div class="sprint">
+  <div class="sprint-header">
+    <div class="sprint-num">SPRINT 7-8</div>
+    <div class="sprint-title">Pagamento e admin mínimo</div>
+    <div class="sprint-weeks">Semanas 13–16</div>
+  </div>
+  <div class="sprint-body">
+    <strong>Entregar:</strong> integração Stripe (autorização na seleção, captura no aceite, job de liberação 3 dias após aprovação), webhook do Stripe com HMAC, painel admin básico (listagem de usuários + ordens, suspensão de conta, liberação manual de pagamento), transferência manual para freelancers via PIX pelo admin.<br><br>
+    <strong>Decisão crítica:</strong> implementar o webhook com body raw e processamento na fila desde o início. Jamais processar webhook de forma síncrona.
+  </div>
+</div>
+
+<div class="sprint">
+  <div class="sprint-header">
+    <div class="sprint-num">SPRINT 9</div>
+    <div class="sprint-title">Polimento, testes e lançamento</div>
+    <div class="sprint-weeks">Semanas 17–18</div>
+  </div>
+  <div class="sprint-body">
+    <strong>Entregar:</strong> testes end-to-end do loop completo, pentest básico (OWASP Top 10), stress test do chat com k6, monitoramento com Sentry (erros) + UptimeRobot (uptime), rate limiting nas rotas críticas, políticas de privacidade + termos de uso, onboarding dos primeiros usuários beta.<br><br>
+    <strong>Meta:</strong> 10 ordens concluídas com pagamento real no ambiente de produção antes do lançamento público.
+  </div>
+</div>
+
+<!-- ══ 5. RISCOS TÉCNICOS ══ -->
+<h2>5. Riscos Técnicos</h2>
+
+<table class="table">
+<thead><tr><th>Risco</th><th>Severidade</th><th>Probabilidade</th><th>Mitigação</th></tr></thead>
+<tbody>
+<tr>
+  <td><strong>Compliance de pagamento (PCI DSS)</strong><br><span style="font-size:11px;color:var(--muted)">Dados de cartão chegando ao servidor</span></td>
+  <td><span class="badge b-red">CRÍTICO</span></td>
+  <td>Média</td>
+  <td>Usar Stripe.js / Elements no frontend — número do cartão nunca toca o backend. Certificação PCI SAQ A (mais leve). Nunca implementar campo de cartão customizado.</td>
+</tr>
+<tr>
+  <td><strong>LGPD</strong><br><span style="font-size:11px;color:var(--muted)">CPF, dados bancários, fotos de evidências</span></td>
+  <td><span class="badge b-red">CRÍTICO</span></td>
+  <td>Alta</td>
+  <td>DPO definido antes do lançamento. Política de privacidade revisada por advogado. Dados sensíveis (CPF, chave PIX) criptografados em repouso. Mecanismo de exclusão de conta que apaga dados pessoais.</td>
+</tr>
+<tr>
+  <td><strong>Fraude no pagamento</strong><br><span style="font-size:11px;color:var(--muted)">Chargebacks sem sistema de fraude</span></td>
+  <td><span class="badge b-amber">ALTO</span></td>
+  <td>Baixa (volume pequeno)</td>
+  <td>Limite de valor por ordem no MVP (ex: máx R$ 5.000). Liberar escrow somente após aprovação explícita da empresa. Monitorar chargebacks no Stripe dashboard manualmente.</td>
+</tr>
+<tr>
+  <td><strong>FSM crescendo sem controle</strong><br><span style="font-size:11px;color:var(--muted)">Lógica de transição espalhada</span></td>
+  <td><span class="badge b-amber">ALTO</span></td>
+  <td>Alta (sem disciplina)</td>
+  <td>FSM implementada em classe centralizada (<code>OrderStateMachine</code>). Tabela de transições permitidas como constante. Nenhuma transição fora desta classe. Guards validados sempre na camada de serviço.</td>
+</tr>
+<tr>
+  <td><strong>Chat perdendo mensagens</strong><br><span style="font-size:11px;color:var(--muted)">Reconexão sem backfill</span></td>
+  <td><span class="badge b-amber">ALTO</span></td>
+  <td>Média</td>
+  <td>Persistir mensagem no PostgreSQL <em>antes</em> de fazer broadcast. Cliente envia <code>after_id</code> na reconexão para buscar mensagens perdidas. Testar desconexão e reconexão nos testes E2E.</td>
+</tr>
+<tr>
+  <td><strong>Transferências manuais para freelancers</strong><br><span style="font-size:11px;color:var(--muted)">Admin esquece de pagar</span></td>
+  <td><span class="badge b-amber">ALTO</span></td>
+  <td>Alta (processo manual)</td>
+  <td>Job diário lista pagamentos em status RELEASED sem transferência confirmada e envia email de alerta para admin. Planilha de controle até implementar Stripe Connect / PIX automático.</td>
+</tr>
+<tr>
+  <td><strong>Sem sistema de disputas</strong><br><span style="font-size:11px;color:var(--muted)">Conflito sem protocolo</span></td>
+  <td><span class="badge b-blue">MÉDIO</span></td>
+  <td>Certa (vai acontecer)</td>
+  <td>SLA de resposta por email de 24h. Admin tem ação manual de refund e release no painel. Limitar valor máximo por ordem no MVP reduz exposição. Priorizar sistema de disputas no V1.1.</td>
+</tr>
+<tr>
+  <td><strong>Escalonamento do banco</strong><br><span style="font-size:11px;color:var(--muted)">Queries pesadas sem índices</span></td>
+  <td><span class="badge b-blue">MÉDIO</span></td>
+  <td>Baixa (volume MVP)</td>
+  <td>DDL completo já inclui todos os índices críticos. PostgreSQL gerenciado com backups automáticos. EXPLAIN ANALYZE em toda query nova antes de ir para produção.</td>
+</tr>
+</tbody>
+</table>
+
+<!-- ══ 6. ROADMAP ══ -->
+<h2>6. Roadmap Pós-MVP</h2>
+
+<!-- ROADMAP SVG -->
+<svg width="100%" viewBox="0 0 680 290" xmlns="http://www.w3.org/2000/svg" style="display:block;margin:16px 0;">
+
+<!-- Timeline line -->
+<line x1="30" y1="30" x2="30" y2="268" stroke="var(--border,rgba(0,0,0,0.12))" stroke-width="2"/>
+
+<!-- MVP -->
+<circle cx="30" cy="44" r="8" fill="#185FA5"/>
+<text x="46" y="40" font-size="10" font-weight="700" fill="#185FA5" font-family="system-ui">MVP — Meses 1–3</text>
+<text x="46" y="54" font-size="9" fill="var(--muted,#73726c)" font-family="system-ui">Loop completo · Stripe cartão · Chat · Avaliação simples · Admin mínimo</text>
+<rect x="46" y="60" width="580" height="18" rx="3" fill="#E6F1FB"/>
+<text x="52" y="72" font-size="8.5" fill="#185FA5" font-family="system-ui">Meta: 50 ordens concluídas · 20 freelancers ativos · R$30k GMV</text>
+
+<!-- V1.1 -->
+<circle cx="30" cy="108" r="8" fill="#534AB7"/>
+<text x="46" y="104" font-size="10" font-weight="700" fill="#534AB7" font-family="system-ui">V1.1 — Meses 4–5</text>
+<text x="46" y="118" font-size="9" fill="var(--muted,#73726c)" font-family="system-ui">PIX (Gerencianet) · Sistema de disputas simples (3 estados) · ADJUSTMENT_REQUESTED · Push notifications (FCM)</text>
+<rect x="46" y="124" width="580" height="18" rx="3" fill="#EEEDFE"/>
+<text x="52" y="136" font-size="8.5" fill="#534AB7" font-family="system-ui">Meta: 200 ordens/mês · Taxa de disputa &lt; 5% · Freelancers recebem via PIX automaticamente</text>
+
+<!-- V1.2 -->
+<circle cx="30" cy="172" r="8" fill="#0F6E56"/>
+<text x="46" y="168" font-size="10" font-weight="700" fill="#0F6E56" font-family="system-ui">V1.2 — Meses 6–8</text>
+<text x="46" y="182" font-size="9" fill="var(--muted,#73726c)" font-family="system-ui">Reputação Bayesiana + decaimento · Ranking avançado · Admin completo + audit log · Relatórios financeiros · Verificação de identidade</text>
+<rect x="46" y="188" width="580" height="18" rx="3" fill="#E1F5EE"/>
+<text x="52" y="200" font-size="8.5" fill="#0F6E56" font-family="system-ui">Meta: 500 ordens/mês · NPS &gt; 40 · Churn de freelancers &lt; 15%/mês</text>
+
+<!-- V2.0 -->
+<circle cx="30" cy="236" r="8" fill="#854F0B"/>
+<text x="46" y="232" font-size="10" font-weight="700" fill="#854F0B" font-family="system-ui">V2.0 — Meses 9–12</text>
+<text x="46" y="246" font-size="9" fill="var(--muted,#73726c)" font-family="system-ui">App mobile (React Native) · Elasticsearch · Fraud detection avançado · API enterprise · Planos de assinatura · Marketplace de skills</text>
+<rect x="46" y="252" width="580" height="18" rx="3" fill="#FAEEDA"/>
+<text x="52" y="264" font-size="8.5" fill="#854F0B" font-family="system-ui">Meta: R$500k GMV/mês · 50 empresas pagantes · Break-even operacional</text>
+
+<!-- Connector lines -->
+<line x1="30" y1="52" x2="30" y2="100" stroke="var(--border,rgba(0,0,0,0.12))" stroke-width="2"/>
+<line x1="30" y1="116" x2="30" y2="164" stroke="var(--border,rgba(0,0,0,0.12))" stroke-width="2"/>
+<line x1="30" y1="180" x2="30" y2="228" stroke="var(--border,rgba(0,0,0,0.12))" stroke-width="2"/>
+</svg>
+
+<!-- ══ 7. O QUE NÃO SIMPLIFICAR ══ -->
+<h2>7. O que NÃO Pode Ser Simplificado nem no MVP</h2>
+
+<div class="danger"><p>🔴 <strong>Segurança de pagamento é inegociável.</strong> Stripe.js obrigatório. HMAC no webhook. Idempotency key em toda operação financeira. Sem atalho aqui — um double-charge ou dado de cartão exposto destrói a confiança antes do produto existir.</p></div>
+
+<div class="grid3">
+<div class="card">
+  <div class="card-title">Banco de dados</div>
+  <p style="font-size:13px;margin:0;color:var(--muted);">UUIDs, TIMESTAMPTZ, NUMERIC(12,2) para dinheiro, soft delete, enums PostgreSQL. Mudar o tipo de dado de uma coluna em produção com dados reais é caro e arriscado.</p>
+</div>
+<div class="card">
+  <div class="card-title">FSM na camada de serviço</div>
+  <p style="font-size:13px;margin:0;color:var(--muted);">Toda transição de estado validada em <code>OrderStateMachine</code>. Nunca no controller, nunca no banco. Adicionar estado no futuro tem que ser trivial.</p>
+</div>
+<div class="card">
+  <div class="card-title">Histórico de status imutável</div>
+  <p style="font-size:13px;margin:0;color:var(--muted);"><code>order_status_history</code> com REVOKE UPDATE/DELETE. Em disputas e litígios, essa tabela é a única fonte de verdade auditável do que aconteceu.</p>
+</div>
+<div class="card">
+  <div class="card-title">Idempotência no pagamento</div>
+  <p style="font-size:13px;margin:0;color:var(--muted);">Idempotency key UUID obrigatória em toda operação financeira. Retries sem idempotência resultam em double-charge — impossível de explicar para o cliente.</p>
+</div>
+<div class="card">
+  <div class="card-title">Chat persistente antes do broadcast</div>
+  <p style="font-size:13px;margin:0;color:var(--muted);">INSERT no banco antes de emitir para o socket. Usuário perde conexão e a mensagem tem que estar lá quando reconectar. Se a ordem for inversa, mensagens desaparecem.</p>
+</div>
+<div class="card">
+  <div class="card-title">Rate limiting desde o início</div>
+  <p style="font-size:13px;margin:0;color:var(--muted);">Login (5/min), candidatura (10/hora), pagamento (5/hora por empresa). Sem isso, o sistema vira alvo fácil de bots no primeiro dia de divulgação.</p>
+</div>
+</div>
+
+<!-- ══ 8. CRITÉRIOS DE SAÍDA DO MVP ══ -->
+<h2>8. Critérios de Saída do MVP</h2>
+
+<p>O MVP está pronto para lançamento público quando <strong>todas</strong> as condições abaixo forem verdadeiras:</p>
+
+<div class="ftag">checklist de lançamento</div>
+<pre><span class="c">Loop completo funcional:</span>
+<span class="check">☑</span> Empresa cria conta → publica ordem → recebe candidaturas → seleciona
+<span class="check">☑</span> Freelancer candidata → aceita → chat abre → envia evidências
+<span class="check">☑</span> Empresa aprova → pagamento liberado 3 dias após → avaliação enviada
+<span class="check">☑</span> 10 ordens reais concluídas em staging com cartão real (Stripe test mode)
+
+<span class="c">Pagamento:</span>
+<span class="check">☑</span> Stripe.js no frontend (número do cartão nunca chega ao backend)
+<span class="check">☑</span> Webhook com HMAC validado + processamento na fila
+<span class="check">☑</span> Job de liberação testado com `FOR UPDATE SKIP LOCKED`
+<span class="check">☑</span> Refund manual funciona no painel admin
+
+<span class="c">Segurança básica:</span>
+<span class="check">☑</span> Rate limiting em login, candidatura e pagamento
+<span class="check">☑</span> OWASP Top 10 revisado (SQL injection, XSS, IDOR nas ordens)
+<span class="check">☑</span> Arquivos de upload validados por mime type (não por extensão)
+<span class="check">☑</span> JWT com expiração curta (15min access, 7d refresh)
+
+<span class="c">Operação:</span>
+<span class="check">☑</span> Sentry configurado (erros chegam no Slack em &lt; 1 min)
+<span class="check">☑</span> Uptime monitor com alertas (UptimeRobot ou similar)
+<span class="check">☑</span> Backup automático do PostgreSQL verificado (restore testado)
+<span class="check">☑</span> Runbook de incidents: o que fazer se Stripe cair, se DB cair, se chat cair
+<span class="check">☑</span> Admin sabe como fazer refund manual e release manual
+<span class="check">☑</span> Email transacional funcionando para todos os eventos críticos
+
+<span class="c">Legal:</span>
+<span class="check">☑</span> Política de privacidade publicada (LGPD)
+<span class="check">☑</span> Termos de uso publicados
+<span class="check">☑</span> Mecanismo de exclusão de conta implementado</pre>
+
+<div class="teal-box"><p>💡 <strong>Estratégia de lançamento:</strong> não lançar para o público geral imediatamente. Fazer um beta fechado com 5-10 empresas parceiras e 20-30 freelancers selecionados. Acompanhar cada ordem manualmente nas primeiras semanas. Isso permite corrigir bugs críticos antes que eles afetem centenas de usuários — e garante que as primeiras avaliações do produto sejam positivas.</p></div>
+
+</div></body></html>

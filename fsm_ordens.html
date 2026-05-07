@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FSM — Ordens de Serviço</title>
+<style>
+  :root {
+    --blue-50: #E6F1FB; --blue-200: #85B7EB; --blue-600: #185FA5; --blue-800: #0C447C;
+    --purple-50: #EEEDFE; --purple-200: #AFA9EC; --purple-600: #534AB7; --purple-800: #3C3489;
+    --amber-50: #FAEEDA; --amber-200: #EF9F27; --amber-600: #854F0B; --amber-800: #633806;
+    --teal-50: #E1F5EE; --teal-200: #5DCAA5; --teal-600: #0F6E56; --teal-800: #085041;
+    --gray-50: #F1EFE8; --gray-200: #B4B2A9; --gray-600: #5F5E5A; --gray-800: #444441;
+    --red-50: #FCEBEB; --red-200: #F09595; --red-600: #A32D2D; --red-800: #791F1F;
+    --coral-50: #FAECE7; --coral-600: #993C1D; --coral-800: #712B13;
+    --text: #1a1a18; --muted: #73726c; --border: rgba(0,0,0,0.12);
+    --bg: #ffffff; --surface: #f5f4f0;
+    --font: system-ui, -apple-system, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --blue-50: #042C53; --blue-200: #0C447C; --blue-600: #85B7EB; --blue-800: #B5D4F4;
+      --purple-50: #26215C; --purple-200: #3C3489; --purple-600: #AFA9EC; --purple-800: #CECBF6;
+      --amber-50: #412402; --amber-200: #633806; --amber-600: #EF9F27; --amber-800: #FAC775;
+      --teal-50: #04342C; --teal-200: #085041; --teal-600: #5DCAA5; --teal-800: #9FE1CB;
+      --gray-50: #2C2C2A; --gray-200: #444441; --gray-600: #B4B2A9; --gray-800: #D3D1C7;
+      --red-50: #501313; --red-200: #791F1F; --red-600: #F09595; --red-800: #F7C1C1;
+      --text: #e8e6de; --muted: #9c9a92; --border: rgba(255,255,255,0.12);
+      --bg: #1c1c1a; --surface: #242422;
+    }
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--font); background: var(--bg); color: var(--text); padding: 24px 16px; }
+  h1 { font-size: 17px; font-weight: 500; margin-bottom: 4px; }
+  .subtitle { font-size: 13px; color: var(--muted); margin-bottom: 20px; }
+  svg { width: 100%; display: block; overflow: visible; }
+  .state { cursor: pointer; }
+  .state rect { transition: opacity 0.15s; }
+  .state:hover rect { opacity: 0.8; }
+
+  /* Tables */
+  .section { margin-top: 32px; }
+  .section h2 { font-size: 14px; font-weight: 500; margin-bottom: 12px; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
+  table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  th { text-align: left; font-weight: 500; padding: 8px 10px; background: var(--surface); color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; }
+  td { padding: 8px 10px; border-bottom: 1px solid var(--border); vertical-align: top; line-height: 1.5; }
+  tr:last-child td { border-bottom: none; }
+  .badge { display: inline-block; padding: 2px 7px; border-radius: 4px; font-size: 11px; font-weight: 500; margin: 1px; white-space: nowrap; }
+  .b-empresa  { background: var(--blue-50);   color: var(--blue-800); }
+  .b-freelancer { background: var(--purple-50); color: var(--purple-800); }
+  .b-sistema  { background: var(--teal-50);   color: var(--teal-800); }
+  .b-admin    { background: var(--amber-50);  color: var(--amber-800); }
+  .b-auto     { background: var(--gray-50);   color: var(--gray-800); }
+  code { font-family: monospace; font-size: 11.5px; background: var(--surface); padding: 1px 5px; border-radius: 3px; }
+  .warn { color: var(--red-600); font-weight: 500; }
+</style>
+</head>
+<body>
+<h1>Máquina de Estados — Ordens de Serviço</h1>
+<p class="subtitle">12 estados · 22 transições · 4 atores · Clique nos estados para detalhes</p>
+
+<svg viewBox="0 0 680 430" xmlns="http://www.w3.org/2000/svg">
+<defs>
+  <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+    <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  </marker>
+</defs>
+
+<!-- ── FASE 1: CANDIDATURA (azul) ── -->
+<g class="state" onclick="document.getElementById('detail').textContent='DRAFT: Ordem criada. Apenas EMPRESA pode editar. Nenhum freelancer vê. Transições: publicar (empresa) → PUBLISHED | deletar (empresa) → soft delete'">
+  <rect x="110" y="50" width="80" height="44" rx="6" fill="var(--blue-50)" stroke="var(--blue-600)" stroke-width="0.8"/>
+  <text x="150" y="63" text-anchor="middle" fill="var(--blue-800)" font-size="12" font-weight="500" font-family="system-ui">Draft</text>
+  <text x="150" y="79" text-anchor="middle" fill="var(--blue-600)" font-size="10" font-family="system-ui">Rascunho</text>
+</g>
+
+<g class="state" onclick="document.getElementById('detail').textContent='PUBLISHED: Ordem visível publicamente. Freelancers podem se candidatar. Primeiro candidato → sistema muda para IN_APPLICATION automaticamente.'">
+  <rect x="200" y="50" width="110" height="44" rx="6" fill="var(--blue-50)" stroke="var(--blue-600)" stroke-width="0.8"/>
+  <text x="255" y="63" text-anchor="middle" fill="var(--blue-800)" font-size="12" font-weight="500" font-family="system-ui">Published</text>
+  <text x="255" y="79" text-anchor="middle" fill="var(--blue-600)" font-size="10" font-family="system-ui">Publicada</text>
+</g>
+
+<g class="state" onclick="document.getElementById('detail').textContent='IN_APPLICATION: Há candidatos. Empresa analisa propostas. Pode receber mais candidaturas até max_applications ou applications_open_until. Empresa seleciona um → SELECTED.'">
+  <rect x="320" y="50" width="140" height="44" rx="6" fill="var(--blue-50)" stroke="var(--blue-600)" stroke-width="0.8"/>
+  <text x="390" y="63" text-anchor="middle" fill="var(--blue-800)" font-size="12" font-weight="500" font-family="system-ui">In Application</text>
+  <text x="390" y="79" text-anchor="middle" fill="var(--blue-600)" font-size="10" font-family="system-ui">Em candidatura</text>
+</g>
+
+<g class="state" onclick="document.getElementById('detail').textContent='SELECTED: Freelancer específico foi escolhido. Aguarda aceite (timeout 24h). Freelancer aceita → ACCEPTED | rejeita → volta a PUBLISHED | timeout → volta a PUBLISHED.'">
+  <rect x="470" y="50" width="100" height="44" rx="6" fill="var(--blue-50)" stroke="var(--blue-600)" stroke-width="0.8"/>
+  <text x="520" y="63" text-anchor="middle" fill="var(--blue-800)" font-size="12" font-weight="500" font-family="system-ui">Selected</text>
+  <text x="520" y="79" text-anchor="middle" fill="var(--blue-600)" font-size="10" font-family="system-ui">Selecionado</text>
+</g>
+
+<!-- Row 1 arrows -->
+<line x1="190" y1="72" x2="200" y2="72" stroke="var(--muted)" stroke-width="1" marker-end="url(#arr)"/>
+<line x1="310" y1="72" x2="320" y2="72" stroke="var(--muted)" stroke-width="1" marker-end="url(#arr)"/>
+<line x1="460" y1="72" x2="470" y2="72" stroke="var(--muted)" stroke-width="1" marker-end="url(#arr)"/>
+
+<!-- SELECTED → PUBLISHED arc (rejeição) -->
+<path d="M 520,50 C 520,20 200,20 200,50" fill="none" stroke="var(--gray-600)" stroke-width="1" stroke-dasharray="5 3" marker-end="url(#arr)"/>
+<text x="360" y="15" text-anchor="middle" fill="var(--muted)" font-size="10" font-family="system-ui">rejeita / timeout 24h</text>
+
+<!-- SELECTED → ACCEPTED connector (seta longa descendo) -->
+<path d="M 520,94 L 520,130 L 94,130 L 94,155" fill="none" stroke="var(--muted)" stroke-width="1" marker-end="url(#arr)"/>
+<text x="310" y="144" text-anchor="middle" fill="var(--muted)" font-size="10" font-family="system-ui">aceita → chat liberado</text>
+
+<!-- ── FASE 2: EXECUÇÃO E REVISÃO ── -->
+<g class="state" onclick="document.getElementById('detail').textContent='ACCEPTED: Chat da ordem liberado. Pagamento em escrow capturado. Empresa deve pagar antes do aceite ser confirmado. Freelancer pode iniciar execução → IN_PROGRESS.'">
+  <rect x="44" y="155" width="100" height="44" rx="6" fill="var(--purple-50)" stroke="var(--purple-600)" stroke-width="0.8"/>
+  <text x="94" y="168" text-anchor="middle" fill="var(--purple-800)" font-size="12" font-weight="500" font-family="system-ui">Accepted</text>
+  <text x="94" y="184" text-anchor="middle" fill="var(--purple-600)" font-size="10" font-family="system-ui">Chat aberto</text>
+</g>
+
+<g class="state" onclick="document.getElementById('detail').textContent='IN_PROGRESS: Execução ativa. Freelancer trabalha. Empresa pode acompanhar via chat. Freelancer conclui com evidências → PENDING_REVIEW. Disputa → DISPUTED.'">
+  <rect x="152" y="155" width="120" height="44" rx="6" fill="var(--purple-50)" stroke="var(--purple-600)" stroke-width="0.8"/>
+  <text x="212" y="168" text-anchor="middle" fill="var(--purple-800)" font-size="12" font-weight="500" font-family="system-ui">In Progress</text>
+  <text x="212" y="184" text-anchor="middle" fill="var(--purple-600)" font-size="10" font-family="system-ui">Em execução</text>
+</g>
+
+<g class="state" onclick="document.getElementById('detail').textContent='PENDING_REVIEW: Freelancer submeteu evidências (fotos + descrição). Empresa tem X horas para revisar. Aprova → APPROVED. Pede ajuste → ADJUSTMENT_REQUESTED. Disputa → DISPUTED.'">
+  <rect x="280" y="155" width="130" height="44" rx="6" fill="var(--amber-50)" stroke="var(--amber-600)" stroke-width="0.8"/>
+  <text x="345" y="168" text-anchor="middle" fill="var(--amber-800)" font-size="12" font-weight="500" font-family="system-ui">Pend. Review</text>
+  <text x="345" y="184" text-anchor="middle" fill="var(--amber-600)" font-size="10" font-family="system-ui">Aguarda aprovação</text>
+</g>
+
+<g class="state" onclick="document.getElementById('detail').textContent='APPROVED: Empresa aprovou entrega. Sistema inicia liberação do escrow (período de 3 dias úteis). Após liberação → COMPLETED automaticamente pelo sistema.'">
+  <rect x="418" y="155" width="100" height="44" rx="6" fill="var(--purple-50)" stroke="var(--purple-600)" stroke-width="0.8"/>
+  <text x="468" y="168" text-anchor="middle" fill="var(--purple-800)" font-size="12" font-weight="500" font-family="system-ui">Approved</text>
+  <text x="468" y="184" text-anchor="middle" fill="var(--purple-600)" font-size="10" font-family="system-ui">Entrega aprovada</text>
+</g>
+
+<g class="state" onclick="document.getElementById('detail').textContent='COMPLETED: Estado terminal positivo. Pagamento liberado ao freelancer. Janela de avaliação aberta (72h). Reputação atualizada. Nenhuma transição saindo, exceto admin em casos excepcionais.'">
+  <rect x="526" y="155" width="110" height="44" rx="6" fill="var(--teal-50)" stroke="var(--teal-600)" stroke-width="0.8"/>
+  <text x="581" y="168" text-anchor="middle" fill="var(--teal-800)" font-size="12" font-weight="500" font-family="system-ui">Completed</text>
+  <text x="581" y="184" text-anchor="middle" fill="var(--teal-600)" font-size="10" font-family="system-ui">★ Pagamento liberado</text>
+</g>
+
+<!-- Row 2 arrows -->
+<line x1="144" y1="177" x2="152" y2="177" stroke="var(--muted)" stroke-width="1" marker-end="url(#arr)"/>
+<line x1="272" y1="177" x2="280" y2="177" stroke="var(--muted)" stroke-width="1" marker-end="url(#arr)"/>
+<line x1="410" y1="177" x2="418" y2="177" stroke="var(--muted)" stroke-width="1" marker-end="url(#arr)"/>
+<line x1="518" y1="177" x2="526" y2="177" stroke="var(--muted)" stroke-width="1" marker-end="url(#arr)"/>
+<text x="474" y="150" text-anchor="middle" fill="var(--muted)" font-size="10" font-family="system-ui">sistema (após escrow)</text>
+
+<!-- PEND_REVIEW → ADJUSTMENT_REQUESTED -->
+<line x1="345" y1="199" x2="345" y2="265" stroke="var(--muted)" stroke-width="1" marker-end="url(#arr)"/>
+
+<!-- ADJUSTMENT_REQUESTED -->
+<g class="state" onclick="document.getElementById('detail').textContent='ADJUSTMENT_REQUESTED: Empresa indicou ajustes necessários com descrição. Freelancer recebe notificação. Pode fazer ajustes → IN_PROGRESS. Se discordar → DISPUTED.'">
+  <rect x="270" y="265" width="150" height="44" rx="6" fill="var(--amber-50)" stroke="var(--amber-600)" stroke-width="0.8"/>
+  <text x="345" y="278" text-anchor="middle" fill="var(--amber-800)" font-size="12" font-weight="500" font-family="system-ui">Adj. Requested</text>
+  <text x="345" y="294" text-anchor="middle" fill="var(--amber-600)" font-size="10" font-family="system-ui">Ajuste solicitado</text>
+</g>
+
+<!-- ADJ → IN_PROGRESS loop (rota esquerda) -->
+<path d="M 270,287 L 178,287 L 178,240 L 146,240 L 146,155 L 152,155" fill="none" stroke="var(--muted)" stroke-width="1" marker-end="url(#arr)"/>
+<text x="164" y="262" text-anchor="middle" fill="var(--muted)" font-size="10" font-family="system-ui" transform="rotate(-90,164,262)">reexecuta</text>
+
+<!-- ── EXCEÇÕES (tracejado) ── -->
+<!-- Cancelamento: saindo de PUBLISHED (representa múltiplos estados) -->
+<path d="M 255,94 L 255,108 L 36,108 L 36,350 L 50,350" fill="none" stroke="var(--gray-600)" stroke-width="1" stroke-dasharray="3 3" marker-end="url(#arr)"/>
+<text x="22" y="225" text-anchor="middle" fill="var(--gray-600)" font-size="10" font-family="system-ui" transform="rotate(-90,22,225)">cancela</text>
+
+<!-- IN_PROGRESS → DISPUTED -->
+<path d="M 212,199 L 212,232 L 520,232 L 520,350" fill="none" stroke="var(--gray-600)" stroke-width="1" stroke-dasharray="3 3" marker-end="url(#arr)"/>
+<text x="366" y="228" text-anchor="middle" fill="var(--gray-600)" font-size="10" font-family="system-ui">abre disputa</text>
+
+<!-- ── ESTADOS TERMINAIS / EXCEÇÃO ── -->
+<g class="state" onclick="document.getElementById('detail').textContent='CANCELLED: Terminal. Escrow devolvido à empresa (regras de penalidade se IN_PROGRESS ou posterior). Freelancers candidatos notificados. Ordem não pode ser reaberta (somente admin em casos excepcionais).'">
+  <rect x="50" y="350" width="110" height="44" rx="6" fill="var(--gray-50)" stroke="var(--gray-600)" stroke-width="0.8"/>
+  <text x="105" y="363" text-anchor="middle" fill="var(--gray-800)" font-size="12" font-weight="500" font-family="system-ui">Cancelled</text>
+  <text x="105" y="379" text-anchor="middle" fill="var(--gray-600)" font-size="10" font-family="system-ui">Estorno ao pagador</text>
+</g>
+
+<g class="state" onclick="document.getElementById('detail').textContent='DISPUTED: Escrow suspenso. Admin atribuído com SLA 48h. Resolução: admin decide em favor da empresa (→ CANCELLED + reembolso) ou do freelancer (→ COMPLETED + liberação parcial/total) ou reabre (→ IN_PROGRESS).'">
+  <rect x="470" y="350" width="110" height="44" rx="6" fill="var(--red-50)" stroke="var(--red-600)" stroke-width="0.8"/>
+  <text x="525" y="363" text-anchor="middle" fill="var(--red-800)" font-size="12" font-weight="500" font-family="system-ui">Disputed</text>
+  <text x="525" y="379" text-anchor="middle" fill="var(--red-600)" font-size="10" font-family="system-ui">Admin SLA 48h</text>
+</g>
+
+<!-- DISPUTED resoluções (setas indicativas finas) -->
+<path d="M 470,372 L 210,372 L 210,394 L 160,394" fill="none" stroke="var(--gray-200)" stroke-width="0.8" stroke-dasharray="2 2" marker-end="url(#arr)"/>
+<text x="315" y="406" text-anchor="middle" fill="var(--muted)" font-size="10" font-family="system-ui">resolve empresa</text>
+<path d="M 525,350 L 525,315 L 581,315 L 581,199" fill="none" stroke="var(--gray-200)" stroke-width="0.8" stroke-dasharray="2 2" marker-end="url(#arr)"/>
+<text x="622" y="285" text-anchor="middle" fill="var(--muted)" font-size="10" font-family="system-ui" transform="rotate(90,622,285)">resolve freelancer</text>
+
+<!-- Legenda -->
+<rect x="0" y="415" width="680" height="1" fill="var(--border)"/>
+</svg>
+
+<!-- Detail panel -->
+<div id="detail-panel" style="margin:8px 0 20px;padding:10px 14px;background:var(--surface);border-radius:8px;font-size:13px;line-height:1.6;color:var(--muted);min-height:36px">
+  <em>Clique em um estado para ver as regras de transição →</em>
+</div>
+<script>
+  document.querySelectorAll('.state').forEach(el => {
+    el.addEventListener('click', () => {
+      const panel = document.getElementById('detail-panel');
+      panel.style.color = 'var(--text)';
+      panel.textContent = document.getElementById('detail')?.textContent || '';
+    });
+  });
+</script>
+<span id="detail" style="display:none"></span>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<div class="section">
+<h2>Tabela completa de transições</h2>
+<table>
+<thead><tr><th>De</th><th>Para</th><th>Ator</th><th>Guard (pré-condições)</th><th>Evento emitido</th></tr></thead>
+<tbody>
+<tr><td><code>DRAFT</code></td><td><code>PUBLISHED</code></td><td><span class="badge b-empresa">Empresa</span></td><td>título ≥ 10 chars · descrição ≥ 50 chars · categoria definida · budget_type definido · deadline_at &gt; NOW()+24h</td><td><code>order.published</code></td></tr>
+<tr><td><code>PUBLISHED</code></td><td><code>IN_APPLICATION</code></td><td><span class="badge b-sistema">Sistema</span></td><td>primeira candidatura recebida (trigger automático)</td><td><code>order.first_application</code></td></tr>
+<tr><td><code>IN_APPLICATION</code></td><td><code>SELECTED</code></td><td><span class="badge b-empresa">Empresa</span></td><td>application.status = PENDING do freelancer alvo · freelancer.availability = AVAILABLE · order.status = IN_APPLICATION</td><td><code>order.freelancer_selected</code></td></tr>
+<tr><td><code>SELECTED</code></td><td><code>ACCEPTED</code></td><td><span class="badge b-freelancer">Freelancer</span></td><td>actor.id = order.selected_freelancer_id · pagamento pré-autorizado ou capturado · dentro do timeout de 24h</td><td><code>order.accepted</code> → cria chat_channel</td></tr>
+<tr><td><code>SELECTED</code></td><td><code>PUBLISHED</code></td><td><span class="badge b-freelancer">Freelancer</span> <span class="badge b-sistema">Sistema</span></td><td>freelancer rejeita explicitamente OU timeout de 24h sem resposta</td><td><code>order.selection_rejected</code></td></tr>
+<tr><td><code>ACCEPTED</code></td><td><code>IN_PROGRESS</code></td><td><span class="badge b-freelancer">Freelancer</span> <span class="badge b-sistema">Sistema</span></td><td>auto-transição imediata após ACCEPTED (ou freelancer clica "Iniciar") · pagamento capturado (escrow ativo)</td><td><code>order.started</code></td></tr>
+<tr><td><code>IN_PROGRESS</code></td><td><code>PENDING_REVIEW</code></td><td><span class="badge b-freelancer">Freelancer</span></td><td>ao menos 1 evidência submetida (order_evidences) · evidência tem foto OU descrição ≥ 100 chars · order.status = IN_PROGRESS</td><td><code>order.evidence_submitted</code></td></tr>
+<tr><td><code>PENDING_REVIEW</code></td><td><code>APPROVED</code></td><td><span class="badge b-empresa">Empresa</span></td><td>actor.id = company.user_id · evidence.status não é ADJUSTMENT_REQUESTED aberta · dentro da janela de review</td><td><code>order.approved</code> → inicia release escrow</td></tr>
+<tr><td><code>PENDING_REVIEW</code></td><td><code>ADJUSTMENT_REQUESTED</code></td><td><span class="badge b-empresa">Empresa</span></td><td>empresa fornece descrição do ajuste (review_notes ≥ 20 chars) · limite: máx 3 ciclos de ajuste antes de forçar decisão</td><td><code>order.adjustment_requested</code></td></tr>
+<tr><td><code>ADJUSTMENT_REQUESTED</code></td><td><code>IN_PROGRESS</code></td><td><span class="badge b-freelancer">Freelancer</span></td><td>freelancer confirma ciência do ajuste · order.status = ADJUSTMENT_REQUESTED</td><td><code>order.adjustment_acknowledged</code></td></tr>
+<tr><td><code>APPROVED</code></td><td><code>COMPLETED</code></td><td><span class="badge b-sistema">Sistema</span></td><td>escrow_release_days decorridos após APPROVED · payment.status = RELEASED · automático via job agendado</td><td><code>order.completed</code> → abre janela de rating</td></tr>
+<tr><td><code>DRAFT</code></td><td><code>CANCELLED</code></td><td><span class="badge b-empresa">Empresa</span></td><td>sem restrições · sem pagamento envolvido</td><td><code>order.cancelled</code></td></tr>
+<tr><td><code>PUBLISHED</code></td><td><code>CANCELLED</code></td><td><span class="badge b-empresa">Empresa</span></td><td>sem pagamento capturado · notifica candidatos existentes</td><td><code>order.cancelled</code></td></tr>
+<tr><td><code>IN_APPLICATION</code></td><td><code>CANCELLED</code></td><td><span class="badge b-empresa">Empresa</span></td><td>sem pagamento capturado · notifica todos candidatos PENDING</td><td><code>order.cancelled</code></td></tr>
+<tr><td><code>SELECTED</code></td><td><code>CANCELLED</code></td><td><span class="badge b-empresa">Empresa</span></td><td>notifica freelancer selecionado · pagamento pré-autorizado é liberado</td><td><code>order.cancelled</code></td></tr>
+<tr><td><code>ACCEPTED</code></td><td><code>CANCELLED</code></td><td><span class="badge b-empresa">Empresa</span> <span class="badge b-admin">Admin</span></td><td>penalty_fee cobrado da empresa (% do valor) · freelancer recebe compensação parcial · requer motivo</td><td><code>order.cancelled_with_penalty</code></td></tr>
+<tr><td><code>IN_PROGRESS</code></td><td><code>DISPUTED</code></td><td><span class="badge b-empresa">Empresa</span> <span class="badge b-freelancer">Freelancer</span></td><td>motivo obrigatório ≥ 50 chars · pagamento suspenso · SLA 48h atribuído a admin</td><td><code>dispute.opened</code></td></tr>
+<tr><td><code>PENDING_REVIEW</code></td><td><code>DISPUTED</code></td><td><span class="badge b-empresa">Empresa</span> <span class="badge b-freelancer">Freelancer</span></td><td>mesmo guard que acima · evidências ficam congeladas</td><td><code>dispute.opened</code></td></tr>
+<tr><td><code>ADJUSTMENT_REQUESTED</code></td><td><code>DISPUTED</code></td><td><span class="badge b-freelancer">Freelancer</span></td><td>freelancer discorda dos ajustes · ciclos_ajuste ≥ 2 aumenta prioridade da disputa</td><td><code>dispute.opened</code></td></tr>
+<tr><td><code>DISPUTED</code></td><td><code>COMPLETED</code></td><td><span class="badge b-admin">Admin</span></td><td>admin decide em favor do freelancer · pagamento total ou parcial liberado</td><td><code>dispute.resolved_freelancer</code></td></tr>
+<tr><td><code>DISPUTED</code></td><td><code>CANCELLED</code></td><td><span class="badge b-admin">Admin</span></td><td>admin decide em favor da empresa · reembolso total ou parcial</td><td><code>dispute.resolved_company</code></td></tr>
+<tr><td><code>DISPUTED</code></td><td><code>IN_PROGRESS</code></td><td><span class="badge b-admin">Admin</span></td><td>admin determina reexecução · novo prazo definido · ambas partes notificadas</td><td><code>dispute.resolved_reopen</code></td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="section">
+<h2>Atores e permissões por estado</h2>
+<table>
+<thead><tr><th>Estado</th><th>Empresa</th><th>Freelancer</th><th>Sistema</th><th>Admin</th></tr></thead>
+<tbody>
+<tr><td><code>DRAFT</code></td><td>editar, publicar, deletar</td><td>—</td><td>—</td><td>override</td></tr>
+<tr><td><code>PUBLISHED</code></td><td>cancelar, editar (limitado)</td><td>candidatar-se</td><td>→ IN_APPLICATION (1ª candidatura)</td><td>override</td></tr>
+<tr><td><code>IN_APPLICATION</code></td><td>selecionar candidato, cancelar</td><td>retirar candidatura</td><td>fechar candidaturas (timeout)</td><td>override</td></tr>
+<tr><td><code>SELECTED</code></td><td>cancelar seleção</td><td>aceitar, rejeitar</td><td>→ PUBLISHED (timeout 24h)</td><td>override</td></tr>
+<tr><td><code>ACCEPTED</code></td><td>cancelar (com penalidade)</td><td>iniciar execução</td><td>→ IN_PROGRESS (auto)</td><td>override</td></tr>
+<tr><td><code>IN_PROGRESS</code></td><td>visualizar chat, abrir disputa</td><td>submeter evidências, abrir disputa</td><td>—</td><td>override, intervir</td></tr>
+<tr><td><code>PENDING_REVIEW</code></td><td>aprovar, solicitar ajuste, abrir disputa</td><td>visualizar feedback, abrir disputa</td><td>auto-aprovar (timeout da empresa)</td><td>override</td></tr>
+<tr><td><code>ADJUSTMENT_REQUESTED</code></td><td>visualizar progresso</td><td>confirmar ajuste, abrir disputa</td><td>—</td><td>override</td></tr>
+<tr><td><code>APPROVED</code></td><td>visualizar</td><td>visualizar</td><td>→ COMPLETED (após período escrow)</td><td>acelerar/reter liberação</td></tr>
+<tr><td><code>COMPLETED</code></td><td>avaliar freelancer (72h)</td><td>avaliar empresa (72h)</td><td>fechar janela de rating</td><td>reabrir (excepcional)</td></tr>
+<tr><td><code>CANCELLED</code></td><td>visualizar histórico</td><td>visualizar histórico</td><td>processar reembolso</td><td>reabrir (excepcional)</td></tr>
+<tr><td><code>DISPUTED</code></td><td>submeter evidências, responder</td><td>submeter evidências, responder</td><td>SLA reminders</td><td>resolver, decidir, reabrir</td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="section">
+<h2>Regras de validação e guards</h2>
+<table>
+<thead><tr><th>Transição</th><th>Regra crítica</th><th>Consequência se violada</th></tr></thead>
+<tbody>
+<tr><td><code>DRAFT → PUBLISHED</code></td><td>agreed_value OU budget_min/max definido · deadline mínimo +24h</td><td><code>400 InvalidOrderData</code></td></tr>
+<tr><td><code>SELECTED → ACCEPTED</code></td><td>pagamento pré-autorizado via payment.status = AUTHORIZED</td><td><code>402 PaymentRequired</code> — sistema bloqueia aceite</td></tr>
+<tr><td><code>IN_PROGRESS → PENDING_REVIEW</code></td><td>order_evidences com ≥1 arquivo (foto) OU descrição ≥100 chars</td><td><code>422 EvidenceRequired</code></td></tr>
+<tr><td><code>PENDING_REVIEW → ADJUSTMENT_REQUESTED</code></td><td>review_notes ≥ 20 chars · máx 3 ciclos de ajuste (guard: adjustment_cycle_count &lt; 3)</td><td>após 3 ciclos → forçado a APPROVED ou DISPUTED</td></tr>
+<tr><td><code>qualquer → DISPUTED</code></td><td>description ≥ 50 chars · reason_category obrigatório</td><td><code>422 DisputeDescriptionRequired</code></td></tr>
+<tr><td><code>APPROVED → COMPLETED</code></td><td>somente via sistema após escrow_release_days · nunca por ação direta de usuário</td><td>tentativa direta retorna <code>403 ForbiddenTransition</code></td></tr>
+<tr><td><code>COMPLETED → qualquer</code></td><td>estado terminal — nenhuma transição permitida para usuários</td><td><code>409 TerminalState</code></td></tr>
+<tr><td><code>CANCELLED → qualquer</code></td><td>estado terminal — somente admin pode reabrir como DRAFT excepcional</td><td><code>409 TerminalState</code></td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="section">
+<h2>Transições inválidas (explicitamente bloqueadas)</h2>
+<table>
+<thead><tr><th>Tentativa</th><th>Motivo do bloqueio</th></tr></thead>
+<tbody>
+<tr><td><code>DRAFT → ACCEPTED</code> (qualquer salto)</td><td>FSM valida que transição deve seguir caminho sequencial. Saltos são rejeitados com <code>409 InvalidTransition</code>.</td></tr>
+<tr><td><code>IN_PROGRESS → APPROVED</code> (sem review)</td><td>aprovação direta sem evidências viola o contrato de entrega. A etapa PENDING_REVIEW é obrigatória.</td></tr>
+<tr><td><code>COMPLETED → DISPUTED</code></td><td>disputa só pode ser aberta antes da conclusão. Após COMPLETED, o caminho é contestação extrajudicial.</td></tr>
+<tr><td><code>CANCELLED → DISPUTED</code></td><td>estado terminal. Inconformidade pós-cancelamento vai para suporte externo.</td></tr>
+<tr><td>qualquer empresa em campos do freelancer</td><td>validação de RBAC: empresa não pode fazer transições que são do freelancer e vice-versa, mesmo com token válido.</td></tr>
+<tr><td><code>SELECTED → IN_PROGRESS</code> (sem ACCEPTED)</td><td>chat não está aberto, pagamento não foi confirmado, contrato não foi aceito formalmente.</td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="section">
+<h2>Implementação da FSM (TypeScript)</h2>
+<pre style="background:var(--surface);padding:14px;border-radius:8px;font-size:12px;overflow-x:auto;line-height:1.6"><code>type OrderStatus = 'DRAFT' | 'PUBLISHED' | 'IN_APPLICATION' | 'SELECTED'
+  | 'ACCEPTED' | 'IN_PROGRESS' | 'PENDING_REVIEW' | 'ADJUSTMENT_REQUESTED'
+  | 'APPROVED' | 'COMPLETED' | 'DISPUTED' | 'CANCELLED';
+
+type ActorRole = 'EMPRESA' | 'FREELANCER' | 'SISTEMA' | 'ADMIN';
+
+interface Transition {
+  from: OrderStatus;
+  to: OrderStatus;
+  allowedActors: ActorRole[];
+  guard: (order: Order, actor: User) =&gt; boolean | Promise&lt;boolean&gt;;
+  onTransition: (order: Order, actor: User, ctx: TransitionContext) =&gt; Promise&lt;void&gt;;
+}
+
+const TRANSITIONS: Transition[] = [
+  {
+    from: 'DRAFT', to: 'PUBLISHED',
+    allowedActors: ['EMPRESA'],
+    guard: (o) =&gt; !!o.title &amp;&amp; o.title.length &gt;= 10
+              &amp;&amp; !!o.description &amp;&amp; o.description.length &gt;= 50
+              &amp;&amp; !!o.deadline_at &amp;&amp; o.deadline_at &gt; addHours(new Date(), 24),
+    onTransition: async (o, _, ctx) =&gt; {
+      await ctx.eventBus.emit('order.published', { orderId: o.id });
+      await ctx.searchIndex.index(o); // Elasticsearch
+    }
+  },
+  {
+    from: 'SELECTED', to: 'ACCEPTED',
+    allowedActors: ['FREELANCER'],
+    guard: async (o, actor) =&gt; {
+      if (o.selected_freelancer_id !== actor.freelancer_id) return false;
+      const payment = await ctx.paymentRepo.findByOrder(o.id);
+      return payment?.status === 'AUTHORIZED'; // escrow pré-autorizado
+    },
+    onTransition: async (o, _, ctx) =&gt; {
+      await ctx.chatService.createChannel(o.id);   // libera chat
+      await ctx.paymentService.capture(o.id);       // captura escrow
+      await ctx.eventBus.emit('order.accepted', { orderId: o.id });
+    }
+  },
+  {
+    from: 'APPROVED', to: 'COMPLETED',
+    allowedActors: ['SISTEMA'],
+    guard: async (o) =&gt; {
+      const daysSinceApproval = diffInDays(new Date(), o.approved_at!);
+      return daysSinceApproval &gt;= ESCROW_RELEASE_DAYS;
+    },
+    onTransition: async (o, _, ctx) =&gt; {
+      await ctx.paymentService.release(o.id);
+      await ctx.ratingService.openWindow(o.id); // abre janela 72h
+      await ctx.reputationService.scheduleUpdate(o);
+      await ctx.eventBus.emit('order.completed', { orderId: o.id });
+    }
+  }
+  // ... demais transições
+];
+
+async function transition(
+  orderId: string,
+  toStatus: OrderStatus,
+  actor: User,
+  reason?: string
+): Promise&lt;void&gt; {
+  const order = await orderRepo.findById(orderId);
+  const rule = TRANSITIONS.find(t =&gt; t.from === order.status &amp;&amp; t.to === toStatus);
+
+  if (!rule) throw new InvalidTransitionError(order.status, toStatus);
+  if (!rule.allowedActors.includes(actor.role)) throw new ForbiddenTransitionError();
+  if (!await rule.guard(order, actor)) throw new TransitionGuardError();
+
+  await db.transaction(async (trx) =&gt; {
+    await trx('orders').update({ status: toStatus }).where({ id: orderId });
+    await trx('order_status_history').insert({
+      order_id: orderId, from_status: order.status, to_status: toStatus,
+      actor_id: actor.id, actor_role: actor.role, reason
+    });
+    await rule.onTransition(order, actor, { trx, ...services });
+  });
+}</code></pre>
+</div>
+
+</body>
+</html>
